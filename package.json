@@ -1,0 +1,29 @@
+{
+  "name": "roui3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently -k -s first \"npm run watch\" \"rojo serve serve.project.json\"",
+    "build": "rbxtsc",
+    "watch": "rbxtsc -w --verbose"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rbxts/compiler-types": "^1.2.7-types.1",
+    "@rbxts/types": "^1.0.552",
+    "concurrently": "^6.4.0"
+  },
+  "dependencies": {
+    "@rbxts/flipper": "^2.0.1",
+    "@rbxts/hook-bag": "0.0.9",
+    "@rbxts/roact": "^1.4.0-ts.2",
+    "@rbxts/roact-hooks": "^0.3.0-ts.2",
+    "@rbxts/roact-rodux": "^0.2.2-ts.5",
+    "@rbxts/rodux": "^3.0.0-ts.3",
+    "@rbxts/rust-classes": "^0.11.0-beta.1",
+    "@rbxts/services": "^1.2.0"
+  }
+}
