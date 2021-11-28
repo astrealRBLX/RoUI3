@@ -16,7 +16,7 @@ import { getPlugin } from 'utils/plugin';
 import { styleColor, styleMod } from 'utils/studioStyleGuide';
 import { getSupportedProperties } from 'utils/supportedProperties';
 import { getWidgetManager } from 'utils/widgets';
-import { TextBox } from 'textbox';
+import { TextBox } from 'components/textbox';
 
 interface IStateProps {
   theme: StudioTheme;
