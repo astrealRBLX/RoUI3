@@ -60,7 +60,7 @@ const ScrubberComponent: RoactHooks.FC<IProps> = (
         ZIndex={101}
       >
         <imagebutton
-          ZIndex={1002}
+          ZIndex={102}
           Size={new UDim2(1, 0, 1, 0)}
           Image={'rbxassetid://788089696'}
           Rotation={180}
@@ -75,12 +75,12 @@ const ScrubberComponent: RoactHooks.FC<IProps> = (
             },
             InputBegan: (rbx, input) => {
               if (input.UserInputType === Enum.UserInputType.MouseButton1) {
+                plugin.GetMouse().Icon = 'rbxasset://SystemCursors/ClosedHand';
+
                 OnDrag(
                   widgetManager.widgets.timeline.GetRelativeMousePosition().X -
                     rbx.AbsolutePosition.X
                 );
-
-                plugin.GetMouse().Icon = 'rbxasset://SystemCursors/ClosedHand';
               }
             },
             InputEnded: (_, input) => {
