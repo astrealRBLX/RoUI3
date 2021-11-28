@@ -13,6 +13,7 @@ interface IProps extends IStateProps {
   TextChange?: (rbx: TextBox) => void;
 }
 
+// Textbox component for use in the timeline root topbar
 const TextBoxComponent: RoactHooks.FC<IProps> = ({
   theme,
   LabelText,

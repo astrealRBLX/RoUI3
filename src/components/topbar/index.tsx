@@ -9,6 +9,7 @@ interface IStateProps {
 
 interface IProps extends IStateProps {}
 
+// Topbar component that renders children in a horizontal list
 const TopbarComponent = (props: Roact.PropsWithChildren<IProps>) => {
   const { theme } = props;
 

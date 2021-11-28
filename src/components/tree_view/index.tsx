@@ -28,7 +28,9 @@ interface IState {
   rows: IRow[];
 }
 
-// Nasty class component is needed here :(
+// TreeView component that takes a root instance and renders
+// an instance tree from it
+//     Nasty class component is needed here :(
 class TreeViewComponent extends Roact.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
@@ -117,8 +119,6 @@ class TreeViewComponent extends Roact.Component<IProps, IState> {
       const key = `${row.item.Name}#${tostring(index)}`;
       children.push(this.renderRow(row, key));
     });
-
-    // print(this.state.rows);
 
     return (
       <Container Padding={2} Size={this.props.Size} ContainerTransparency={1}>

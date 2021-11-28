@@ -20,6 +20,7 @@ interface IProps extends IStateProps, IDispatchProps {}
 
 const SelectionService = game.GetService('Selection');
 
+// Represents the start widget's root
 const StartRoot: RoactHooks.FC<IProps> = (
   { theme, setRoot },
   { useState, useEffect, useCallback }

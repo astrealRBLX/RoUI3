@@ -1,11 +1,11 @@
 let plugin: Plugin;
 
+// Set the app's plugin
 export function setPlugin(plug: Plugin) {
-  print('setting plugin to', plug);
   plugin = plug;
 }
 
+// Get the app's plugin
 export function getPlugin() {
-  print('current plugin: ', plugin);
   return plugin;
 }

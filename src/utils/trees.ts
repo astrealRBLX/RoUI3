@@ -6,6 +6,7 @@ interface ITrees {
   timeline: Option<Roact.Tree>;
 }
 
+// Manages multiple Roact trees
 export class TreeManager {
   trees: ITrees;
 
@@ -19,11 +20,13 @@ export class TreeManager {
 
 let treeManager: TreeManager;
 
+// Create the app's tree manager
 export const createTreeManager = () => {
   treeManager = new TreeManager();
   return treeManager;
 };
 
+// Get the app's tree manager
 export const getTreeManager = () => {
   return treeManager;
 };

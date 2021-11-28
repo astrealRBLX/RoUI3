@@ -20,6 +20,8 @@ interface IProps extends IStateProps {
 const plugin = getPlugin();
 const widgetManager = getWidgetManager();
 
+// Resizable panel component that will render two elements side by side
+// with a draggable resize bar in the middle
 const ResizablePanelsComponent: RoactHooks.FC<IProps> = (
   { theme, Panel1, Panel2, Panel1SizeX, OnResize },
   { useState, useEffect, useValue }

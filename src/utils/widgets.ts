@@ -3,6 +3,7 @@ interface IWidgets {
   timeline: DockWidgetPluginGui;
 }
 
+// Manages multiple plugin widgets
 export class WidgetsManager {
   widgets: IWidgets;
 
@@ -44,11 +45,13 @@ export class WidgetsManager {
 
 let widgetManager: WidgetsManager;
 
+// Create the app's widget manager
 export const createWidgetManager = (plugin: Plugin) => {
   widgetManager = new WidgetsManager(plugin);
   return widgetManager;
 };
 
+// Get the app's widget manager
 export const getWidgetManager = () => {
   return widgetManager;
 };

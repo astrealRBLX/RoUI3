@@ -1,6 +1,5 @@
 import Roact from '@rbxts/roact';
 import RoactHooks from '@rbxts/roact-hooks';
-import { RunService } from '@rbxts/services';
 import { getPlugin } from 'utils/plugin';
 import { getWidgetManager } from 'utils/widgets';
 
@@ -26,9 +25,10 @@ const rgb = [
 const plugin = getPlugin();
 const widgetManager = getWidgetManager();
 
+// Scrubber component that is used to move along the timeline
 const ScrubberComponent: RoactHooks.FC<IProps> = (
   { OnDrag, ScrubberPos, OnDragEnd },
-  { useState, useEffect, useValue }
+  { useState, useEffect }
 ) => {
   const [scrubberColor, setScrubberColor] = useState(new Color3(1, 1, 1));
 
@@ -52,6 +52,7 @@ const ScrubberComponent: RoactHooks.FC<IProps> = (
         VerticalAlignment={Enum.VerticalAlignment.Top}
         SortOrder={Enum.SortOrder.LayoutOrder}
       />
+      {/* Scrubber Head */}
       <frame
         Size={new UDim2(1, 0, 0, 14)}
         BackgroundTransparency={1}
@@ -91,6 +92,8 @@ const ScrubberComponent: RoactHooks.FC<IProps> = (
           }}
         />
       </frame>
+
+      {/* Scrubber Tail */}
       <frame
         LayoutOrder={2}
         Size={new UDim2(0, 1, 1, -14)}

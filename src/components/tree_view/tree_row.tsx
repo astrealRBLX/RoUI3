@@ -19,6 +19,7 @@ interface IProps extends IStateProps {
 
 const StudioService = game.GetService('StudioService');
 
+// TreeRow component that represents a single row in an instance tree (rendered by a TreeView)
 const TreeRowComponent: RoactHooks.FC<IProps> = (
   { theme, Row, IsSelected, IsExpanded, OnToggled, OnSelected },
   { useState }
@@ -36,7 +37,6 @@ const TreeRowComponent: RoactHooks.FC<IProps> = (
   const arrowSize = 12;
   const actualIconSize = 14;
   const labelOffset = indent + arrowSize + 2 * padding;
-  // const textOffset = iconInfo.ImageRectSize.X + 3 * padding;
   const textOffset = actualIconSize + 2 * padding;
 
   return (

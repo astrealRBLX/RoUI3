@@ -9,9 +9,7 @@
   ~ Astreal
 */
 
-let activating = true;
 plugin.Activate(true);
-activating = false;
 
 import { setPlugin } from 'utils/plugin';
 import { createTreeManager } from 'utils/trees';
@@ -45,6 +43,7 @@ if (!RunService.IsRunning()) {
   );
 }
 
+// Utility function for unmounting a tree wrapped in an option
 const cleanupTree = (tree: Option<Roact.Tree>, cb?: () => void) => {
   if (tree.isSome()) {
     Roact.unmount(tree.unwrap());
@@ -72,6 +71,7 @@ animateButton.Click.Connect(() => {
   // TODO: Will eventually mount start tree
 });
 
+// TODO: Remove button (temporary for manual cleanup)
 fix.Click.Connect(() => {
   cleanupTree(
     treeManager.trees.start,
@@ -83,6 +83,7 @@ fix.Click.Connect(() => {
   );
 });
 
+// Cleanup on unload
 plugin.Unloading.Connect(() => {
   cleanupTree(
     treeManager.trees.start,
@@ -94,6 +95,7 @@ plugin.Unloading.Connect(() => {
   );
 });
 
+// Update store when studio theme changes
 settings().Studio.ThemeChanged.Connect(() => {
   AppStore.dispatch({
     type: 'SetTheme',

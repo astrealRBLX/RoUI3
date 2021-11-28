@@ -44,6 +44,7 @@ const timelineWidget = widgetManager.widgets.timeline;
   a bunch of smaller ones and just hoist state up
 */
 
+// Represents the timeline widget's root
 const TimelineRoot: RoactHooks.FC<IProps> = (
   { theme, root, instances, updateKeyframe },
   { useState, useEffect, useValue, useCallback }
@@ -69,6 +70,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const scrubbing = useValue(false);
   const scrubberMouseOffset = useValue(0);
 
+  // Scrubber positioning effect
   useEffect(() => {
     const conn = RunService.RenderStepped.Connect(() => {
       const container = scrubberContainerRef.getValue();
@@ -93,6 +95,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     };
   }, [scrubberContainerRef]);
 
+  // Generate supported properties for the selected instance
   const supportedProperties: Option<string[]> = selected.match(
     (val) => {
       return Option.some(getSupportedProperties(val.ClassName as never)); // Cheating but I suck with types so...
@@ -112,6 +115,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     }
   }, [supportedProperties, propertyDropdownValue]);
 
+  // Generate timeline property names & property keyframes
   const timelineContentProperties: Roact.Element[] = [];
   const timelineContentKeyframes: Roact.Element[] = [];
   if (selected.isSome() && instances.get(selected.unwrap())) {
@@ -395,8 +399,10 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 }
               }}
               OnSelectionChange={(item) => {
+                // Handle instance tree selections to only be a GuiObject
                 if (!item.IsA('GuiObject')) return;
 
+                // Handle new selections & unselecting
                 selected.match(
                   (val) => {
                     if (val === item) {
@@ -446,10 +452,12 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 <Scrubber
                   ScrubberPos={scrubberPos}
                   OnDrag={(mouseOffset) => {
+                    // Update the scrubber's mouse offset & start scrubbing
                     scrubberMouseOffset.value = mouseOffset;
                     scrubbing.value = true;
                   }}
                   OnDragEnd={() => {
+                    // Stop scrubbing
                     scrubbing.value = false;
                   }}
                 />
@@ -471,7 +479,8 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               Padding={{
                 PaddingLeft: 150,
               }}
-              InputBegan={(rbx: Frame, input: InputObject) => {
+              InputBegan={(_, input: InputObject) => {
+                // Handle clicking on the timestamp container to move the scrubber
                 const container = scrubberContainerRef.getValue();
                 if (
                   input.UserInputType === Enum.UserInputType.MouseButton1 &&

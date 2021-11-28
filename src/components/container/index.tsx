@@ -56,6 +56,7 @@ const computeMarginPadding = (obj?: number | MarginPaddingTable) => {
   }
 };
 
+// Container component with custom margin & padding support
 export const Container = (props: Roact.PropsWithChildren<IProps>) => {
   const {
     Active,

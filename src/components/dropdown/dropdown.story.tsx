@@ -3,6 +3,8 @@ import RoactRodux from '@rbxts/roact-rodux';
 import { AppStore } from 'rodux/store';
 import { Dropdown } from '.';
 
+// The dropdown for this story will not properly display
+// as a result of it requiring a parent component to manage state
 export = (preview: Instance) => {
   const tree = Roact.mount(
     <RoactRodux.StoreProvider store={AppStore}>

@@ -13,6 +13,7 @@ const sharedProperties = [
   'ZIndex',
 ];
 
+// Resolves supported timeline properties based on instance class
 export const getSupportedProperties = (
   className:
     | 'ImageButton'

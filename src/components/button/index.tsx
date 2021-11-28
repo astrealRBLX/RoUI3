@@ -35,6 +35,7 @@ interface IProps extends IStateProps {
   Disabled?: boolean;
 }
 
+// Button component with styling & state
 const ButtonComponent = ({
   Text,
   Size,
