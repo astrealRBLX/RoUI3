@@ -24,3 +24,67 @@ RoUI3's primary plugin widget is known as the Timeline. The Timeline allows you 
 A stable release of RoUI3 is not currently available as it is still in development. However, you may compile RoUI3 yourself using [roblox-ts](https://roblox-ts.com/) for an experimental build.
 
 <!-- You can install the latest stable release of RoUI3 directly from the Roblox marketplace [here](#). Alternatively, you can compile the source yourself using [roblox-ts](https://roblox-ts.com/) for the most recent and experimental version. -->
+
+## Roadmap
+
+This is RoUI3's roadmap for every major and minor release and beyond!
+
+| Icon | Meaning           |
+|------|-------------------|
+| ✔️  | Completed         |
+| 🔜  | In Progress       |
+| ❔   | Being Reviewed    |
+| ❌  | Incomplete        |
+
+
+### Release v1.0.0
+
+The initial release of RoUI3! 🥳
+
+- ✔️ Start widget
+- 🔜 Timeline widget
+  - 🔜 Topbar
+    - ✔️ Scrubber time textbox
+    - ✔️ Max time textbox
+    - ✔️ Add property dropdown menu
+    - ❔ Save/export animation button
+    - ❌ Selected keyframe options
+      - ❌ Current time position textbox
+      - ❌ Frequency / damping ratio textboxes for springs
+      - ❌ Easing style / direction dropdown menus for tweens
+    - ❌ Preview button
+    - ❌ Scrubber automatic preview toggle button
+  - 🔜 Timeline content
+    - 🔜 Property list
+      - ✔️ Dynamic rendering based on app state
+      - ❔ Delete property with right-click context menu
+    - 🔜 Timestamp header
+      - 🔜 Dynamic timestamps based on max animation time
+      - ✔️ Click to jump scrubber to position
+    - 🔜 Scrubber
+      - ✔️ Drag to update time
+      - ❌ Hold `SHIFT` while dragging to snap
+        - ❌ Snap to keyframes
+        - ❌  Snap to timestamps
+      - ❌ Preview keyframes based on scrubber time
+    - 🔜 Timeline pane
+      - ✔️ Dynamic keyframe rendering based on app state
+      - ❔ Keyframes
+        - ❔ Selection support
+        - ❌ Right-click context menu
+          - ❌ Delete keyframe
+          - ❌ Set keyframe type to spring or tween
+        - ❌ `CTRL` click support for selecting multiple keyframes
+        - ❌ `SHIFT` drag support for moving a keyframe
+- ❌ Exporting
+  - ❌ Data serialization
+- ❌ Importing
+  - ❌ Data deserialization
+- ❌ Animation controller module
+  - ❌ Play an animation
+  - ❌ Support animation options
+    - ❌ Speed scale
+    - ❌ Reverse
+  - ❌ Pause an animation
+  - ❌ Skip to end of an animation
+  - ❌ Reusable animations
