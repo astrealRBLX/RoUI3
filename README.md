@@ -58,14 +58,14 @@ The initial release of RoUI3! 🥳
     - 🔜 Property list
       - ✔️ Dynamic rendering based on app state
       - ❔ Delete property with right-click context menu
-    - 🔜 Timestamp header
-      - 🔜 Dynamic timestamps based on max animation time
+    - ✔️ Timestamp header
+      - ✔️ Dynamic timestamps based on max animation time
       - ✔️ Click to jump scrubber to position
     - 🔜 Scrubber
       - ✔️ Drag to update time
-      - ❌ Hold `SHIFT` while dragging to snap
-        - ❌ Snap to keyframes
-        - ❌  Snap to timestamps
+      - ✔️ `SHIFT` toggles snap mode while dragging
+        - ❔ Snap to keyframes
+        - ✔️ Snap to timestamps
       - ❌ Preview keyframes based on scrubber time
     - 🔜 Timeline pane
       - ✔️ Dynamic keyframe rendering based on app state
@@ -75,7 +75,7 @@ The initial release of RoUI3! 🥳
           - ❌ Delete keyframe
           - ❌ Set keyframe type to spring or tween
         - ❌ `CTRL` click support for selecting multiple keyframes
-        - ❌ `SHIFT` drag support for moving a keyframe
+        - ❌ Long press support for moving a keyframe
 - ❌ Exporting
   - ❌ Data serialization
 - ❌ Importing
