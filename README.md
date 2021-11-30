@@ -64,7 +64,7 @@ The initial release of RoUI3! 🥳
     - 🔜 Scrubber
       - ✔️ Drag to update time
       - ✔️ `SHIFT` toggles snap mode while dragging
-        - ❔ Snap to keyframes
+        - ✔️ Snap to keyframes
         - ✔️ Snap to timestamps
       - ❌ Preview keyframes based on scrubber time
     - 🔜 Timeline pane
