@@ -27,6 +27,7 @@ interface IProps {
   ExternalChildren?: Roact.Element[]; // External children to rendered in the outer container frame
   ContainerRef?: Roact.Ref<Instance>; // Ref to the external container
   InputBegan?: (rbx: Frame, input: InputObject) => void;
+  InputEnded?: (rbx: Frame, input: InputObject) => void;
 }
 
 const computeMarginPadding = (obj?: number | MarginPaddingTable) => {
@@ -76,6 +77,7 @@ export const Container = (props: Roact.PropsWithChildren<IProps>) => {
     ExternalChildren,
     ContainerRef,
     InputBegan,
+    InputEnded,
   } = props;
 
   const Margin = computeMarginPadding(props.Margin);
@@ -113,6 +115,7 @@ export const Container = (props: Roact.PropsWithChildren<IProps>) => {
           ZIndex={(ZIndex ?? 1) + 1}
           Event={{
             InputBegan: InputBegan,
+            InputEnded: InputEnded,
           }}
         >
           {/* Padding */}
