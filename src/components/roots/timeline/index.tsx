@@ -17,6 +17,7 @@ import { styleColor, styleMod } from 'utils/studioStyleGuide';
 import { getSupportedProperties } from 'utils/supportedProperties';
 import { getWidgetManager } from 'utils/widgets';
 import { TextBox } from 'components/textbox';
+import { getNearestDistance } from 'utils/getNearestDistance';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -47,7 +48,7 @@ const timelineWidget = widgetManager.widgets.timeline;
 // Represents the timeline widget's root
 const TimelineRoot: RoactHooks.FC<IProps> = (
   { theme, root, instances, updateKeyframe },
-  { useState, useEffect, useValue, useCallback }
+  { useState, useEffect, useValue, useMemo }
 ) => {
   /* Topbar */
   const [propertyDropdownValue, setPropertyDropdownValue] = useState('UNKNOWN'); // TODO: Implement a better way of doing this
@@ -69,6 +70,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const scrubberContainerRef = Roact.createRef<Frame>();
   const scrubbing = useValue(false);
   const scrubberMouseOffset = useValue(0);
+  const shouldSnap = useValue(false);
+  const isKeyframeSnapEnabled = useValue(false);
+  const rawTimelineTimestamps = useValue<number[]>([]);
 
   // Scrubber positioning effect
   useEffect(() => {
@@ -86,23 +90,64 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
         plugin.GetMouse().Icon = 'rbxasset://SystemCursors/ClosedHand';
 
-        setScrubberPos(newScrubberPos);
+        // Handle scrubber snapping
+        if (shouldSnap.value) {
+          const nearestTimestamp = getNearestDistance(
+            newScrubberPos,
+            rawTimelineTimestamps.value
+          );
+
+          if (
+            isKeyframeSnapEnabled.value &&
+            selected.isSome() &&
+            instances.get(selected.unwrap())
+          ) {
+            const currentProperties = instances.get(
+              selected.unwrap()
+            )!.properties;
+
+            // Flatten keyframe time positions, remove duplicates, and convert to 0 to 1 scale range
+            const flattenedKeyfs: Set<number> = new Set();
+            currentProperties.forEach((propertyData) => {
+              propertyData.keyframes.forEach((kf) => {
+                flattenedKeyfs.add(kf.position / maxTime);
+              });
+            });
+
+            const nearestKeyframe = getNearestDistance(newScrubberPos, [
+              ...flattenedKeyfs,
+            ]);
+
+            if (nearestKeyframe.distance < nearestTimestamp.distance) {
+              setScrubberPos(nearestKeyframe.position);
+              return;
+            }
+          }
+
+          setScrubberPos(nearestTimestamp.position);
+        } else {
+          setScrubberPos(newScrubberPos);
+        }
       }
     });
 
     return () => {
       conn.Disconnect();
     };
-  }, [scrubberContainerRef]);
+  }, [scrubberContainerRef, instances, selected]);
 
   // Generate supported properties for the selected instance
-  const supportedProperties: Option<string[]> = selected.match(
-    (val) => {
-      return Option.some(getSupportedProperties(val.ClassName as never)); // Cheating but I suck with types so...
-    },
-    () => {
-      return Option.none();
-    }
+  const supportedProperties: Option<string[]> = useMemo(
+    () =>
+      selected.match(
+        (val) => {
+          return Option.some(getSupportedProperties(val.ClassName as never)); // Cheating but I suck with types so...
+        },
+        () => {
+          return Option.none();
+        }
+      ),
+    [selected]
   );
 
   // Recalculate property dropdown value if it's invalid on the selected instance
@@ -116,60 +161,106 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   }, [supportedProperties, propertyDropdownValue]);
 
   // Generate timeline property names & property keyframes
-  const timelineContentProperties: Roact.Element[] = [];
-  const timelineContentKeyframes: Roact.Element[] = [];
-  if (selected.isSome() && instances.get(selected.unwrap())) {
-    const selectedInstanceData = instances.get(selected.unwrap());
-    selectedInstanceData!.properties.forEach((propertyData, propertyName) => {
-      timelineContentProperties.push(
-        <textlabel
-          Text={propertyName}
-          TextScaled={false}
-          TextSize={14}
-          TextColor3={theme.GetColor(styleColor.MainText)}
-          Font={Enum.Font.SourceSans}
-          Size={new UDim2(1, 0, 0, 20)}
-          BackgroundColor3={theme.GetColor(styleColor.TabBar)}
-          BorderSizePixel={1}
-          BorderColor3={theme.GetColor(styleColor.ButtonBorder)}
-          BorderMode={Enum.BorderMode.Inset}
-          TextXAlignment={Enum.TextXAlignment.Left}
-        ></textlabel>
-      );
+  const [timelineContentProperties, timelineContentKeyframes] = useMemo(() => {
+    const timelineProps: Roact.Element[] = [];
+    const timelineKeyfs: Roact.Element[] = [];
 
-      const keyframes: Roact.Element[] = [];
-      propertyData.keyframes.forEach((kf) => {
-        keyframes.push(
-          <imagebutton
-            AnchorPoint={new Vector2(0.5, 0.5)}
-            Size={new UDim2(0, 12, 0, 12)}
-            Position={new UDim2(kf.position / maxTime, 0, 0.5, 0)}
-            AutoButtonColor={false}
-            ZIndex={150}
-            Image={'rbxassetid://3141874560'}
-            ImageColor3={Color3.fromRGB(41, 209, 158)}
-            BackgroundTransparency={1}
-          />
+    if (selected.isSome() && instances.get(selected.unwrap())) {
+      const selectedInstanceData = instances.get(selected.unwrap());
+      selectedInstanceData!.properties.forEach((propertyData, propertyName) => {
+        timelineProps.push(
+          <textlabel
+            Text={propertyName}
+            TextScaled={false}
+            TextSize={14}
+            TextColor3={theme.GetColor(styleColor.MainText)}
+            Font={Enum.Font.SourceSans}
+            Size={new UDim2(1, 0, 0, 20)}
+            BackgroundColor3={theme.GetColor(styleColor.TabBar)}
+            BorderSizePixel={1}
+            BorderColor3={theme.GetColor(styleColor.ButtonBorder)}
+            BorderMode={Enum.BorderMode.Inset}
+            TextXAlignment={Enum.TextXAlignment.Left}
+          ></textlabel>
+        );
+
+        const keyframes: Roact.Element[] = [];
+        propertyData.keyframes.forEach((kf) => {
+          keyframes.push(
+            <imagebutton
+              AnchorPoint={new Vector2(0.5, 0.5)}
+              Size={new UDim2(0, 12, 0, 12)}
+              Position={new UDim2(kf.position / maxTime, 0, 0.5, 0)}
+              AutoButtonColor={false}
+              ZIndex={95}
+              Image={'rbxassetid://6193144704'}
+              ImageColor3={Color3.fromRGB(41, 209, 158)}
+              BackgroundTransparency={1}
+            />
+          );
+        });
+
+        timelineKeyfs.push(
+          <frame Size={new UDim2(1, 0, 0, 20)} BackgroundTransparency={1}>
+            {/* Keyframe Line */}
+            <frame
+              Size={new UDim2(1, 0, 0, 1)}
+              AnchorPoint={new Vector2(0, 0.5)}
+              Position={new UDim2(0, 0, 0.5, 0)}
+              BorderSizePixel={0}
+              BackgroundColor3={theme.GetColor(styleColor.DimmedText)}
+            ></frame>
+
+            {/* Keyframes */}
+            {...keyframes}
+          </frame>
         );
       });
+    }
 
-      timelineContentKeyframes.push(
-        <frame Size={new UDim2(1, 0, 0, 20)} BackgroundTransparency={1}>
-          {/* Keyframe Line */}
+    return [timelineProps, timelineKeyfs];
+  }, [selected, instances]);
+
+  // Generate timeline timestamps
+  const [timelineTimestamps, rawTimestamps] = useMemo(() => {
+    const timestamps: Roact.Element[] = [];
+    const raw: number[] = [0];
+
+    const individualSize = 1 / 20;
+    let currentIter = 1;
+    for (let i = maxTime / 20; i <= maxTime; i += maxTime / 20) {
+      raw.push(individualSize * currentIter);
+      timestamps.push(
+        <frame
+          Size={new UDim2(individualSize, 0, 1, 0)}
+          BackgroundTransparency={1}
+        >
           <frame
-            Size={new UDim2(1, 0, 0, 1)}
-            AnchorPoint={new Vector2(0, 0.5)}
-            Position={new UDim2(0, 0, 0.5, 0)}
+            AnchorPoint={new Vector2(1, 0)}
+            Size={new UDim2(0, 1, currentIter % 2 === 0 ? 0.9 : 0.75, 0)}
+            Position={new UDim2(1, 0, 0, 0)}
             BorderSizePixel={0}
-            BackgroundColor3={theme.GetColor(styleColor.DimmedText)}
-          ></frame>
-
-          {/* Keyframes */}
-          {...keyframes}
+            BackgroundColor3={theme.GetColor(styleColor.Light)}
+          />
+          <textlabel
+            Text={string.format('%.2f', i)}
+            TextColor3={theme.GetColor(styleColor.DimmedText)}
+            BackgroundTransparency={1}
+            Size={new UDim2(1, -5, 1, 0)}
+            Font={Enum.Font.SourceSans}
+            TextXAlignment={Enum.TextXAlignment.Right}
+            TextYAlignment={Enum.TextYAlignment.Top}
+            TextSize={12}
+          />
         </frame>
       );
-    });
-  }
+      currentIter++;
+    }
+
+    return [timestamps, raw];
+  }, [maxTime]);
+
+  rawTimelineTimestamps.value = [...rawTimestamps];
 
   return (
     <Container
@@ -183,7 +274,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           Active={false}
           Size={new UDim2(1, 0, 1, 0)}
           BackgroundTransparency={1}
-          ZIndex={100}
+          ZIndex={190}
           Event={{
             InputBegan: (_, input) => {
               if (input.UserInputType === Enum.UserInputType.MouseButton1) {
@@ -195,6 +286,14 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           }}
         />,
       ]}
+      InputBegan={(_, input) => {
+        if (input.UserInputType !== Enum.UserInputType.Keyboard) return;
+        if (input.KeyCode === Enum.KeyCode.LeftShift) {
+          shouldSnap.value = !shouldSnap.value;
+        } else if (input.KeyCode === Enum.KeyCode.K) {
+          isKeyframeSnapEnabled.value = !isKeyframeSnapEnabled.value;
+        }
+      }}
     >
       <uilistlayout
         FillDirection={Enum.FillDirection.Vertical}
@@ -479,7 +578,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               Padding={{
                 PaddingLeft: 150,
               }}
-              InputBegan={(_, input: InputObject) => {
+              InputBegan={(_, input) => {
                 // Handle clicking on the timestamp container to move the scrubber
                 const container = scrubberContainerRef.getValue();
                 if (
@@ -487,15 +586,27 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   !scrubbing.value &&
                   container
                 ) {
-                  setScrubberPos(
-                    (timelineWidget.GetRelativeMousePosition().X -
-                      container.AbsolutePosition.X +
-                      0) /
-                      container.AbsoluteSize.X
-                  );
+                  scrubberMouseOffset.value = 7;
+                  scrubbing.value = true;
                 }
               }}
-            ></Container>
+              InputEnded={(_, input) => {
+                if (input.UserInputType === Enum.UserInputType.MouseButton1) {
+                  // Finish scrubbing after jump
+                  if (scrubbing.value) {
+                    scrubbing.value = false;
+                  }
+                }
+              }}
+            >
+              <uilistlayout
+                FillDirection={Enum.FillDirection.Horizontal}
+                HorizontalAlignment={Enum.HorizontalAlignment.Left}
+                VerticalAlignment={Enum.VerticalAlignment.Center}
+                SortOrder={Enum.SortOrder.LayoutOrder}
+              />
+              {...timelineTimestamps}
+            </Container>
 
             {/* Timeline Content */}
             <scrollingframe
@@ -525,7 +636,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               {/* Keyframes */}
               <frame
                 Size={new UDim2(1, -150, 1, 0)}
-                Position={new UDim2(0, 150, 0, 0)}
+                Position={new UDim2(0, 149, 0, 0)}
                 BorderSizePixel={0}
                 BackgroundTransparency={1}
               >
