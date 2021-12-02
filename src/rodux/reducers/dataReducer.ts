@@ -4,6 +4,7 @@ import {
   ActionSetCurrentRoot,
   KeyframeValue,
   ActionUpdateKeyframe,
+  ActionCreateInstanceProperty,
 } from 'rodux/actions/dataActions';
 
 export type InstanceData = Map<
@@ -31,7 +32,10 @@ const initialState: IDataReducer = {
   instances: new Map(),
 };
 
-export type DataActions = ActionSetCurrentRoot | ActionUpdateKeyframe;
+export type DataActions =
+  | ActionSetCurrentRoot
+  | ActionUpdateKeyframe
+  | ActionCreateInstanceProperty;
 
 export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
   initialState,
@@ -43,11 +47,34 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
           action.root !== undefined ? Option.some(action.root) : Option.none(),
       };
     },
+
+    CreateInstanceProperty: (state, action) => {
+      const newState: IDataReducer = { ...state };
+
+      newState.instances.set(action.instance, {
+        ...state.instances.get(action.instance),
+        properties: new Map([
+          ...(state.instances.get(action.instance)
+            ? state.instances.get(action.instance)!.properties
+            : (new Map() as never)),
+          [
+            action.property,
+            {
+              keyframes: [],
+            },
+          ],
+        ]),
+      });
+
+      return newState;
+    },
+
     /*
       TODO: Find a better way of doing this...
       Immutable state is hard to work with :(
     */
     UpdateKeyframe: (state, action) => {
+      const inst = state.instances.get(action.instance);
       const newState: IDataReducer = {
         ...state,
         instances: new Map([
@@ -55,87 +82,31 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
           [
             action.instance,
             {
-              ...state.instances.get(action.instance),
-              properties: new Map(),
+              ...inst,
+              properties: new Map([
+                ...(inst ? inst.properties : (new Map() as never)),
+                [
+                  action.property,
+                  {
+                    ...(inst ? inst.properties.get(action.property) : []),
+                    keyframes: [
+                      ...(inst
+                        ? inst.properties.get(action.property)
+                          ? inst.properties.get(action.property)!.keyframes
+                          : []
+                        : []),
+                      {
+                        position: action.position,
+                        value: action.value,
+                      },
+                    ],
+                  },
+                ],
+              ]),
             },
           ],
         ]),
       };
-
-      const existingInstance = state.instances.get(action.instance);
-      if (existingInstance) {
-        newState.instances.get(action.instance)!.properties = new Map([
-          ...existingInstance.properties,
-          [
-            action.property,
-            {
-              keyframes: [],
-            },
-          ],
-        ]);
-
-        const existingProperty = existingInstance.properties.get(
-          action.property
-        );
-        if (existingProperty) {
-          newState.instances
-            .get(action.instance)!
-            .properties.set(action.property, {
-              ...existingProperty,
-              keyframes: [...existingProperty.keyframes],
-            });
-
-          const keyframeIndex = existingProperty.keyframes.findIndex(
-            (keyframe) => {
-              return keyframe.position === action.position;
-            }
-          );
-
-          if (keyframeIndex !== -1) {
-            newState.instances
-              .get(action.instance)!
-              .properties.get(action.property)!.keyframes[keyframeIndex] = {
-              position: action.position,
-              value: action.value,
-            };
-          } else {
-            newState.instances
-              .get(action.instance)!
-              .properties.get(action.property)!
-              .keyframes.push({
-                position: action.position,
-                value: action.value,
-              });
-          }
-        } else {
-          newState.instances
-            .get(action.instance)!
-            .properties.set(action.property, {
-              keyframes: [
-                {
-                  position: action.position,
-                  value: action.value,
-                },
-              ],
-            });
-        }
-      } else {
-        newState.instances.set(action.instance, {
-          properties: new Map([
-            [
-              action.property,
-              {
-                keyframes: [
-                  {
-                    position: action.position,
-                    value: action.value,
-                  },
-                ],
-              },
-            ],
-          ]),
-        });
-      }
 
       return newState;
     },

@@ -32,6 +32,7 @@ interface IDispatchProps {
     position: number,
     value: KeyframeValue
   ) => void;
+  createProperty: (instance: Instance, property: string) => void;
 }
 
 interface IProps extends IStateProps, IDispatchProps {}
@@ -47,16 +48,16 @@ const timelineWidget = widgetManager.widgets.timeline;
 
 // Represents the timeline widget's root
 const TimelineRoot: RoactHooks.FC<IProps> = (
-  { theme, root, instances, updateKeyframe },
+  { theme, root, instances, updateKeyframe, createProperty },
   { useState, useEffect, useValue, useMemo }
 ) => {
   /* Topbar */
   const [propertyDropdownValue, setPropertyDropdownValue] = useState('UNKNOWN'); // TODO: Implement a better way of doing this
   const [propertyDropdownOpen, setPropertyDropdownOpen] = useState(false);
   const [maxTime, setMaxTime] = useState(5);
-  const changingTimeAutomatically = useValue(false);
-  const previousTimeText = useValue('0');
   const previousMaxTimeText = useValue('5');
+  const previousTimeText = useValue('0');
+  const changingTimeAutomatically = useValue(false);
 
   /* Panel */
   const [panelSizeX, setPanelSizeX] = useState(0.2);
@@ -140,14 +141,22 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const supportedProperties: Option<string[]> = useMemo(
     () =>
       selected.match(
-        (val) => {
-          return Option.some(getSupportedProperties(val.ClassName as never)); // Cheating but I suck with types so...
+        (selectedInst) => {
+          let sProps = getSupportedProperties(selectedInst.ClassName as never);
+          if (instances.get(selectedInst)) {
+            sProps = sProps.filter((val) => {
+              return (
+                instances.get(selectedInst)!.properties.get(val) === undefined
+              );
+            });
+          }
+          return Option.some(sProps); // Cheating but I suck with types so...
         },
         () => {
           return Option.none();
         }
       ),
-    [selected]
+    [selected, instances]
   );
 
   // Recalculate property dropdown value if it's invalid on the selected instance
@@ -167,6 +176,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
     if (selected.isSome() && instances.get(selected.unwrap())) {
       const selectedInstanceData = instances.get(selected.unwrap());
+
       selectedInstanceData!.properties.forEach((propertyData, propertyName) => {
         timelineProps.push(
           <textlabel
@@ -432,7 +442,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                     updateKeyframe(
                       currentSelection,
                       propertyDropdownValue,
-                      0,
+                      tonumber(string.format('%.2f', scrubberPos * maxTime))!,
                       currentSelection[
                         propertyDropdownValue as InstancePropertyNames<
                           typeof currentSelection
@@ -629,6 +639,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   FillDirection={Enum.FillDirection.Vertical}
                   HorizontalAlignment={Enum.HorizontalAlignment.Left}
                   VerticalAlignment={Enum.VerticalAlignment.Top}
+                  SortOrder={Enum.SortOrder.LayoutOrder}
                 />
                 {...timelineContentProperties}
               </frame>
@@ -672,6 +683,13 @@ export const Timeline = RoactRodux.connect(
           property: property,
           position: position,
           value: value,
+        });
+      },
+      createProperty: (instance, property) => {
+        dispatch({
+          type: 'CreateInstanceProperty',
+          instance: instance,
+          property: property,
         });
       },
     };
