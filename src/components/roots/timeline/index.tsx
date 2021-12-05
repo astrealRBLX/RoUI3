@@ -46,6 +46,12 @@ const timelineWidget = widgetManager.widgets.timeline;
   a bunch of smaller ones and just hoist state up
 */
 
+enum TimestampsRenderState {
+  All,
+  Half,
+  None,
+}
+
 // Represents the timeline widget's root
 const TimelineRoot: RoactHooks.FC<IProps> = (
   { theme, root, instances, updateKeyframe, createProperty },
@@ -55,9 +61,6 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const [propertyDropdownValue, setPropertyDropdownValue] = useState('UNKNOWN'); // TODO: Implement a better way of doing this
   const [propertyDropdownOpen, setPropertyDropdownOpen] = useState(false);
   const [maxTime, setMaxTime] = useState(5);
-  const previousMaxTimeText = useValue('5');
-  const previousTimeText = useValue('0');
-  const changingTimeAutomatically = useValue(false);
 
   /* Panel */
   const [panelSizeX, setPanelSizeX] = useState(0.2);
@@ -68,6 +71,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
   /* Scrubber */
   const [scrubberPos, setScrubberPos] = useState(0);
+  const [timestampsRenderState, setTimestampsRenderState] = useState(
+    TimestampsRenderState.All
+  );
   const scrubberContainerRef = Roact.createRef<Frame>();
   const scrubbing = useValue(false);
   const scrubberMouseOffset = useValue(0);
@@ -169,6 +175,15 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     }
   }, [supportedProperties, propertyDropdownValue]);
 
+  // Resolve max time textbox
+  useEffect(() => {
+    if (maxTime < 1) {
+      setMaxTime(1);
+    } else if (maxTime < scrubberPos) {
+      setScrubberPos(maxTime);
+    }
+  }, [maxTime, scrubberPos]);
+
   // Generate timeline property names & property keyframes
   const [timelineContentProperties, timelineContentKeyframes] = useMemo(() => {
     const timelineProps: Roact.Element[] = [];
@@ -236,9 +251,27 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     const timestamps: Roact.Element[] = [];
     const raw: number[] = [0];
 
-    const individualSize = 1 / 20;
+    let count = 20;
+    switch (timestampsRenderState) {
+      case TimestampsRenderState.All:
+        count = 20;
+        break;
+      case TimestampsRenderState.Half:
+        count = 10;
+        break;
+      case TimestampsRenderState.None:
+        count = 1;
+        break;
+    }
+
+    const individualSize = 1 / count;
     let currentIter = 1;
-    for (let i = maxTime / 20; i <= maxTime; i += maxTime / 20) {
+
+    for (
+      let i = maxTime / count;
+      i <= maxTime + maxTime / (count * 2);
+      i += maxTime / count
+    ) {
       raw.push(individualSize * currentIter);
       timestamps.push(
         <frame
@@ -268,7 +301,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     }
 
     return [timestamps, raw];
-  }, [maxTime]);
+  }, [maxTime, timestampsRenderState]);
 
   rawTimelineTimestamps.value = [...rawTimestamps];
 
@@ -318,37 +351,18 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         <TextBox
           LabelText={'Time'}
           Text={string.format('%.2f', scrubberPos * maxTime)}
-          TextChange={(rbx) => {
-            // TODO: There's definitely a better way of going about validating a textbox
-
-            if (changingTimeAutomatically.value) return;
-
-            // Filter out anything that isn't a decimal or digit
-            changingTimeAutomatically.value = true;
-            rbx.Text = rbx.Text.gsub('[^%d%.]', '')[0];
-            changingTimeAutomatically.value = false;
-
-            // Is not a valid number
-            if (tonumber(rbx.Text) === undefined) {
-              changingTimeAutomatically.value = true;
-              rbx.Text = string.format('%.2f', previousTimeText.value);
-              changingTimeAutomatically.value = false;
-              // Is a negative number
-            } else if (rbx.Text.sub(1, 1) === '-') {
-              changingTimeAutomatically.value = true;
-              rbx.Text = rbx.Text.sub(2);
-              changingTimeAutomatically.value = false;
-            } else {
-              changingTimeAutomatically.value = true;
+          FocusLost={(rbx) => {
+            rbx.Text = rbx.Text.gsub('[^%d^.]', '')[0];
+            if (tonumber(rbx.Text) !== undefined) {
               rbx.Text = string.format(
                 '%.2f',
                 math.clamp(tonumber(rbx.Text)!, 0, maxTime)
               );
               setScrubberPos(tonumber(rbx.Text)! / maxTime);
-              changingTimeAutomatically.value = false;
+            } else {
+              rbx.Text = '0.00';
+              setScrubberPos(0);
             }
-
-            previousTimeText.value = rbx.Text;
           }}
         />
 
@@ -356,32 +370,14 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         <TextBox
           LabelText={'Max Time'}
           Text={string.format('%.2f', maxTime)}
-          TextChange={(rbx) => {
-            if (changingTimeAutomatically.value) return;
-
-            // Filter out anything that isn't a decimal or digit
-            changingTimeAutomatically.value = true;
-            rbx.Text = rbx.Text.gsub('[^%d%.]', '')[0];
-            changingTimeAutomatically.value = false;
-
-            // Is not a valid number
-            if (tonumber(rbx.Text) === undefined) {
-              changingTimeAutomatically.value = true;
-              rbx.Text = string.format('%.2f', previousMaxTimeText.value);
-              changingTimeAutomatically.value = false;
-              // Is a negative number
-            } else if (rbx.Text.sub(1, 1) === '-') {
-              changingTimeAutomatically.value = true;
-              rbx.Text = rbx.Text.sub(2);
-              changingTimeAutomatically.value = false;
-            } else {
-              changingTimeAutomatically.value = true;
+          FocusLost={(rbx) => {
+            if (tonumber(rbx.Text) !== undefined) {
               rbx.Text = string.format('%.2f', tonumber(rbx.Text)!);
               setMaxTime(tonumber(rbx.Text)!);
-              changingTimeAutomatically.value = false;
+            } else {
+              rbx.Text = '1.00';
+              setMaxTime(1);
             }
-
-            previousMaxTimeText.value = rbx.Text;
           }}
         />
 
@@ -608,6 +604,26 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   }
                 }
               }}
+              ExternalChildren={[
+                <frame
+                  BackgroundTransparency={1}
+                  Size={UDim2.fromScale(1, 1)}
+                  Change={{
+                    AbsoluteSize: (rbx) => {
+                      if (
+                        rbx.AbsoluteSize.X < 750 &&
+                        rbx.AbsoluteSize.X > 425
+                      ) {
+                        setTimestampsRenderState(TimestampsRenderState.Half);
+                      } else if (rbx.AbsoluteSize.X <= 425) {
+                        setTimestampsRenderState(TimestampsRenderState.None);
+                      } else {
+                        setTimestampsRenderState(TimestampsRenderState.All);
+                      }
+                    },
+                  }}
+                />,
+              ]}
             >
               <uilistlayout
                 FillDirection={Enum.FillDirection.Horizontal}

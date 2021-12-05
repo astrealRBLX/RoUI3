@@ -11,6 +11,7 @@ interface IProps extends IStateProps {
   LabelText: string;
   Text?: string;
   TextChange?: (rbx: TextBox) => void;
+  FocusLost?: (rbx: TextBox) => void;
 }
 
 // Textbox component for use in the timeline root topbar
@@ -19,6 +20,7 @@ const TextBoxComponent: RoactHooks.FC<IProps> = ({
   LabelText,
   Text,
   TextChange,
+  FocusLost,
 }) => {
   return (
     <frame
@@ -68,6 +70,9 @@ const TextBoxComponent: RoactHooks.FC<IProps> = ({
         ClearTextOnFocus={false}
         Change={{
           Text: TextChange,
+        }}
+        Event={{
+          FocusLost: FocusLost,
         }}
       >
         <uicorner CornerRadius={new UDim(0, 4)} />
