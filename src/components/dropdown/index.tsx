@@ -31,7 +31,8 @@ const DropdownComponent = ({
   Position,
   OnOptionSelected,
   OnClick,
-}: IProps) => {
+  [Roact.Children]: children,
+}: Roact.PropsWithChildren<IProps>) => {
   const optionsArray: Roact.Element[] = [];
   if (Open) {
     Options.forEach((val) => {
@@ -150,6 +151,8 @@ const DropdownComponent = ({
           </scrollingframe>
         </>
       ) : undefined}
+
+      {children}
     </textbutton>
   );
 };

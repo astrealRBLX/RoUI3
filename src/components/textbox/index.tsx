@@ -21,6 +21,7 @@ const TextBoxComponent: RoactHooks.FC<IProps> = ({
   Text,
   TextChange,
   FocusLost,
+  [Roact.Children]: children,
 }) => {
   return (
     <frame
@@ -51,8 +52,9 @@ const TextBoxComponent: RoactHooks.FC<IProps> = ({
         TextSize={14}
         TextColor3={theme.GetColor(styleColor.MainText)}
         AutomaticSize={Enum.AutomaticSize.X}
-      />
-
+      >
+        {children}
+      </textlabel>
       <textbox
         AutomaticSize={Enum.AutomaticSize.X}
         BackgroundColor3={theme.GetColor(

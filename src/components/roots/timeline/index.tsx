@@ -18,6 +18,7 @@ import { getSupportedProperties } from 'utils/supportedProperties';
 import { getWidgetManager } from 'utils/widgets';
 import { TextBox } from 'components/textbox';
 import { getNearestDistance } from 'utils/getNearestDistance';
+import { Tooltip } from '../tooltip';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -364,7 +365,12 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               setScrubberPos(0);
             }
           }}
-        />
+        >
+          <Tooltip
+            Text={'Current scrubber position on the timeline'}
+            Widget={timelineWidget}
+          />
+        </TextBox>
 
         {/* Max Time Field */}
         <TextBox
@@ -379,7 +385,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               setMaxTime(1);
             }
           }}
-        />
+        >
+          <Tooltip Text={'Animation length'} Widget={timelineWidget} />
+        </TextBox>
 
         {/* Add Property Button */}
         {selected.isSome() ? (
@@ -407,7 +415,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               AnchorPoint={new Vector2(0, 0.5)}
               Position={new UDim2(0, 0, 0.5, 0)}
               Size={new UDim2(0, 20, 0, 20)}
-              Image={'http://www.roblox.com/asset/?id=6953984741'}
+              Image={'rbxassetid://3192519002'}
               BackgroundTransparency={0}
               BackgroundColor3={theme.GetColor(
                 styleColor.RibbonButton,
@@ -450,6 +458,10 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               }}
             >
               <uicorner CornerRadius={new UDim(0, 4)} />
+              <Tooltip
+                Text={'Add property to animate to selected instance'}
+                Widget={timelineWidget}
+              />
             </imagebutton>
             <Dropdown
               Open={propertyDropdownOpen}
@@ -465,7 +477,12 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               OnClick={() => {
                 setPropertyDropdownOpen(true);
               }}
-            />
+            >
+              <Tooltip
+                Text={'Select a property to add'}
+                Widget={timelineWidget}
+              />
+            </Dropdown>
           </frame>
         ) : undefined}
       </Topbar>

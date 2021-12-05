@@ -58,30 +58,31 @@ const computeMarginPadding = (obj?: number | MarginPaddingTable) => {
 };
 
 // Container component with custom margin & padding support
-export const Container = (props: Roact.PropsWithChildren<IProps>) => {
-  const {
-    Active,
-    AnchorPoint,
-    AutomaticSize,
-    SizeConstraint,
-    BackgroundColor3,
-    ContainerTransparency,
-    ClipsDescendants,
-    ElementOverride,
-    LayoutOrder,
-    Position,
-    Size,
-    InnerBackgroundColor3,
-    Visible,
-    ZIndex,
-    ExternalChildren,
-    ContainerRef,
-    InputBegan,
-    InputEnded,
-  } = props;
-
-  const Margin = computeMarginPadding(props.Margin);
-  const Padding = computeMarginPadding(props.Padding);
+export const Container = ({
+  Active,
+  AnchorPoint,
+  AutomaticSize,
+  SizeConstraint,
+  BackgroundColor3,
+  ContainerTransparency,
+  ClipsDescendants,
+  ElementOverride,
+  LayoutOrder,
+  Position,
+  Size,
+  InnerBackgroundColor3,
+  Visible,
+  ZIndex,
+  ExternalChildren,
+  ContainerRef,
+  InputBegan,
+  InputEnded,
+  Margin,
+  Padding,
+  [Roact.Children]: children,
+}: Roact.PropsWithChildren<IProps>) => {
+  const margin = computeMarginPadding(Margin);
+  const padding = computeMarginPadding(Padding);
 
   let ContentSize = UDim2.fromScale(1, 1);
   if (AutomaticSize && Size) ContentSize = Size;
@@ -104,7 +105,7 @@ export const Container = (props: Roact.PropsWithChildren<IProps>) => {
         BorderSizePixel={0}
       >
         {/* Margin */}
-        <uipadding {...Margin} />
+        <uipadding {...margin} />
 
         {/* Content */}
         <frame
@@ -119,9 +120,9 @@ export const Container = (props: Roact.PropsWithChildren<IProps>) => {
           }}
         >
           {/* Padding */}
-          <uipadding {...Padding} />
+          <uipadding {...padding} />
 
-          {props[Roact.Children]}
+          {children}
         </frame>
 
         {ExternalChildren}
