@@ -2,6 +2,7 @@ import Roact from '@rbxts/roact';
 import RoactHooks from '@rbxts/roact-hooks';
 import { Option } from '@rbxts/rust-classes';
 import { RunService, TextService } from '@rbxts/services';
+import { ShowOnTop } from 'components/show_on_top';
 import { styleColor } from 'utils/studioStyleGuide';
 import { useTheme } from 'utils/useTheme';
 
@@ -86,44 +87,38 @@ const TooltipComponent: RoactHooks.FC<Roact.PropsWithChildren<IProps>> = (
       targetY = widgetHeight - tooltipTargetHeight;
 
     children.push(
-      <Roact.Portal target={Widget}>
+      <ShowOnTop Widget={Widget}>
+        {/* Tooltip */}
         <frame
           ZIndex={10000}
-          Size={UDim2.fromScale(1, 1)}
-          BackgroundTransparency={1}
+          Position={new UDim2(0, targetX, 0, targetY)}
+          Size={new UDim2(0, tooltipTargetWidth, 0, tooltipTargetHeight)}
+          BackgroundTransparency={0}
+          BackgroundColor3={theme.GetColor(styleColor.Tooltip)}
+          BorderColor3={theme.GetColor(styleColor.Border)}
         >
-          {/* Tooltip */}
-          <frame
-            ZIndex={10000}
-            Position={new UDim2(0, targetX, 0, targetY)}
-            Size={new UDim2(0, tooltipTargetWidth, 0, tooltipTargetHeight)}
-            BackgroundTransparency={0}
-            BackgroundColor3={theme.GetColor(styleColor.Tooltip)}
-            BorderColor3={theme.GetColor(styleColor.Border)}
+          <uicorner CornerRadius={new UDim(0, 4)} />
+          <uistroke Thickness={1} Color={theme.GetColor(styleColor.Border)} />
+          <textlabel
+            ZIndex={10005}
+            Size={new UDim2(1, 0, 1, 0)}
+            Text={Text}
+            Font={Enum.Font.SourceSans}
+            TextSize={14}
+            TextWrapped={true}
+            TextXAlignment={Enum.TextXAlignment.Left}
+            TextColor3={theme.GetColor(styleColor.MainText)}
+            BackgroundTransparency={1}
           >
-            <uicorner CornerRadius={new UDim(0, 4)} />
-            <uistroke Thickness={1} Color={theme.GetColor(styleColor.Border)} />
-            <textlabel
-              ZIndex={10005}
-              Size={new UDim2(1, 0, 1, 0)}
-              Text={Text}
-              Font={Enum.Font.SourceSans}
-              TextSize={14}
-              TextWrapped={true}
-              TextXAlignment={Enum.TextXAlignment.Left}
-              TextColor3={theme.GetColor(styleColor.MainText)}
-              BackgroundTransparency={1}
-            >
-              <uipadding
-                PaddingLeft={new UDim(0, paddingSize / 2)}
-                PaddingTop={new UDim(0, paddingSize / 2)}
-                PaddingRight={new UDim(0, paddingSize / 2)}
-                PaddingBottom={new UDim(0, paddingSize / 2)}
-              />
-            </textlabel>
-          </frame>
+            <uipadding
+              PaddingLeft={new UDim(0, paddingSize / 2)}
+              PaddingTop={new UDim(0, paddingSize / 2)}
+              PaddingRight={new UDim(0, paddingSize / 2)}
+              PaddingBottom={new UDim(0, paddingSize / 2)}
+            />
+          </textlabel>
         </frame>
-      </Roact.Portal>
+      </ShowOnTop>
     );
   }
 
