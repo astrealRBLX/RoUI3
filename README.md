@@ -70,12 +70,12 @@ The initial release of RoUI3! 🥳
       - ❌ Preview keyframes based on scrubber time
     - 🔜 Timeline pane
       - ✔️ Dynamic keyframe rendering based on app state
-      - ❔ Keyframes
-        - ❔ Selection support
+      - 🔜 Keyframes
+        - ✔️ Selection support
         - ❌ Right-click context menu
           - ❌ Delete keyframe
           - ❌ Set keyframe type to spring or tween
-        - ❌ `CTRL` click support for selecting multiple keyframes
+        - ✔️ `CTRL` click support for selecting multiple keyframes
         - ❌ Long press support for moving a keyframe
 - ❌ Exporting
   - ❌ Data serialization

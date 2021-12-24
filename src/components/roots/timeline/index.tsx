@@ -82,6 +82,16 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const isKeyframeSnapEnabled = useValue(false);
   const rawTimelineTimestamps = useValue<number[]>([]);
 
+  /* Keyframes */
+  const ctrlToggled = useValue(false);
+  const [selectedKeyframes, setSelectedKeyframes] = useState<
+    Array<{
+      property: string;
+      value: KeyframeValue;
+      position: number;
+    }>
+  >([]);
+
   // Scrubber positioning effect
   useEffect(() => {
     const conn = RunService.RenderStepped.Connect(() => {
@@ -212,16 +222,77 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
         const keyframes: Roact.Element[] = [];
         propertyData.keyframes.forEach((kf) => {
+          const kfSelected = selectedKeyframes.find((val) => {
+            return (
+              val.property === propertyName &&
+              val.position === kf.position &&
+              val.value === kf.value
+            );
+          });
+
           keyframes.push(
-            <imagebutton
+            <frame
               AnchorPoint={new Vector2(0.5, 0.5)}
-              Size={new UDim2(0, 12, 0, 12)}
+              Size={new UDim2(0, 9, 0, 9)}
               Position={new UDim2(kf.position / maxTime, 0, 0.5, 0)}
-              AutoButtonColor={false}
               ZIndex={95}
-              Image={'rbxassetid://6193144704'}
-              ImageColor3={Color3.fromRGB(41, 209, 158)}
-              BackgroundTransparency={1}
+              Rotation={45}
+              BorderSizePixel={kfSelected ? 2 : 0}
+              BorderColor3={
+                kfSelected ? Color3.fromRGB(217, 217, 217) : new Color3()
+              }
+              BackgroundColor3={Color3.fromRGB(255, 0, 0)}
+              Event={{
+                InputBegan: (_, input) => {
+                  if (input.UserInputType === Enum.UserInputType.MouseButton1) {
+                    const newKf = {
+                      property: propertyName,
+                      value: kf.value,
+                      position: kf.position,
+                    };
+
+                    let shouldAdd = true;
+                    let removeIndex = -1;
+
+                    // Determine if the clicked keyframe is already selected
+                    selectedKeyframes.forEach((selectedKf, i) => {
+                      if (selectedKf === kfSelected) {
+                        shouldAdd = false;
+                        removeIndex = i;
+                      }
+                    });
+
+                    let newSelected = [...selectedKeyframes];
+
+                    // Filter keyframes that are not the clicked one
+                    if (!shouldAdd) {
+                      newSelected = newSelected.filter((kf, i) => {
+                        return kf !== kfSelected;
+                      });
+                    }
+
+                    if (ctrlToggled.value) {
+                      // Ctrl is activated (multiple selections)
+                      if (shouldAdd) {
+                        // Add unselected keyframe to selected
+                        setSelectedKeyframes([...selectedKeyframes, newKf]);
+                      } else {
+                        // Remove selected keyframe from selected
+                        setSelectedKeyframes(newSelected);
+                      }
+                    } else {
+                      // Ctrl is not activated (single selection)
+                      if (shouldAdd) {
+                        setSelectedKeyframes([newKf]);
+                      } else {
+                        setSelectedKeyframes(
+                          selectedKeyframes.size() > 1 ? [newKf] : []
+                        );
+                      }
+                    }
+                  }
+                },
+              }}
             />
           );
         });
@@ -245,7 +316,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     }
 
     return [timelineProps, timelineKeyfs];
-  }, [selected, instances]);
+  }, [selected, instances, selectedKeyframes]);
 
   // Generate timeline timestamps
   const [timelineTimestamps, rawTimestamps] = useMemo(() => {
@@ -336,6 +407,8 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           shouldSnap.value = !shouldSnap.value;
         } else if (input.KeyCode === Enum.KeyCode.K) {
           isKeyframeSnapEnabled.value = !isKeyframeSnapEnabled.value;
+        } else if (input.KeyCode === Enum.KeyCode.LeftControl) {
+          ctrlToggled.value = !ctrlToggled.value;
         }
       }}
     >
@@ -367,7 +440,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           }}
         >
           <Tooltip
-            Text={'Current scrubber position on the timeline'}
+            Text={'Current scrubber position on the timeline in seconds'}
             Widget={timelineWidget}
           />
         </TextBox>
@@ -386,7 +459,10 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             }
           }}
         >
-          <Tooltip Text={'Animation length'} Widget={timelineWidget} />
+          <Tooltip
+            Text={'Animation length in seconds'}
+            Widget={timelineWidget}
+          />
         </TextBox>
 
         {/* Add Property Button */}
