@@ -18,7 +18,7 @@ import { getSupportedProperties } from 'utils/supportedProperties';
 import { getWidgetManager } from 'utils/widgets';
 import { TextBox } from 'components/textbox';
 import { getNearestDistance } from 'utils/getNearestDistance';
-import { Tooltip } from '../tooltip';
+import { Tooltip } from '../../tooltip';
 
 interface IStateProps {
   theme: StudioTheme;
