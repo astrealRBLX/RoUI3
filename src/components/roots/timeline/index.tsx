@@ -4,7 +4,6 @@ import RoactRodux from '@rbxts/roact-rodux';
 import { Option } from '@rbxts/rust-classes';
 import { RunService } from '@rbxts/services';
 import { Container } from 'components/container';
-import { Dropdown } from 'components/dropdown';
 import { Scrubber } from 'components/scrubber';
 import { Topbar } from 'components/topbar';
 import { TreeView } from 'components/tree_view';
@@ -19,6 +18,7 @@ import { TextBox } from 'components/textbox';
 import { getNearestDistance } from 'utils/getNearestDistance';
 import { Tooltip } from '../../tooltip';
 import { ContextMenu } from 'components/context_menu';
+import { PairedDropdown } from 'components/paired_dropdown';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -536,97 +536,40 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
         {/* Add Property Button */}
         {selected.isSome() ? (
-          <frame
-            Size={new UDim2(0, 0, 1, 0)}
-            BorderSizePixel={0}
-            BackgroundColor3={theme.GetColor(styleColor.Button)}
-            AutomaticSize={Enum.AutomaticSize.X}
-          >
-            <uipadding
-              PaddingLeft={new UDim(0, 4)}
-              PaddingRight={new UDim(0, 4)}
-              PaddingTop={new UDim(0, 1)}
-              PaddingBottom={new UDim(0, 1)}
-            />
-            <uicorner CornerRadius={new UDim(0, 4)} />
-            <uilistlayout
-              FillDirection={Enum.FillDirection.Horizontal}
-              HorizontalAlignment={Enum.HorizontalAlignment.Left}
-              VerticalAlignment={Enum.VerticalAlignment.Center}
-              Padding={new UDim(0, 4)}
-            />
+          <PairedDropdown
+            Widget={timelineWidget}
+            Image={'rbxassetid://3192519002'}
+            ButtonTooltip={'Add property to animate to selected instance'}
+            DropdownTooltip={'Select a property to add'}
+            DropdownOptions={supportedProperties.unwrapOr([])}
+            DropdownOpen={propertyDropdownOpen}
+            DropdownSelection={propertyDropdownValue}
+            ButtonCallback={() => {
+              const currentSelection = selected.unwrap();
+              const ID = instances.indexOf(currentSelection);
 
-            <imagebutton
-              AnchorPoint={new Vector2(0, 0.5)}
-              Position={new UDim2(0, 0, 0.5, 0)}
-              Size={new UDim2(0, 20, 0, 20)}
-              Image={'rbxassetid://3192519002'}
-              BackgroundTransparency={0}
-              BackgroundColor3={theme.GetColor(
-                styleColor.RibbonButton,
-                styleMod.Hover
-              )}
-              AutoButtonColor={false}
-              BorderSizePixel={0}
-              Event={{
-                MouseEnter: (rbx) => {
-                  rbx.BackgroundColor3 = theme.GetColor(
-                    styleColor.RibbonButton
-                  );
-                },
-                MouseLeave: (rbx) => {
-                  rbx.BackgroundColor3 = theme.GetColor(
-                    styleColor.RibbonButton,
-                    styleMod.Hover
-                  );
-                },
-                Activated: () => {
-                  const currentSelection = selected.unwrap();
-                  const ID = instances.indexOf(currentSelection);
-
-                  if (ID === -1 || !properties[ID].has(propertyDropdownValue)) {
-                    // Create initial property keyframe
-                    updateKeyframe(
-                      currentSelection,
-                      propertyDropdownValue,
-                      tonumber(string.format('%.2f', scrubberPos * maxTime))!,
-                      currentSelection[
-                        propertyDropdownValue as InstancePropertyNames<
-                          typeof currentSelection
-                        >
-                      ] as KeyframeValue
-                    );
-                  }
-                },
-              }}
-            >
-              <uicorner CornerRadius={new UDim(0, 4)} />
-              <Tooltip
-                Text={'Add property to animate to selected instance'}
-                Widget={timelineWidget}
-              />
-            </imagebutton>
-            <Dropdown
-              Open={propertyDropdownOpen}
-              AnchorPoint={new Vector2(0, 0.5)}
-              Position={new UDim2(0, 35, 0.5, 0)}
-              Size={new UDim2(0, 0, 0, 20)} // 112
-              Selected={propertyDropdownValue}
-              Options={supportedProperties.unwrapOr([])}
-              OnOptionSelected={(val) => {
-                setPropertyDropdownValue(val);
-                setPropertyDropdownOpen(false);
-              }}
-              OnClick={() => {
-                setPropertyDropdownOpen(true);
-              }}
-            >
-              <Tooltip
-                Text={'Select a property to add'}
-                Widget={timelineWidget}
-              />
-            </Dropdown>
-          </frame>
+              if (ID === -1 || !properties[ID].has(propertyDropdownValue)) {
+                // Create initial property keyframe
+                updateKeyframe(
+                  currentSelection,
+                  propertyDropdownValue,
+                  tonumber(string.format('%.2f', scrubberPos * maxTime))!,
+                  currentSelection[
+                    propertyDropdownValue as InstancePropertyNames<
+                      typeof currentSelection
+                    >
+                  ] as KeyframeValue
+                );
+              }
+            }}
+            DropdownSelectedCallback={(val) => {
+              setPropertyDropdownValue(val);
+              setPropertyDropdownOpen(false);
+            }}
+            DropdownClickCallback={() => {
+              setPropertyDropdownOpen(true);
+            }}
+          />
         ) : undefined}
       </Topbar>
 
