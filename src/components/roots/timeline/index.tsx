@@ -53,6 +53,8 @@ interface IDispatchProps {
 
 interface IProps extends IStateProps, IDispatchProps {}
 
+const Selection = game.GetService('Selection');
+
 const plugin = getPlugin();
 const widgetManager = getWidgetManager();
 const timelineWidget = widgetManager.widgets.timeline;
@@ -479,6 +481,39 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
   rawTimelineTimestamps.value = [...rawTimestamps];
 
+  // Handle instance property changes
+  useEffect(() => {
+    const connections: RBXScriptConnection[] = [];
+
+    if (selected.isSome()) {
+      const selection = selected.unwrap();
+      const sProps = getSupportedProperties(selection.ClassName as never);
+
+      sProps.forEach((prop) => {
+        const conn = selection
+          .GetPropertyChangedSignal(prop as never)
+          .Connect(() => {
+            updateKeyframe(
+              selection,
+              prop,
+              tonumber(string.format('%.2f', scrubberPos * maxTime))!,
+              selection[
+                prop as InstancePropertyNames<typeof selection>
+              ] as KeyframeValue
+            );
+          });
+
+        connections.push(conn);
+      });
+    }
+
+    return () => {
+      connections.forEach((conn) => {
+        conn.Disconnect();
+      });
+    };
+  }, [selected, scrubberPos, maxTime]);
+
   return (
     <Container
       Size={new UDim2(1, 0, 1, 0)}
@@ -649,12 +684,15 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 selected.match(
                   (val) => {
                     if (val === item) {
+                      Selection.Set([]);
                       setSelected(Option.none());
                     } else {
+                      Selection.Set([item]);
                       setSelected(Option.some(item));
                     }
                   },
                   () => {
+                    Selection.Set([item]);
                     setSelected(Option.some(item));
                   }
                 );

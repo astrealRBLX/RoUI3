@@ -36,7 +36,7 @@ export const getSupportedProperties = (
     case 'ImageLabel':
       return [...sharedProperties];
     case 'Frame':
-      return [...sharedProperties, 'Bob'];
+      return [...sharedProperties];
     case 'TextBox':
       return [...sharedProperties];
     default:
