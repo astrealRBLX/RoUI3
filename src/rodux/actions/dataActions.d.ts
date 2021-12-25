@@ -12,6 +12,13 @@ export interface ActionCreateInstanceProperty
   property: string;
 }
 
+// Deletes a property on an instance
+export interface ActionDeleteInstanceProperty
+  extends Rodux.Action<'DeleteInstanceProperty'> {
+  instance: Instance;
+  property: string;
+}
+
 // Updates a keyframe's data in the store
 // Creates a new keyframe if none exists or overwrites an existing one
 export interface ActionUpdateKeyframe extends Rodux.Action<'UpdateKeyframe'> {

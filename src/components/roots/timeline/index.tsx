@@ -48,6 +48,7 @@ interface IDispatchProps {
     }>
   ) => void;
   createProperty: (instance: Instance, property: string) => void;
+  deleteProperty: (instance: Instance, property: string) => void;
 }
 
 interface IProps extends IStateProps, IDispatchProps {}
@@ -80,8 +81,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     properties,
     keyframes,
     updateKeyframe,
-    createProperty,
     deleteKeyframes,
+    createProperty,
+    deleteProperty,
   },
   { useState, useEffect, useValue, useMemo, useCallback }
 ) => {
@@ -197,7 +199,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           return Option.none();
         }
       ),
-    [selected, instances]
+    [selected, instances, properties]
   );
 
   // Recalculate property dropdown value if it's invalid on the selected instance
@@ -267,8 +269,16 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 {
                   Text: 'Delete property',
                   Tooltip: `Delete "${propertyName}" and all its keyframes from the animation property list`,
-                  Callback: () => {
-                    // TODO: Implement property deletion functionality
+                  Callback: (_, input) => {
+                    if (input.UserInputType !== Enum.UserInputType.MouseButton1)
+                      return;
+                    if (input.UserInputState !== Enum.UserInputState.Begin)
+                      return;
+
+                    if (selected.isSome()) {
+                      deleteProperty(selected.unwrap(), propertyName);
+                      setActiveContextMenuID('');
+                    }
                   },
                 },
               ]}
@@ -842,6 +852,13 @@ export const Timeline = RoactRodux.connect(
       createProperty: (instance, property) => {
         dispatch({
           type: 'CreateInstanceProperty',
+          instance: instance,
+          property: property,
+        });
+      },
+      deleteProperty: (instance, property) => {
+        dispatch({
+          type: 'DeleteInstanceProperty',
           instance: instance,
           property: property,
         });

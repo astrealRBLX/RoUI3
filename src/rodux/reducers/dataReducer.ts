@@ -7,6 +7,7 @@ import {
   ActionUpdateKeyframe,
   ActionCreateInstanceProperty,
   ActionDeleteKeyframes,
+  ActionDeleteInstanceProperty,
 } from 'rodux/actions/dataActions';
 
 export interface IDataReducer {
@@ -32,7 +33,8 @@ export type DataActions =
   | ActionSetCurrentRoot
   | ActionUpdateKeyframe
   | ActionDeleteKeyframes
-  | ActionCreateInstanceProperty;
+  | ActionCreateInstanceProperty
+  | ActionDeleteInstanceProperty;
 
 export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
   initialState,
@@ -118,8 +120,6 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
     },
 
     DeleteKeyframes: (state, action) => {
-      const instances = [...state.instances];
-      const properties = [...state.properties];
       const keyframes = [...state.keyframes];
 
       // Loop through keyframes deleting them
@@ -139,7 +139,36 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
 
       return {
         ...state,
-        instances: instances,
+        keyframes: keyframes,
+      };
+    },
+
+    DeleteInstanceProperty: (state, action) => {
+      const properties = [...state.properties];
+      const keyframes = [...state.keyframes];
+
+      const ID = state.instances.indexOf(action.instance);
+
+      // Delete all property keyframes
+      keyframes.forEach((kf, index) => {
+        if (
+          kf.instance === action.instance &&
+          kf.property === action.property
+        ) {
+          keyframes.remove(index);
+        }
+      });
+
+      // Remove the property
+      properties[ID].delete(action.property);
+
+      print('New Keyframes:');
+      print(keyframes);
+      print('New Properties:');
+      print(properties);
+
+      return {
+        ...state,
         properties: properties,
         keyframes: keyframes,
       };
