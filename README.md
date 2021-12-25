@@ -72,8 +72,8 @@ The initial release of RoUI3! 🥳
       - ✔️ Dynamic keyframe rendering based on app state
       - 🔜 Keyframes
         - ✔️ Selection support
-        - ❌ Right-click context menu
-          - ❌ Delete keyframe
+        - 🔜 Right-click context menu
+          - ✔️ Delete keyframe
           - ❌ Set keyframe type to spring or tween
         - ✔️ `CTRL` click support for selecting multiple keyframes
         - ❌ Long press support for moving a keyframe
