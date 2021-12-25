@@ -262,8 +262,26 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   Text: 'Insert new keyframe',
                   Tooltip:
                     "Adds a new keyframe at the scrubber's current position",
-                  Callback: () => {
-                    // TODO: Implement new keyframe functionality
+                  Callback: (_, input) => {
+                    if (input.UserInputType !== Enum.UserInputType.MouseButton1)
+                      return;
+                    if (input.UserInputState !== Enum.UserInputState.Begin)
+                      return;
+
+                    if (selected.isSome()) {
+                      const currentSelection = selected.unwrap();
+                      updateKeyframe(
+                        currentSelection,
+                        propertyName,
+                        tonumber(string.format('%.2f', scrubberPos * maxTime))!,
+                        currentSelection[
+                          propertyName as InstancePropertyNames<
+                            typeof currentSelection
+                          >
+                        ] as KeyframeValue
+                      );
+                      setActiveContextMenuID('');
+                    }
                   },
                 },
                 {
@@ -393,7 +411,14 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     }
 
     return [timelineProps, timelineKeyfs];
-  }, [selected, instances, selectedKeyframes, activeContextMenuID]);
+  }, [
+    selected,
+    instances,
+    properties,
+    keyframes,
+    selectedKeyframes,
+    activeContextMenuID,
+  ]);
 
   // Generate timeline timestamps
   const [timelineTimestamps, rawTimestamps] = useMemo(() => {
