@@ -95,7 +95,14 @@ const ContextMenuComponent: RoactHooks.FC<Roact.PropsWithChildren<IProps>> = (
         <ShowOnTop Widget={Widget}>
           <frame
             Active
-            Size={new UDim2(0, 3, 0, children.size() * 18)}
+            Size={
+              new UDim2(
+                0,
+                3,
+                0,
+                children.size() * 15 + (children.size() * 4 - 4)
+              )
+            }
             Position={
               new UDim2(
                 0,
