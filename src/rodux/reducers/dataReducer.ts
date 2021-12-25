@@ -1,3 +1,4 @@
+import Llama from '@rbxts/llama';
 import Rodux from '@rbxts/rodux';
 import { Option } from '@rbxts/rust-classes';
 import {
@@ -5,36 +6,32 @@ import {
   KeyframeValue,
   ActionUpdateKeyframe,
   ActionCreateInstanceProperty,
+  ActionDeleteKeyframes,
 } from 'rodux/actions/dataActions';
-
-export type InstanceData = Map<
-  Instance,
-  {
-    properties: Map<
-      string,
-      {
-        keyframes: Array<{
-          position: number;
-          value: KeyframeValue;
-        }>;
-      }
-    >;
-  }
->;
 
 export interface IDataReducer {
   root: Option<Instance>;
-  instances: InstanceData;
+  instances: Instance[];
+  properties: Array<Set<string>>;
+  keyframes: Array<{
+    instance: Instance;
+    property: string;
+    position: number;
+    value: KeyframeValue;
+  }>;
 }
 
 const initialState: IDataReducer = {
   root: Option.none(),
-  instances: new Map(),
+  instances: [],
+  properties: [],
+  keyframes: [],
 };
 
 export type DataActions =
   | ActionSetCurrentRoot
   | ActionUpdateKeyframe
+  | ActionDeleteKeyframes
   | ActionCreateInstanceProperty;
 
 export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
@@ -49,66 +46,103 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
     },
 
     CreateInstanceProperty: (state, action) => {
-      const newState: IDataReducer = { ...state };
+      const instances = [...state.instances];
+      const properties = [...state.properties];
 
-      newState.instances.set(action.instance, {
-        ...state.instances.get(action.instance),
-        properties: new Map([
-          ...(state.instances.get(action.instance)
-            ? state.instances.get(action.instance)!.properties
-            : (new Map() as never)),
-          [
-            action.property,
-            {
-              keyframes: [],
-            },
-          ],
-        ]),
-      });
+      if (!instances.includes(action.instance)) {
+        // Add new instance to state & define its properties set
+        instances.push(action.instance);
+        properties.push(new Set([action.property]));
+      } else {
+        // Locate existing instance and merge new property into its property set
+        const ID = instances.indexOf(action.instance);
+        properties[ID] = Llama.Set.union(
+          properties[ID],
+          new Set([action.property])
+        );
+      }
 
-      return newState;
+      return {
+        ...state,
+        instances: instances,
+        properties: properties,
+      };
     },
 
-    /*
-      TODO: Find a better way of doing this...
-      Immutable state is hard to work with :(
-    */
     UpdateKeyframe: (state, action) => {
-      const inst = state.instances.get(action.instance);
-      const newState: IDataReducer = {
-        ...state,
-        instances: new Map([
-          ...state.instances,
-          [
-            action.instance,
-            {
-              ...inst,
-              properties: new Map([
-                ...(inst ? inst.properties : (new Map() as never)),
-                [
-                  action.property,
-                  {
-                    ...(inst ? inst.properties.get(action.property) : []),
-                    keyframes: [
-                      ...(inst
-                        ? inst.properties.get(action.property)
-                          ? inst.properties.get(action.property)!.keyframes
-                          : []
-                        : []),
-                      {
-                        position: action.position,
-                        value: action.value,
-                      },
-                    ],
-                  },
-                ],
-              ]),
-            },
-          ],
-        ]),
-      };
+      const instances = [...state.instances];
+      const properties = [...state.properties];
+      const keyframes = [...state.keyframes];
 
-      return newState;
+      if (!instances.includes(action.instance)) {
+        // Add new instance to state & define its properties set
+        instances.push(action.instance);
+        properties.push(new Set([action.property]));
+      } else {
+        // Locate existing instance and merge new property into its property set
+        const ID = instances.indexOf(action.instance);
+        properties[ID] = Llama.Set.union(
+          properties[ID],
+          new Set([action.property])
+        );
+      }
+
+      // Find if a keyframe for the instance's property exists at the same position
+      const kf = keyframes.find((value) => {
+        return (
+          value.instance === action.instance &&
+          value.property === action.property &&
+          value.position === action.position
+        );
+      });
+
+      if (kf) {
+        // Simply update the value (duplicate positions not allowed)
+        kf.value = action.value;
+      } else {
+        // Otherwise push a new keyframe
+        keyframes.push({
+          instance: action.instance,
+          property: action.property,
+          position: action.position,
+          value: action.value,
+        });
+      }
+
+      return {
+        ...state,
+        instances: instances,
+        properties: properties,
+        keyframes: keyframes,
+      };
+    },
+
+    DeleteKeyframes: (state, action) => {
+      const instances = [...state.instances];
+      const properties = [...state.properties];
+      const keyframes = [...state.keyframes];
+
+      // Loop through keyframes deleting them
+      action.keyframes.forEach((kfToDelete) => {
+        const index = keyframes.findIndex((value) => {
+          return (
+            value.instance === kfToDelete.instance &&
+            value.property === kfToDelete.property &&
+            value.position === kfToDelete.position
+          );
+        });
+
+        if (index !== -1) {
+          keyframes.remove(index);
+        }
+      });
+
+      return {
+        ...state,
+        instances: instances,
+        properties: properties,
+        keyframes: keyframes,
+      };
     },
   }
 );

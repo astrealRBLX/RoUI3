@@ -19,6 +19,7 @@
   "dependencies": {
     "@rbxts/flipper": "^2.0.1",
     "@rbxts/hook-bag": "0.0.9",
+    "@rbxts/llama": "^1.1.0-ts2",
     "@rbxts/roact": "^1.4.0-ts.2",
     "@rbxts/roact-hooks": "^0.3.0-ts.2",
     "@rbxts/roact-rodux": "^0.2.2-ts.5",

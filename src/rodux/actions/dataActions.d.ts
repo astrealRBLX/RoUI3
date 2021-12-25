@@ -21,4 +21,13 @@ export interface ActionUpdateKeyframe extends Rodux.Action<'UpdateKeyframe'> {
   value: KeyframeValue;
 }
 
+// Deletes a keyframe by removing its data in the store
+export interface ActionDeleteKeyframes extends Rodux.Action<'DeleteKeyframes'> {
+  keyframes: Array<{
+    instance: Instance;
+    property: string;
+    position: number;
+  }>;
+}
+
 export type KeyframeValue = number | boolean | UDim2 | UDim | Vector2 | Color3;

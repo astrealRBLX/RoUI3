@@ -10,7 +10,6 @@ import { Topbar } from 'components/topbar';
 import { TreeView } from 'components/tree_view';
 import { ResizablePanels } from 'components/resizable_panels';
 import { KeyframeValue } from 'rodux/actions/dataActions';
-import { InstanceData } from 'rodux/reducers/dataReducer';
 import { IAppStore, StoreDispatch } from 'rodux/store';
 import { getPlugin } from 'utils/plugin';
 import { styleColor, styleMod } from 'utils/studioStyleGuide';
@@ -19,11 +18,19 @@ import { getWidgetManager } from 'utils/widgets';
 import { TextBox } from 'components/textbox';
 import { getNearestDistance } from 'utils/getNearestDistance';
 import { Tooltip } from '../../tooltip';
+import { ContextMenu } from 'components/context_menu';
 
 interface IStateProps {
   theme: StudioTheme;
   root: Instance;
-  instances: InstanceData;
+  instances: Instance[];
+  properties: Array<Set<string>>;
+  keyframes: Array<{
+    instance: Instance;
+    property: string;
+    position: number;
+    value: KeyframeValue;
+  }>;
 }
 
 interface IDispatchProps {
@@ -32,6 +39,13 @@ interface IDispatchProps {
     property: string,
     position: number,
     value: KeyframeValue
+  ) => void;
+  deleteKeyframes: (
+    keyframes: Array<{
+      instance: Instance;
+      property: string;
+      position: number;
+    }>
   ) => void;
   createProperty: (instance: Instance, property: string) => void;
 }
@@ -53,10 +67,23 @@ enum TimestampsRenderState {
   None,
 }
 
+enum ContextMenuID {
+  TimelineContent = 'TIMELINE_CONTENT',
+}
+
 // Represents the timeline widget's root
 const TimelineRoot: RoactHooks.FC<IProps> = (
-  { theme, root, instances, updateKeyframe, createProperty },
-  { useState, useEffect, useValue, useMemo }
+  {
+    theme,
+    root,
+    instances,
+    properties,
+    keyframes,
+    updateKeyframe,
+    createProperty,
+    deleteKeyframes,
+  },
+  { useState, useEffect, useValue, useMemo, useCallback }
 ) => {
   /* Topbar */
   const [propertyDropdownValue, setPropertyDropdownValue] = useState('UNKNOWN'); // TODO: Implement a better way of doing this
@@ -86,11 +113,15 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const ctrlToggled = useValue(false);
   const [selectedKeyframes, setSelectedKeyframes] = useState<
     Array<{
+      instance: Instance;
       property: string;
       value: KeyframeValue;
       position: number;
     }>
   >([]);
+
+  /* Context Menu */
+  const [activeContextMenuID, setActiveContextMenuID] = useState('');
 
   // Scrubber positioning effect
   useEffect(() => {
@@ -118,18 +149,12 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           if (
             isKeyframeSnapEnabled.value &&
             selected.isSome() &&
-            instances.get(selected.unwrap())
+            instances.includes(selected.unwrap())
           ) {
-            const currentProperties = instances.get(
-              selected.unwrap()
-            )!.properties;
-
             // Flatten keyframe time positions, remove duplicates, and convert to 0 to 1 scale range
             const flattenedKeyfs: Set<number> = new Set();
-            currentProperties.forEach((propertyData) => {
-              propertyData.keyframes.forEach((kf) => {
-                flattenedKeyfs.add(kf.position / maxTime);
-              });
+            keyframes.forEach((kf) => {
+              flattenedKeyfs.add(kf.position / maxTime);
             });
 
             const nearestKeyframe = getNearestDistance(newScrubberPos, [
@@ -160,11 +185,10 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
       selected.match(
         (selectedInst) => {
           let sProps = getSupportedProperties(selectedInst.ClassName as never);
-          if (instances.get(selectedInst)) {
+          if (instances.includes(selectedInst)) {
+            const ID = instances.indexOf(selectedInst);
             sProps = sProps.filter((val) => {
-              return (
-                instances.get(selectedInst)!.properties.get(val) === undefined
-              );
+              return !properties[ID].has(val);
             });
           }
           return Option.some(sProps); // Cheating but I suck with types so...
@@ -195,15 +219,22 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     }
   }, [maxTime, scrubberPos]);
 
+  // Context menu right-clicked callback
+  const contextMenuClicked = useCallback((ID: string) => {
+    setActiveContextMenuID(ID);
+  }, []);
+
   // Generate timeline property names & property keyframes
   const [timelineContentProperties, timelineContentKeyframes] = useMemo(() => {
     const timelineProps: Roact.Element[] = [];
     const timelineKeyfs: Roact.Element[] = [];
 
-    if (selected.isSome() && instances.get(selected.unwrap())) {
-      const selectedInstanceData = instances.get(selected.unwrap());
+    if (selected.isSome() && instances.includes(selected.unwrap())) {
+      const ID = instances.indexOf(selected.unwrap());
+      const instanceProperties = properties[ID];
 
-      selectedInstanceData!.properties.forEach((propertyData, propertyName) => {
+      instanceProperties.forEach((propertyName) => {
+        // Timeline property label
         timelineProps.push(
           <textlabel
             Text={propertyName}
@@ -217,20 +248,54 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             BorderColor3={theme.GetColor(styleColor.ButtonBorder)}
             BorderMode={Enum.BorderMode.Inset}
             TextXAlignment={Enum.TextXAlignment.Left}
-          ></textlabel>
+          >
+            <uipadding PaddingLeft={new UDim(0, 4)} />
+            <ContextMenu
+              Widget={timelineWidget}
+              ID={propertyName}
+              RightClickCallback={contextMenuClicked}
+              Visible={activeContextMenuID === propertyName}
+              Options={[
+                {
+                  Text: 'Insert new keyframe',
+                  Tooltip:
+                    "Adds a new keyframe at the scrubber's current position",
+                  Callback: () => {
+                    // TODO: Implement new keyframe functionality
+                  },
+                },
+                {
+                  Text: 'Delete property',
+                  Tooltip: `Delete "${propertyName}" and all its keyframes from the animation property list`,
+                  Callback: () => {
+                    // TODO: Implement property deletion functionality
+                  },
+                },
+              ]}
+            ></ContextMenu>
+          </textlabel>
         );
 
-        const keyframes: Roact.Element[] = [];
-        propertyData.keyframes.forEach((kf) => {
+        // Keyframes specifically matching this property
+        const propertyKeyframes = keyframes.filter((kf) => {
+          return (
+            kf.instance === selected.unwrap() && kf.property === propertyName
+          );
+        });
+
+        // Generate elements for each keyframe in this property
+        const keyframeElements: Roact.Element[] = [];
+        propertyKeyframes.forEach((kf) => {
           const kfSelected = selectedKeyframes.find((val) => {
             return (
+              val.instance === selected.unwrap() &&
               val.property === propertyName &&
               val.position === kf.position &&
               val.value === kf.value
             );
           });
 
-          keyframes.push(
+          keyframeElements.push(
             <frame
               AnchorPoint={new Vector2(0.5, 0.5)}
               Size={new UDim2(0, 9, 0, 9)}
@@ -246,6 +311,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 InputBegan: (_, input) => {
                   if (input.UserInputType === Enum.UserInputType.MouseButton1) {
                     const newKf = {
+                      instance: selected.unwrap(),
                       property: propertyName,
                       value: kf.value,
                       position: kf.position,
@@ -297,6 +363,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           );
         });
 
+        // Generate the actual keyframe bar and the inner keyframes
         timelineKeyfs.push(
           <frame Size={new UDim2(1, 0, 0, 20)} BackgroundTransparency={1}>
             {/* Keyframe Line */}
@@ -309,14 +376,14 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             ></frame>
 
             {/* Keyframes */}
-            {...keyframes}
+            {...keyframeElements}
           </frame>
         );
       });
     }
 
     return [timelineProps, timelineKeyfs];
-  }, [selected, instances, selectedKeyframes]);
+  }, [selected, instances, selectedKeyframes, activeContextMenuID]);
 
   // Generate timeline timestamps
   const [timelineTimestamps, rawTimestamps] = useMemo(() => {
@@ -396,6 +463,8 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 if (propertyDropdownOpen) {
                   setPropertyDropdownOpen(false);
                 }
+
+                setActiveContextMenuID('');
               }
             },
           }}
@@ -513,12 +582,10 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 },
                 Activated: () => {
                   const currentSelection = selected.unwrap();
-                  const instanceData = instances.get(currentSelection);
-                  if (
-                    !instanceData ||
-                    !instanceData.properties.get(propertyDropdownValue)
-                  ) {
-                    // Create initial keyframe at 0 position
+                  const ID = instances.indexOf(currentSelection);
+
+                  if (ID === -1 || !properties[ID].has(propertyDropdownValue)) {
+                    // Create initial property keyframe
                     updateKeyframe(
                       currentSelection,
                       propertyDropdownValue,
@@ -659,6 +726,33 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                     scrubbing.value = false;
                   }}
                 />
+                <ContextMenu
+                  Widget={timelineWidget}
+                  ID={ContextMenuID.TimelineContent}
+                  RightClickCallback={contextMenuClicked}
+                  Visible={
+                    activeContextMenuID === ContextMenuID.TimelineContent
+                  }
+                  Options={[
+                    {
+                      Text: 'Delete keyframes',
+                      Tooltip: 'Deletes any currently selected keyframes',
+                      Callback: (_, input) => {
+                        if (
+                          input.UserInputType !==
+                          Enum.UserInputType.MouseButton1
+                        )
+                          return;
+                        if (input.UserInputState !== Enum.UserInputState.Begin)
+                          return;
+
+                        deleteKeyframes(selectedKeyframes);
+                        setSelectedKeyframes([]);
+                        setActiveContextMenuID('');
+                      },
+                    },
+                  ]}
+                ></ContextMenu>
               </frame>,
             ]}
           >
@@ -781,6 +875,8 @@ export const Timeline = RoactRodux.connect(
       theme: state.theme.theme,
       root: state.appData.root.unwrap(),
       instances: state.appData.instances,
+      properties: state.appData.properties,
+      keyframes: state.appData.keyframes,
     };
   },
   (dispatch: StoreDispatch): IDispatchProps => {
@@ -792,6 +888,12 @@ export const Timeline = RoactRodux.connect(
           property: property,
           position: position,
           value: value,
+        });
+      },
+      deleteKeyframes: (keyframes) => {
+        dispatch({
+          type: 'DeleteKeyframes',
+          keyframes: keyframes,
         });
       },
       createProperty: (instance, property) => {
