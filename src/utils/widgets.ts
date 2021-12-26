@@ -14,7 +14,7 @@ export class WidgetsManager {
         'roui3-start',
         new DockWidgetPluginGuiInfo(
           Enum.InitialDockState.Float,
-          true,
+          false,
           true,
           300,
           250,
@@ -39,6 +39,7 @@ export class WidgetsManager {
     };
     this.widgets.start.Title = 'Welcome to RoUI3';
     this.widgets.timeline.Title = 'RoUI3 - Timeline';
+    this.widgets.start.Enabled = false;
     this.widgets.timeline.Enabled = false;
   }
 }

@@ -19,7 +19,18 @@ export const StoreReducer = Rodux.combineReducers<IAppStore, StoreActions>({
   appData: dataReducer,
 });
 
-export const AppStore = new Rodux.Store(StoreReducer, undefined, [
+const RootReducer = (
+  state: IAppStore,
+  action: StoreActions | Rodux.Action<'ResetStore'>
+) => {
+  if (action.type === 'ResetStore') {
+    return StoreReducer(undefined as never, action as never);
+  }
+
+  return StoreReducer(state, action);
+};
+
+export const AppStore = new Rodux.Store(RootReducer, undefined, [
   Rodux.loggerMiddleware,
   Rodux.thunkMiddleware,
 ]);

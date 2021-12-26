@@ -12,6 +12,7 @@ import {
 
 export interface IDataReducer {
   root: Option<Instance>;
+  originalRoot: Option<Instance>;
   instances: Instance[];
   properties: Array<Set<string>>;
   keyframes: Array<{
@@ -24,6 +25,7 @@ export interface IDataReducer {
 
 const initialState: IDataReducer = {
   root: Option.none(),
+  originalRoot: Option.none(),
   instances: [],
   properties: [],
   keyframes: [],
@@ -44,6 +46,10 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
         ...state,
         root:
           action.root !== undefined ? Option.some(action.root) : Option.none(),
+        originalRoot:
+          action.originalRoot !== undefined
+            ? Option.some(action.originalRoot)
+            : Option.none(),
       };
     },
 

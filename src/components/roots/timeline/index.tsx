@@ -19,6 +19,8 @@ import { getNearestDistance } from 'utils/getNearestDistance';
 import { Tooltip } from '../../tooltip';
 import { ContextMenu } from 'components/context_menu';
 import { PairedDropdown } from 'components/paired_dropdown';
+import { normalizeToRange } from 'utils/normalize';
+import { lerp } from 'utils/lerp';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -123,6 +125,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
       position: number;
     }>
   >([]);
+  const internalPropertyChange = useValue(false);
 
   /* Context Menu */
   const [activeContextMenuID, setActiveContextMenuID] = useState('');
@@ -493,6 +496,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         const conn = selection
           .GetPropertyChangedSignal(prop as never)
           .Connect(() => {
+            print(internalPropertyChange.value);
+            if (internalPropertyChange.value) return;
+
             updateKeyframe(
               selection,
               prop,
@@ -513,6 +519,99 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
       });
     };
   }, [selected, scrubberPos, maxTime]);
+
+  // Scrubber preview effect
+  useEffect(() => {
+    if (selected.isSome() && instances.includes(selected.unwrap())) {
+      const ID = instances.indexOf(selected.unwrap());
+      const instanceProperties = properties[ID];
+
+      instanceProperties.forEach((prop) => {
+        const propKeyframes = keyframes.filter((kf) => {
+          return kf.instance === selected.unwrap() && kf.property === prop;
+        });
+
+        const sortedKeyframes = propKeyframes.sort((a, b) => {
+          return a.position < b.position;
+        });
+
+        type _Keyframe = {
+          instance: Instance;
+          property: string;
+          position: number;
+          value: KeyframeValue;
+        };
+
+        const scrubberPosTime = tonumber(
+          string.format('%.2f', scrubberPos * maxTime)
+        )!;
+
+        let firstKeyframe: _Keyframe | undefined;
+        let secondKeyframe: _Keyframe | undefined;
+
+        sortedKeyframes.forEach((kf, index) => {
+          if (index !== sortedKeyframes.size() - 1) {
+            const nextKf = sortedKeyframes[index + 1];
+
+            if (
+              kf.position <= scrubberPosTime &&
+              nextKf.position >= scrubberPosTime
+            ) {
+              firstKeyframe = kf;
+              secondKeyframe = nextKf;
+            }
+          }
+        });
+
+        if (firstKeyframe !== undefined && secondKeyframe !== undefined) {
+          const normalizedAlpha = normalizeToRange(
+            scrubberPosTime,
+            firstKeyframe.position,
+            secondKeyframe.position,
+            0,
+            1
+          );
+
+          let newValue: KeyframeValue | undefined;
+
+          if (typeIs(firstKeyframe.value, 'number')) {
+            newValue = lerp(
+              firstKeyframe.value,
+              secondKeyframe.value as number,
+              normalizedAlpha
+            );
+          } else if (typeIs(firstKeyframe.value, 'boolean')) {
+            newValue = firstKeyframe.value;
+          } else if (typeIs(firstKeyframe.value, 'UDim')) {
+            newValue = new UDim(
+              lerp(
+                firstKeyframe.value.Scale,
+                (secondKeyframe.value as UDim).Scale,
+                normalizedAlpha
+              ),
+              lerp(
+                firstKeyframe.value.Offset,
+                (secondKeyframe.value as UDim).Offset,
+                normalizedAlpha
+              )
+            );
+          } else {
+            // FIXME: Ignore because sometimes dynamic typing is difficult :(
+            // @ts-ignore
+            newValue = firstKeyframe.value.Lerp(
+              secondKeyframe.value,
+              normalizedAlpha
+            );
+          }
+
+          internalPropertyChange.value = true;
+          // @ts-ignore
+          selected.unwrap()[prop] = newValue;
+          internalPropertyChange.value = false;
+        }
+      });
+    }
+  }, [scrubberPos, properties]);
 
   return (
     <Container

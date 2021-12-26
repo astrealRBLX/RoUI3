@@ -3,6 +3,7 @@ import Rodux from '@rbxts/rodux';
 // Changes the root of the app's instance tree
 export interface ActionSetCurrentRoot extends Rodux.Action<'SetCurrentRoot'> {
   root: Instance | undefined;
+  originalRoot: Instance | undefined;
 }
 
 // Creates a new property on an instance or overrides an existing one
