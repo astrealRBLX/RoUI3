@@ -36,7 +36,9 @@ export = (
       // Switch root with a fake
       const rootClone = root.Clone();
       rootClone.Parent = root.Parent;
+      (rootClone as ScreenGui).Enabled = true;
       root.Parent = CoreGui;
+      (root as ScreenGui).Enabled = false;
 
       // Dispatch the root change
       store.dispatch({

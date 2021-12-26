@@ -14,6 +14,7 @@ export = () => {
       const originalRoot = appData.originalRoot.unwrap();
 
       originalRoot.Parent = root.Parent;
+      (originalRoot as ScreenGui).Enabled = true;
       root.Destroy();
 
       // Dispatch the root change
