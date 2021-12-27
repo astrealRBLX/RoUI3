@@ -11,18 +11,26 @@ import {
   KeyframeKind,
 } from 'rodux/actions/dataActions';
 
+export interface IKeyframe {
+  instance: Instance;
+  property: string;
+  position: number;
+  value: KeyframeValue;
+  kind: KeyframeKind;
+  kindData: {
+    easingStyle: Enum.EasingStyle;
+    easingDirection: Enum.EasingDirection;
+    dampingRatio: number;
+    frequency: number;
+  };
+}
+
 export interface IDataReducer {
   root: Option<Instance>;
   originalRoot: Option<Instance>;
   instances: Instance[];
   properties: Array<Set<string>>;
-  keyframes: Array<{
-    instance: Instance;
-    property: string;
-    position: number;
-    value: KeyframeValue;
-    kind: KeyframeKind;
-  }>;
+  keyframes: Array<IKeyframe>;
 }
 
 const initialState: IDataReducer = {
@@ -109,17 +117,30 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
       if (kf) {
         // Simply update necessary data
         kf.value = action.value;
-        if (action.kind) {
-          kf.kind = action.kind;
-        }
+        kf.kind = action.kind ?? kf.kind;
+        kf.kindData.easingStyle = action.easingStyle ?? kf.kindData.easingStyle;
+        kf.kindData.easingDirection =
+          action.easingDirection ?? kf.kindData.easingDirection;
+        kf.kindData.dampingRatio =
+          action.dampingRatio ?? kf.kindData.dampingRatio;
+        kf.kindData.frequency = action.frequency ?? kf.kindData.frequency;
       } else {
+        const kind = action.kind ?? 'Tween';
+
         // Otherwise push a new keyframe
         keyframes.push({
           instance: action.instance,
           property: action.property,
           position: action.position,
           value: action.value,
-          kind: action.kind ?? 'Tween',
+          kind: kind,
+          kindData: {
+            easingStyle: action.easingStyle ?? Enum.EasingStyle.Linear,
+            easingDirection:
+              action.easingDirection ?? Enum.EasingDirection.InOut,
+            dampingRatio: action.dampingRatio ?? 1,
+            frequency: action.frequency ?? 5,
+          },
         });
       }
 

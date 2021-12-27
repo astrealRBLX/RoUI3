@@ -28,6 +28,10 @@ export interface ActionUpdateKeyframe extends Rodux.Action<'UpdateKeyframe'> {
   position: number;
   value: KeyframeValue;
   kind?: KeyframeKind;
+  easingStyle?: Enum.EasingStyle;
+  easingDirection?: Enum.EasingDirection;
+  dampingRatio?: number;
+  frequency?: number;
 }
 
 // Deletes a keyframe by removing its data in the store

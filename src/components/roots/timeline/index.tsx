@@ -24,6 +24,7 @@ import { lerp } from 'utils/lerp';
 import { getInitialProperty } from 'utils/initialProperties';
 import { KeyboardListener } from 'components/keyboard_listener';
 import prettyStringify from 'utils/prettyStringify';
+import { IKeyframe } from 'rodux/reducers/dataReducer';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -31,13 +32,7 @@ interface IStateProps {
   originalRoot: Instance;
   instances: Instance[];
   properties: Array<Set<string>>;
-  keyframes: Array<{
-    instance: Instance;
-    property: string;
-    position: number;
-    value: KeyframeValue;
-    kind: KeyframeKind;
-  }>;
+  keyframes: Array<IKeyframe>;
 }
 
 interface IDispatchProps {
@@ -46,7 +41,13 @@ interface IDispatchProps {
     property: string,
     position: number,
     value: KeyframeValue,
-    kind?: KeyframeKind
+    kind?: KeyframeKind,
+    kindData?: {
+      easingStyle?: Enum.EasingStyle;
+      easingDirection?: Enum.EasingDirection;
+      dampingRatio?: number;
+      frequency?: number;
+    }
   ) => void;
   deleteKeyframes: (
     keyframes: Array<{
@@ -122,15 +123,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const rawTimelineTimestamps = useValue<number[]>([]);
 
   /* Keyframes */
-  const [selectedKeyframes, setSelectedKeyframes] = useState<
-    Array<{
-      instance: Instance;
-      property: string;
-      position: number;
-      value: KeyframeValue;
-      kind: KeyframeKind;
-    }>
-  >([]);
+  const [selectedKeyframes, setSelectedKeyframes] = useState<Array<IKeyframe>>(
+    []
+  );
   const internalPropertyChange = useValue(false);
 
   /* Context Menu */
@@ -350,12 +345,18 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               Event={{
                 InputBegan: (_, input) => {
                   if (input.UserInputType === Enum.UserInputType.MouseButton1) {
-                    const newKf = {
+                    const newKf: IKeyframe = {
                       instance: selected.unwrap(),
                       property: propertyName,
                       value: kf.value,
                       position: kf.position,
                       kind: kf.kind,
+                      kindData: {
+                        easingStyle: kf.kindData.easingStyle,
+                        easingDirection: kf.kindData.easingDirection,
+                        dampingRatio: kf.kindData.dampingRatio,
+                        frequency: kf.kindData.frequency,
+                      },
                     };
 
                     let shouldAdd = true;
@@ -714,13 +715,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
   // Validates selected keyframes
   useEffect(() => {
-    const newSelected: Array<{
-      instance: Instance;
-      property: string;
-      position: number;
-      value: KeyframeValue;
-      kind: KeyframeKind;
-    }> = [];
+    const newSelected: Array<IKeyframe> = [];
 
     let changed = false;
 
@@ -1208,7 +1203,7 @@ export const Timeline = RoactRodux.connect(
   },
   (dispatch: StoreDispatch): IDispatchProps => {
     return {
-      updateKeyframe: (instance, property, position, value, kind) => {
+      updateKeyframe: (instance, property, position, value, kind, kindData) => {
         dispatch({
           type: 'UpdateKeyframe',
           instance: instance,
@@ -1216,6 +1211,10 @@ export const Timeline = RoactRodux.connect(
           position: position,
           value: value,
           kind: kind,
+          easingStyle: kindData?.easingStyle,
+          easingDirection: kindData?.easingDirection,
+          dampingRatio: kindData?.dampingRatio,
+          frequency: kindData?.frequency,
         });
       },
       deleteKeyframes: (keyframes) => {
