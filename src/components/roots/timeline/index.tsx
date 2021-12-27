@@ -21,10 +21,12 @@ import { ContextMenu } from 'components/context_menu';
 import { PairedDropdown } from 'components/paired_dropdown';
 import { normalizeToRange } from 'utils/normalize';
 import { lerp } from 'utils/lerp';
+import { getInitialProperty } from 'utils/initialProperties';
 
 interface IStateProps {
   theme: StudioTheme;
   root: Instance;
+  originalRoot: Instance;
   instances: Instance[];
   properties: Array<Set<string>>;
   keyframes: Array<{
@@ -49,7 +51,6 @@ interface IDispatchProps {
       position: number;
     }>
   ) => void;
-  createProperty: (instance: Instance, property: string) => void;
   deleteProperty: (instance: Instance, property: string) => void;
 }
 
@@ -86,7 +87,6 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     keyframes,
     updateKeyframe,
     deleteKeyframes,
-    createProperty,
     deleteProperty,
   },
   { useState, useEffect, useValue, useMemo, useCallback }
@@ -496,16 +496,17 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         const conn = selection
           .GetPropertyChangedSignal(prop as never)
           .Connect(() => {
-            print(internalPropertyChange.value);
             if (internalPropertyChange.value) return;
+
+            const val = selection[
+              prop as InstancePropertyNames<typeof selection>
+            ] as KeyframeValue;
 
             updateKeyframe(
               selection,
               prop,
               tonumber(string.format('%.2f', scrubberPos * maxTime))!,
-              selection[
-                prop as InstancePropertyNames<typeof selection>
-              ] as KeyframeValue
+              val
             );
           });
 
@@ -523,14 +524,17 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   // Scrubber preview effect
   useEffect(() => {
     if (selected.isSome() && instances.includes(selected.unwrap())) {
-      const ID = instances.indexOf(selected.unwrap());
+      const selectedInstance = selected.unwrap();
+      const ID = instances.indexOf(selectedInstance);
       const instanceProperties = properties[ID];
 
       instanceProperties.forEach((prop) => {
+        // Get keyframes only related to this property
         const propKeyframes = keyframes.filter((kf) => {
-          return kf.instance === selected.unwrap() && kf.property === prop;
+          return kf.instance === selectedInstance && kf.property === prop;
         });
 
+        // Sort keyframes by position
         const sortedKeyframes = propKeyframes.sort((a, b) => {
           return a.position < b.position;
         });
@@ -542,6 +546,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           value: KeyframeValue;
         };
 
+        // Convert scrubber position to seconds
         const scrubberPosTime = tonumber(
           string.format('%.2f', scrubberPos * maxTime)
         )!;
@@ -549,22 +554,51 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         let firstKeyframe: _Keyframe | undefined;
         let secondKeyframe: _Keyframe | undefined;
 
+        // Find the keyframes surrounding the scrubber
         sortedKeyframes.forEach((kf, index) => {
           if (index !== sortedKeyframes.size() - 1) {
             const nextKf = sortedKeyframes[index + 1];
 
             if (
               kf.position <= scrubberPosTime &&
-              nextKf.position >= scrubberPosTime
+              nextKf.position > scrubberPosTime
             ) {
+              // Scrubber is between two keyframes
               firstKeyframe = kf;
+              secondKeyframe = nextKf;
+            } else if (nextKf.position <= scrubberPosTime) {
+              // Scrubber is past or equal to the next keyframe
+              firstKeyframe = nextKf;
               secondKeyframe = nextKf;
             }
           }
         });
 
+        // Handle the scrubber being before the first keyframe
+        if (firstKeyframe === undefined && sortedKeyframes.size() > 0) {
+          if (
+            scrubberPosTime >= 0 &&
+            scrubberPosTime <= sortedKeyframes[0].position
+          ) {
+            const changedProp = getInitialProperty(selectedInstance, prop);
+
+            if (changedProp) {
+              firstKeyframe = {
+                instance: selectedInstance,
+                property: prop,
+                position: 0,
+                // @ts-ignore
+                value: changedProp.value,
+              };
+              secondKeyframe = sortedKeyframes[0];
+            }
+          }
+        }
+
         if (firstKeyframe !== undefined && secondKeyframe !== undefined) {
-          const normalizedAlpha = normalizeToRange(
+          // Generate an alpha based on the scrubber position relative to
+          // its surrounding keyframes
+          let normalizedAlpha = normalizeToRange(
             scrubberPosTime,
             firstKeyframe.position,
             secondKeyframe.position,
@@ -572,17 +606,30 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             1
           );
 
+          // If the keyframes are the same then the scrubber is past
+          // the the second keyframe and therefore you can just use
+          // an alpha of 1
+          if (firstKeyframe === secondKeyframe) {
+            normalizedAlpha = 1;
+          }
+
           let newValue: KeyframeValue | undefined;
 
           if (typeIs(firstKeyframe.value, 'number')) {
+            // Numbers can use basic lerping
             newValue = lerp(
               firstKeyframe.value,
               secondKeyframe.value as number,
               normalizedAlpha
             );
           } else if (typeIs(firstKeyframe.value, 'boolean')) {
-            newValue = firstKeyframe.value;
+            // Booleans are instantaneous changes
+            newValue =
+              normalizedAlpha === 1
+                ? secondKeyframe.value
+                : firstKeyframe.value;
           } else if (typeIs(firstKeyframe.value, 'UDim')) {
+            // UDims need to have both scale and offset manually lerped
             newValue = new UDim(
               lerp(
                 firstKeyframe.value.Scale,
@@ -596,6 +643,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               )
             );
           } else {
+            // All other values have their own :Lerp() method so we can just use that
             // FIXME: Ignore because sometimes dynamic typing is difficult :(
             // @ts-ignore
             newValue = firstKeyframe.value.Lerp(
@@ -606,12 +654,12 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
           internalPropertyChange.value = true;
           // @ts-ignore
-          selected.unwrap()[prop] = newValue;
+          selectedInstance[prop] = newValue;
           internalPropertyChange.value = false;
         }
       });
     }
-  }, [scrubberPos, properties]);
+  }, [scrubberPos, properties, keyframes]);
 
   return (
     <Container
@@ -718,16 +766,18 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               const ID = instances.indexOf(currentSelection);
 
               if (ID === -1 || !properties[ID].has(propertyDropdownValue)) {
+                const propValue = currentSelection[
+                  propertyDropdownValue as InstancePropertyNames<
+                    typeof currentSelection
+                  >
+                ] as KeyframeValue;
+
                 // Create initial property keyframe
                 updateKeyframe(
                   currentSelection,
                   propertyDropdownValue,
                   tonumber(string.format('%.2f', scrubberPos * maxTime))!,
-                  currentSelection[
-                    propertyDropdownValue as InstancePropertyNames<
-                      typeof currentSelection
-                    >
-                  ] as KeyframeValue
+                  propValue
                 );
               }
             }}
@@ -989,6 +1039,7 @@ export const Timeline = RoactRodux.connect(
     return {
       theme: state.theme.theme,
       root: state.appData.root.unwrap(),
+      originalRoot: state.appData.originalRoot.unwrap(),
       instances: state.appData.instances,
       properties: state.appData.properties,
       keyframes: state.appData.keyframes,
@@ -1009,13 +1060,6 @@ export const Timeline = RoactRodux.connect(
         dispatch({
           type: 'DeleteKeyframes',
           keyframes: keyframes,
-        });
-      },
-      createProperty: (instance, property) => {
-        dispatch({
-          type: 'CreateInstanceProperty',
-          instance: instance,
-          property: property,
         });
       },
       deleteProperty: (instance, property) => {

@@ -3,6 +3,7 @@ import RoactRodux from '@rbxts/roact-rodux';
 import { Option } from '@rbxts/rust-classes';
 import { Timeline } from 'components/roots/timeline';
 import { AppStore } from 'rodux/store';
+import { clearProperties, serializeInstance } from 'utils/initialProperties';
 import { TreeManager } from 'utils/trees';
 import { WidgetsManager } from 'utils/widgets';
 
@@ -39,6 +40,11 @@ export = (
       (rootClone as ScreenGui).Enabled = true;
       root.Parent = CoreGui;
       (root as ScreenGui).Enabled = false;
+
+      // Clear a previously serialized root
+      // then serialize the new one
+      clearProperties();
+      serializeInstance(rootClone);
 
       // Dispatch the root change
       store.dispatch({

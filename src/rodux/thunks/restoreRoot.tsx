@@ -1,8 +1,9 @@
-// restoreRoot() is a thunk that will switch to the
-
 import { AppStore } from 'rodux/store';
+import { clearProperties } from 'utils/initialProperties';
 
-// timeline widget when the app root is changed / set
+// restoreRoot() is a thunk that will restore the
+// original root object while also resetting the
+// app's store
 export = () => {
   return (store: typeof AppStore) => {
     const state = store.getState();
@@ -11,11 +12,14 @@ export = () => {
     // Verify a root and originalRoot already exist
     if (appData.root.isSome() && appData.originalRoot.isSome()) {
       const root = appData.root.unwrap();
-      const originalRoot = appData.originalRoot.unwrap();
+      const originalRoot = appData.originalRoot.unwrap() as ScreenGui;
 
       originalRoot.Parent = root.Parent;
-      (originalRoot as ScreenGui).Enabled = true;
+      originalRoot.Enabled = true;
       root.Destroy();
+
+      // Clear any changed properties
+      clearProperties();
 
       // Dispatch the root change
       store.dispatch({

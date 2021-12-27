@@ -1,3 +1,12 @@
+export type SupportedClass =
+  | 'ImageButton'
+  | 'TextButton'
+  | 'ScrollingFrame'
+  | 'TextLabel'
+  | 'ImageLabel'
+  | 'Frame'
+  | 'TextBox';
+
 const sharedProperties = [
   'AnchorPoint',
   'BackgroundColor3',
@@ -14,16 +23,7 @@ const sharedProperties = [
 ];
 
 // Resolves supported timeline properties based on instance class
-export const getSupportedProperties = (
-  className:
-    | 'ImageButton'
-    | 'TextButton'
-    | 'ScrollingFrame'
-    | 'TextLabel'
-    | 'ImageLabel'
-    | 'Frame'
-    | 'TextBox'
-) => {
+export const getSupportedProperties = (className: SupportedClass) => {
   switch (className) {
     case 'ImageButton':
       return [...sharedProperties];

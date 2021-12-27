@@ -168,11 +168,6 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
       // Remove the property
       properties[ID].delete(action.property);
 
-      print('New Keyframes:');
-      print(keyframes);
-      print('New Properties:');
-      print(properties);
-
       return {
         ...state,
         properties: properties,

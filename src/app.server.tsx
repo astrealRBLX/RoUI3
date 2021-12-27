@@ -8,7 +8,7 @@
 
   ~ Astreal
 */
-import { createTreeManager } from 'utils/trees';
+import { createTreeManager, TreeManager } from 'utils/trees';
 import { createWidgetManager } from 'utils/widgets';
 import { setPlugin } from 'utils/plugin';
 
@@ -44,7 +44,7 @@ if (!RunService.IsRunning()) {
     cleanupTree(treeManager.trees.start, () => {
       treeManager.trees.start = Option.none();
       widgetManager.widgets.start.Enabled = false;
-      AppStore.dispatch(restoreRoot as never);
+      AppStore.dispatch(restoreRoot() as never);
     });
   });
   widgetManager.widgets.timeline.BindToClose(() => {
@@ -57,6 +57,14 @@ if (!RunService.IsRunning()) {
 
   animateButton.Click.Connect(() => {
     if (treeManager.trees.start.isNone()) {
+      if (treeManager.trees.timeline.isSome()) {
+        cleanupTree(treeManager.trees.timeline, () => {
+          treeManager.trees.timeline = Option.none();
+          widgetManager.widgets.timeline.Enabled = false;
+          AppStore.dispatch(restoreRoot() as never);
+        });
+      }
+
       treeManager.trees.start = Option.some(
         Roact.mount(
           <RoactRodux.StoreProvider store={AppStore}>
@@ -70,7 +78,7 @@ if (!RunService.IsRunning()) {
       cleanupTree(treeManager.trees.start, () => {
         treeManager.trees.start = Option.none();
         widgetManager.widgets.start.Enabled = false;
-        AppStore.dispatch(restoreRoot as never);
+        AppStore.dispatch(restoreRoot() as never);
       });
     }
   });
@@ -85,7 +93,7 @@ if (!RunService.IsRunning()) {
       treeManager.trees.timeline,
       () => (treeManager.trees.timeline = Option.none())
     );
-    AppStore.dispatch(restoreRoot as never);
+    AppStore.dispatch(restoreRoot() as never);
   });
 
   // Update store when studio theme changes
