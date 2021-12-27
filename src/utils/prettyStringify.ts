@@ -19,6 +19,9 @@ export = (data: KeyframeValue) => {
     case 'number':
       data = data as number;
       return `Number(${roundNumToString(data)})`;
+    case 'string':
+      data = data as string;
+      return `String("${data}")`;
     case 'Vector2':
       data = data as Vector2;
       return `Vector2(${roundNumToString(data.X)}, ${roundNumToString(

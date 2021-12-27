@@ -22,23 +22,52 @@ const sharedProperties = [
   'ZIndex',
 ];
 
+const textProperties = [
+  'Text',
+  'TextSize',
+  'TextScaled',
+  'TextColor3',
+  'RichText',
+  'TextStrokeColor3',
+  'TextWrapped',
+  'Text',
+];
+
+const imageProperties = [
+  'Image',
+  'ImageColor3',
+  'ImageColor3',
+  'ImageTransparency',
+];
+
 // Resolves supported timeline properties based on instance class
 export const getSupportedProperties = (className: SupportedClass) => {
   switch (className) {
-    case 'ImageButton':
-      return [...sharedProperties];
-    case 'TextButton':
-      return [...sharedProperties];
-    case 'ScrollingFrame':
-      return [...sharedProperties];
     case 'TextLabel':
-      return [...sharedProperties];
+      return [...sharedProperties, ...textProperties];
+    case 'TextButton':
+      return [...sharedProperties, ...textProperties];
+    case 'TextBox':
+      return [...sharedProperties, ...textProperties];
+    case 'ImageButton':
+      return [...sharedProperties, ...imageProperties, 'HoverImage'];
     case 'ImageLabel':
-      return [...sharedProperties];
+      return [...sharedProperties, ...imageProperties];
     case 'Frame':
       return [...sharedProperties];
-    case 'TextBox':
-      return [...sharedProperties];
+    case 'ScrollingFrame':
+      return [
+        ...sharedProperties,
+        'BottomImage',
+        'CanvasPosition',
+        'CanvasSize',
+        'MidImage',
+        'ScrollBarImageColor3',
+        'ScrollBarImageTransparency',
+        'ScrollBarThickness',
+        'ScrollingEnabled',
+        'TopImage',
+      ];
     default:
       return [];
   }

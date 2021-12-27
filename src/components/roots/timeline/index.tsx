@@ -574,13 +574,19 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               // Scrubber is between two keyframes
               firstKeyframe = kf;
               secondKeyframe = nextKf;
-            } else if (nextKf.position <= scrubberPosTime) {
-              // Scrubber is past or equal to the next keyframe
-              firstKeyframe = nextKf;
-              secondKeyframe = nextKf;
             }
           }
         });
+
+        // Handle the scrubber being after the last keyframe
+        if (firstKeyframe === undefined && sortedKeyframes.size() > 0) {
+          const lastKf = sortedKeyframes[sortedKeyframes.size() - 1];
+
+          if (scrubberPosTime >= lastKf.position) {
+            firstKeyframe = lastKf;
+            secondKeyframe = lastKf;
+          }
+        }
 
         // Handle the scrubber being before the first keyframe
         if (firstKeyframe === undefined && sortedKeyframes.size() > 0) {
@@ -595,11 +601,28 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 instance: selectedInstance,
                 property: prop,
                 position: 0,
-                // @ts-ignore
                 value: changedProp.value,
               };
+
               secondKeyframe = sortedKeyframes[0];
             }
+          }
+        }
+
+        // Handle no keyframes
+        if (sortedKeyframes.size() === 0) {
+          const changedProp = getInitialProperty(selectedInstance, prop);
+
+          if (changedProp) {
+            const initialData = {
+              instance: selectedInstance,
+              property: prop,
+              position: 0,
+              value: changedProp.value,
+            };
+
+            firstKeyframe = initialData;
+            secondKeyframe = initialData;
           }
         }
 
@@ -639,6 +662,12 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             );
           } else if (typeIs(firstKeyframe.value, 'boolean')) {
             // Booleans are instantaneous changes
+            newValue =
+              normalizedAlpha === 1
+                ? secondKeyframe.value
+                : firstKeyframe.value;
+          } else if (typeIs(firstKeyframe.value, 'string')) {
+            // Strings are instantaneous changes
             newValue =
               normalizedAlpha === 1
                 ? secondKeyframe.value

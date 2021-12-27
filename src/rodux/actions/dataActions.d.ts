@@ -38,4 +38,11 @@ export interface ActionDeleteKeyframes extends Rodux.Action<'DeleteKeyframes'> {
   }>;
 }
 
-export type KeyframeValue = number | boolean | UDim2 | UDim | Vector2 | Color3;
+export type KeyframeValue =
+  | number
+  | boolean
+  | string
+  | UDim2
+  | UDim
+  | Vector2
+  | Color3;
