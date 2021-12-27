@@ -49,12 +49,11 @@ The initial release of RoUI3! 🥳
     - ✔️ Max time textbox
     - ✔️ Add property dropdown menu
     - ❔ Save/export animation button
-    - ❌ Selected keyframe options
-      - ❌ Current time position textbox
-      - ❌ Frequency / damping ratio textboxes for springs
-      - ❌ Easing style / direction dropdown menus for tweens
+    - 🔜 Selected keyframe options
+      - ❔ Current time position textbox
+      - 🔜 Frequency / damping ratio textboxes for springs
+      - 🔜 Easing style / direction dropdown menus for tweens
     - ❌ Preview button
-    - ❌ Scrubber automatic preview toggle button
   - 🔜 Timeline content
     - ✔️ Property list
       - ✔️ Dynamic rendering based on app state
@@ -72,9 +71,9 @@ The initial release of RoUI3! 🥳
       - ✔️ Dynamic keyframe rendering based on app state
       - 🔜 Keyframes
         - ✔️ Selection support
-        - 🔜 Right-click context menu
+        - ✔️ Right-click context menu
           - ✔️ Delete keyframe
-          - ❔ Set keyframe type to spring or tween
+          - ✔️ Set keyframe type to spring or tween
         - ✔️ `CTRL` click support for selecting multiple keyframes
         - ❔ Long press support for moving a keyframe
 - ❌ Exporting

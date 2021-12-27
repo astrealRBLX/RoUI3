@@ -27,6 +27,7 @@ export interface ActionUpdateKeyframe extends Rodux.Action<'UpdateKeyframe'> {
   property: string;
   position: number;
   value: KeyframeValue;
+  kind?: KeyframeKind;
 }
 
 // Deletes a keyframe by removing its data in the store
@@ -46,3 +47,5 @@ export type KeyframeValue =
   | UDim
   | Vector2
   | Color3;
+
+export type KeyframeKind = 'Tween' | 'Spring';

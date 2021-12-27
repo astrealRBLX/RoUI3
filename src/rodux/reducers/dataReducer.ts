@@ -8,6 +8,7 @@ import {
   ActionCreateInstanceProperty,
   ActionDeleteKeyframes,
   ActionDeleteInstanceProperty,
+  KeyframeKind,
 } from 'rodux/actions/dataActions';
 
 export interface IDataReducer {
@@ -20,6 +21,7 @@ export interface IDataReducer {
     property: string;
     position: number;
     value: KeyframeValue;
+    kind: KeyframeKind;
   }>;
 }
 
@@ -105,8 +107,11 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
       });
 
       if (kf) {
-        // Simply update the value (duplicate positions not allowed)
+        // Simply update necessary data
         kf.value = action.value;
+        if (action.kind) {
+          kf.kind = action.kind;
+        }
       } else {
         // Otherwise push a new keyframe
         keyframes.push({
@@ -114,6 +119,7 @@ export const dataReducer = Rodux.createReducer<IDataReducer, DataActions>(
           property: action.property,
           position: action.position,
           value: action.value,
+          kind: action.kind ?? 'Tween',
         });
       }
 

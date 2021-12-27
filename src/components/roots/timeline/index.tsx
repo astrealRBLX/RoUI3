@@ -1,4 +1,4 @@
-import Roact from '@rbxts/roact';
+import Roact, { update } from '@rbxts/roact';
 import RoactHooks from '@rbxts/roact-hooks';
 import RoactRodux from '@rbxts/roact-rodux';
 import { Option } from '@rbxts/rust-classes';
@@ -8,7 +8,7 @@ import { Scrubber } from 'components/scrubber';
 import { Topbar } from 'components/topbar';
 import { TreeView } from 'components/tree_view';
 import { ResizablePanels } from 'components/resizable_panels';
-import { KeyframeValue } from 'rodux/actions/dataActions';
+import { KeyframeKind, KeyframeValue } from 'rodux/actions/dataActions';
 import { IAppStore, StoreDispatch } from 'rodux/store';
 import { getPlugin } from 'utils/plugin';
 import { styleColor, styleMod } from 'utils/studioStyleGuide';
@@ -36,6 +36,7 @@ interface IStateProps {
     property: string;
     position: number;
     value: KeyframeValue;
+    kind: KeyframeKind;
   }>;
 }
 
@@ -44,7 +45,8 @@ interface IDispatchProps {
     instance: Instance,
     property: string,
     position: number,
-    value: KeyframeValue
+    value: KeyframeValue,
+    kind?: KeyframeKind
   ) => void;
   deleteKeyframes: (
     keyframes: Array<{
@@ -124,8 +126,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     Array<{
       instance: Instance;
       property: string;
-      value: KeyframeValue;
       position: number;
+      value: KeyframeValue;
+      kind: KeyframeKind;
     }>
   >([]);
   const internalPropertyChange = useValue(false);
@@ -286,7 +289,8 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                           propertyName as InstancePropertyNames<
                             typeof currentSelection
                           >
-                        ] as KeyframeValue
+                        ] as KeyframeValue,
+                        'Tween'
                       );
                       setActiveContextMenuID('');
                     }
@@ -337,7 +341,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               Size={new UDim2(0, 9, 0, 9)}
               Position={new UDim2(kf.position / maxTime, 0, 0.5, 0)}
               ZIndex={95}
-              Rotation={45}
+              Rotation={kf.kind === 'Tween' ? 45 : 0}
               BorderSizePixel={kfSelected ? 2 : 0}
               BorderColor3={
                 kfSelected ? Color3.fromRGB(217, 217, 217) : new Color3()
@@ -351,6 +355,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                       property: propertyName,
                       value: kf.value,
                       position: kf.position,
+                      kind: kf.kind,
                     };
 
                     let shouldAdd = true;
@@ -397,7 +402,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               <Tooltip
                 Widget={timelineWidget}
                 MaxWidth={250}
-                Text={`${prettyStringify(kf.value)} @ ${kf.position}s`}
+                Text={`(${kf.kind}) ${prettyStringify(kf.value)} @ ${
+                  kf.position
+                }s`}
               />
             </frame>
           );
@@ -705,6 +712,46 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     }
   }, [scrubberPos, properties, keyframes]);
 
+  // Validates selected keyframes
+  useEffect(() => {
+    const newSelected: Array<{
+      instance: Instance;
+      property: string;
+      position: number;
+      value: KeyframeValue;
+      kind: KeyframeKind;
+    }> = [];
+
+    let changed = false;
+
+    selectedKeyframes.forEach((selectedKf, index, arr) => {
+      const existingKf = keyframes.find((kf) => {
+        return (
+          selectedKf.instance === kf.instance &&
+          selectedKf.property === kf.property &&
+          selectedKf.position === kf.position
+        );
+      });
+
+      // A keyframe exists with the same instance, property, and position
+      if (existingKf) {
+        // Validate keyframe value & kind
+        if (
+          existingKf.value !== selectedKf.value ||
+          existingKf.kind !== selectedKf.kind
+        ) {
+          changed = true;
+        }
+
+        newSelected.push(existingKf);
+      } else {
+        changed = true;
+      }
+    });
+
+    if (changed) setSelectedKeyframes(newSelected);
+  }, [keyframes, selectedKeyframes]);
+
   return (
     <Container
       Size={new UDim2(1, 0, 1, 0)}
@@ -836,7 +883,8 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   currentSelection,
                   propertyDropdownValue,
                   tonumber(string.format('%.2f', scrubberPos * maxTime))!,
-                  propValue
+                  propValue,
+                  'Tween'
                 );
               }
             }}
@@ -975,6 +1023,60 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                         setActiveContextMenuID('');
                       },
                     },
+                    {
+                      Text: 'Switch keyframe kind to Tween',
+                      Tooltip:
+                        "Sets any currently selected keyframes' kind to Tween",
+                      Callback: (_, input) => {
+                        if (
+                          input.UserInputType !==
+                          Enum.UserInputType.MouseButton1
+                        )
+                          return;
+                        if (input.UserInputState !== Enum.UserInputState.Begin)
+                          return;
+
+                        selectedKeyframes.forEach((kf) => {
+                          if (kf.kind !== 'Tween') {
+                            updateKeyframe(
+                              kf.instance,
+                              kf.property,
+                              kf.position,
+                              kf.value,
+                              'Tween'
+                            );
+                          }
+                        });
+                        setActiveContextMenuID('');
+                      },
+                    },
+                    {
+                      Text: 'Switch keyframe kind to Spring',
+                      Tooltip:
+                        "Sets any currently selected keyframes' kind to Spring",
+                      Callback: (_, input) => {
+                        if (
+                          input.UserInputType !==
+                          Enum.UserInputType.MouseButton1
+                        )
+                          return;
+                        if (input.UserInputState !== Enum.UserInputState.Begin)
+                          return;
+
+                        selectedKeyframes.forEach((kf) => {
+                          if (kf.kind !== 'Spring') {
+                            updateKeyframe(
+                              kf.instance,
+                              kf.property,
+                              kf.position,
+                              kf.value,
+                              'Spring'
+                            );
+                          }
+                        });
+                        setActiveContextMenuID('');
+                      },
+                    },
                   ]}
                 ></ContextMenu>
               </frame>,
@@ -1106,13 +1208,14 @@ export const Timeline = RoactRodux.connect(
   },
   (dispatch: StoreDispatch): IDispatchProps => {
     return {
-      updateKeyframe: (instance, property, position, value) => {
+      updateKeyframe: (instance, property, position, value, kind) => {
         dispatch({
           type: 'UpdateKeyframe',
           instance: instance,
           property: property,
           position: position,
           value: value,
+          kind: kind,
         });
       },
       deleteKeyframes: (keyframes) => {
