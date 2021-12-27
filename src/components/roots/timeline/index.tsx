@@ -616,8 +616,15 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
           // If the keyframes are the same then the scrubber is past
           // the the second keyframe and therefore you can just use
-          // an alpha of 1
-          if (firstKeyframe === secondKeyframe) {
+          // an alpha of 1. Alternatively, if the keyframes are both
+          // at position 0 (which isn't usually possible), then the
+          // first keyframe is fake and overlapping a new keyframe so
+          // an alpha of 1 should be used.
+          if (
+            firstKeyframe === secondKeyframe ||
+            (firstKeyframe.position === secondKeyframe.position &&
+              firstKeyframe.position === 0)
+          ) {
             normalizedAlpha = 1;
           }
 
