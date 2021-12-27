@@ -22,6 +22,7 @@ import { PairedDropdown } from 'components/paired_dropdown';
 import { normalizeToRange } from 'utils/normalize';
 import { lerp } from 'utils/lerp';
 import { getInitialProperty } from 'utils/initialProperties';
+import { KeyboardListener } from 'components/keyboard_listener';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -96,6 +97,10 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const [propertyDropdownOpen, setPropertyDropdownOpen] = useState(false);
   const [maxTime, setMaxTime] = useState(5);
 
+  /* Keyboard Input */
+  const shiftPressed = useValue(false);
+  const ctrlPressed = useValue(false);
+
   /* Panel */
   const [panelSizeX, setPanelSizeX] = useState(0.2);
 
@@ -111,12 +116,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const scrubberContainerRef = Roact.createRef<Frame>();
   const scrubbing = useValue(false);
   const scrubberMouseOffset = useValue(0);
-  const shouldSnap = useValue(false);
-  const isKeyframeSnapEnabled = useValue(false);
   const rawTimelineTimestamps = useValue<number[]>([]);
 
   /* Keyframes */
-  const ctrlToggled = useValue(false);
   const [selectedKeyframes, setSelectedKeyframes] = useState<
     Array<{
       instance: Instance;
@@ -147,14 +149,14 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         plugin.GetMouse().Icon = 'rbxasset://SystemCursors/ClosedHand';
 
         // Handle scrubber snapping
-        if (shouldSnap.value) {
+        if (shiftPressed.value) {
           const nearestTimestamp = getNearestDistance(
             newScrubberPos,
             rawTimelineTimestamps.value
           );
 
           if (
-            isKeyframeSnapEnabled.value &&
+            ctrlPressed.value &&
             selected.isSome() &&
             instances.includes(selected.unwrap())
           ) {
@@ -370,7 +372,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                       });
                     }
 
-                    if (ctrlToggled.value) {
+                    if (ctrlPressed.value) {
                       // Ctrl is activated (multiple selections)
                       if (shouldAdd) {
                         // Add unselected keyframe to selected
@@ -687,22 +689,37 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           }}
         />,
       ]}
-      InputBegan={(_, input) => {
-        if (input.UserInputType !== Enum.UserInputType.Keyboard) return;
-        if (input.KeyCode === Enum.KeyCode.LeftShift) {
-          shouldSnap.value = !shouldSnap.value;
-        } else if (input.KeyCode === Enum.KeyCode.K) {
-          isKeyframeSnapEnabled.value = !isKeyframeSnapEnabled.value;
-        } else if (input.KeyCode === Enum.KeyCode.LeftControl) {
-          ctrlToggled.value = !ctrlToggled.value;
-        }
-      }}
     >
       <uilistlayout
         FillDirection={Enum.FillDirection.Vertical}
         HorizontalAlignment={Enum.HorizontalAlignment.Center}
         VerticalAlignment={Enum.VerticalAlignment.Top}
         Padding={new UDim(0, 4)}
+      />
+
+      {/* Keyboard Listener */}
+      <KeyboardListener
+        Widget={timelineWidget}
+        OnKeyPressed={(input) => {
+          switch (input.KeyCode) {
+            case Enum.KeyCode.LeftShift:
+              shiftPressed.value = true;
+              break;
+            case Enum.KeyCode.LeftControl:
+              ctrlPressed.value = true;
+              break;
+          }
+        }}
+        OnKeyReleased={(input) => {
+          switch (input.KeyCode) {
+            case Enum.KeyCode.LeftShift:
+              shiftPressed.value = false;
+              break;
+            case Enum.KeyCode.LeftControl:
+              ctrlPressed.value = false;
+              break;
+          }
+        }}
       />
 
       {/* Topbar */}
