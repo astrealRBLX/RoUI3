@@ -23,6 +23,7 @@ import { normalizeToRange } from 'utils/normalize';
 import { lerp } from 'utils/lerp';
 import { getInitialProperty } from 'utils/initialProperties';
 import { KeyboardListener } from 'components/keyboard_listener';
+import prettyStringify from 'utils/prettyStringify';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -353,13 +354,11 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                     };
 
                     let shouldAdd = true;
-                    let removeIndex = -1;
 
                     // Determine if the clicked keyframe is already selected
                     selectedKeyframes.forEach((selectedKf, i) => {
                       if (selectedKf === kfSelected) {
                         shouldAdd = false;
-                        removeIndex = i;
                       }
                     });
 
@@ -394,7 +393,13 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   }
                 },
               }}
-            />
+            >
+              <Tooltip
+                Widget={timelineWidget}
+                MaxWidth={250}
+                Text={`${prettyStringify(kf.value)} @ ${kf.position}s`}
+              />
+            </frame>
           );
         });
 
@@ -425,6 +430,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
     keyframes,
     selectedKeyframes,
     activeContextMenuID,
+    maxTime,
   ]);
 
   // Generate timeline timestamps
