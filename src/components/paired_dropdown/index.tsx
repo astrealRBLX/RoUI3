@@ -94,9 +94,9 @@ const PairedDropdownComponent: RoactHooks.FC<Roact.PropsWithChildren<IProps>> =
           Open={DropdownOpen}
           AnchorPoint={new Vector2(0, 0.5)}
           Position={new UDim2(0, 35, 0.5, 0)}
-          Size={new UDim2(0, 0, 0, 20)}
           Selected={DropdownSelection}
           Options={DropdownOptions}
+          Height={20}
           OnOptionSelected={DropdownSelectedCallback}
           OnClick={DropdownClickCallback}
         >

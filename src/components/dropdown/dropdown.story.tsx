@@ -12,7 +12,7 @@ export = (preview: Instance) => {
         Open={false}
         Selected={'Test'}
         Options={['Test', 'Thing', 'Wow']}
-        Size={new UDim2(0, 100, 0, 20)}
+        Height={20}
         OnOptionSelected={(x) => {
           print(x);
         }}

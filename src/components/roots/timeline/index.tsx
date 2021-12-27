@@ -888,7 +888,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               setPropertyDropdownOpen(false);
             }}
             DropdownClickCallback={() => {
-              setPropertyDropdownOpen(true);
+              setPropertyDropdownOpen(!propertyDropdownOpen);
             }}
           />
         ) : undefined}
