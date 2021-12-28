@@ -51,8 +51,7 @@ The initial release of RoUI3! 🥳
     - ❔ Save/export animation button
     - 🔜 Selected keyframe options
       - ❔ Current time position textbox
-      - 🔜 Frequency / damping ratio textboxes for springs
-      - 🔜 Easing style / direction dropdown menus for tweens
+      - ✔️ Easing style / direction dropdown menus for tweens
     - ❌ Preview button
   - 🔜 Timeline content
     - ✔️ Property list
@@ -73,7 +72,6 @@ The initial release of RoUI3! 🥳
         - ✔️ Selection support
         - ✔️ Right-click context menu
           - ✔️ Delete keyframe
-          - ✔️ Set keyframe type to spring or tween
         - ✔️ `CTRL` click support for selecting multiple keyframes
         - ❔ Long press support for moving a keyframe
 - ❌ Exporting
