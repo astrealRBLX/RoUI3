@@ -68,73 +68,102 @@ const DropdownComponent = ({
   });
 
   return (
-    <textbutton
+    <frame
       Active
       AutomaticSize={Enum.AutomaticSize.X}
-      Position={Position}
-      Size={new UDim2(0, 0, 0, Height)}
-      ZIndex={220}
-      Text={Selected}
-      Font={Enum.Font.SourceSansSemibold}
-      TextSize={14}
       BorderSizePixel={0}
       BackgroundColor3={theme.GetColor(styleColor.RibbonButton, styleMod.Hover)}
-      TextColor3={theme.GetColor(styleColor.MainText)}
-      Event={{
-        MouseEnter: (rbx) => {
-          rbx.BackgroundColor3 = theme.GetColor(styleColor.RibbonButton);
-        },
-        MouseLeave: (rbx) => {
-          rbx.BackgroundColor3 = theme.GetColor(
-            styleColor.RibbonButton,
-            styleMod.Hover
-          );
-        },
-        Activated: () => {
-          OnClick();
-        },
-      }}
+      ZIndex={220}
+      Size={new UDim2(0, 0, 0, Height)}
+      Position={Position}
     >
+      <uilistlayout
+        FillDirection={Enum.FillDirection.Horizontal}
+        HorizontalAlignment={Enum.HorizontalAlignment.Left}
+        VerticalAlignment={Enum.VerticalAlignment.Center}
+      />
       <uicorner CornerRadius={new UDim(0, 4)} />
+      <uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} />
 
-      <frame
+      <textbutton
         Active
-        ZIndex={210}
-        AutomaticSize={Enum.AutomaticSize.XY}
-        Position={Open ? new UDim2(0, 0, 1, -10) : new UDim2()}
-        Size={Open ? new UDim2(1, 0, OpenScale, 0) : new UDim2(1, 0, 0, 0)}
-        BackgroundTransparency={0}
-        BackgroundColor3={theme.GetColor(styleColor.Mid)}
-        BorderSizePixel={0}
-      >
-        <uicorner CornerRadius={new UDim(0, 4)} />
-      </frame>
-
-      <scrollingframe
-        Active
-        ZIndex={210}
+        AutomaticSize={Enum.AutomaticSize.X}
+        Size={new UDim2(0, 0, 1, 0)}
+        Text={Selected}
+        Font={Enum.Font.SourceSansSemibold}
+        TextSize={14}
+        TextColor3={theme.GetColor(styleColor.MainText)}
         BackgroundTransparency={1}
-        Position={Open ? new UDim2(0, 0, 1, -10) : new UDim2()}
-        Size={Open ? new UDim2(1, 0, OpenScale, 0) : new UDim2(1, 0, 0, 0)}
-        AutomaticCanvasSize={Enum.AutomaticSize.Y}
-        CanvasSize={new UDim2()}
-        ScrollBarThickness={4}
-        ScrollBarImageColor3={theme.GetColor(styleColor.Light)}
-        ScrollBarImageTransparency={0.5}
-        BorderSizePixel={0}
+        ZIndex={225}
+        Event={{
+          MouseEnter: (rbx) => {
+            rbx.BackgroundColor3 = theme.GetColor(styleColor.RibbonButton);
+          },
+          MouseLeave: (rbx) => {
+            rbx.BackgroundColor3 = theme.GetColor(
+              styleColor.RibbonButton,
+              styleMod.Hover
+            );
+          },
+          Activated: () => {
+            OnClick();
+          },
+        }}
       >
-        <uilistlayout
-          FillDirection={Enum.FillDirection.Vertical}
-          HorizontalAlignment={Enum.HorizontalAlignment.Left}
-          VerticalAlignment={Enum.VerticalAlignment.Top}
-        />
-        <uipadding PaddingTop={new UDim(0, 10)} />
+        <frame
+          Active
+          ZIndex={210}
+          AutomaticSize={Enum.AutomaticSize.XY}
+          Position={Open ? new UDim2(0, -4, 1, -10) : new UDim2(0, -4, 0, 0)}
+          Size={Open ? new UDim2(1, 4, OpenScale, 0) : new UDim2(1, 0, 0, 0)}
+          BackgroundTransparency={0}
+          BackgroundColor3={theme.GetColor(styleColor.Mid)}
+          BorderSizePixel={0}
+        >
+          <uicorner CornerRadius={new UDim(0, 4)} />
+        </frame>
 
-        {optionsElements}
-      </scrollingframe>
+        <scrollingframe
+          Active
+          ZIndex={210}
+          BackgroundTransparency={1}
+          Position={Open ? new UDim2(0, -4, 1, -10) : new UDim2(0, -4, 0, 0)}
+          Size={Open ? new UDim2(1, 0, OpenScale, 0) : new UDim2(1, 0, 0, 0)}
+          AutomaticCanvasSize={Enum.AutomaticSize.Y}
+          CanvasSize={new UDim2()}
+          ScrollBarThickness={4}
+          ScrollBarImageColor3={theme.GetColor(styleColor.Light)}
+          ScrollBarImageTransparency={0}
+          BorderSizePixel={0}
+          AutomaticSize={Enum.AutomaticSize.X}
+        >
+          <uilistlayout
+            FillDirection={Enum.FillDirection.Vertical}
+            HorizontalAlignment={Enum.HorizontalAlignment.Left}
+            VerticalAlignment={Enum.VerticalAlignment.Top}
+          />
+          <uipadding PaddingTop={new UDim(0, 10)} />
 
-      {children}
-    </textbutton>
+          {optionsElements}
+        </scrollingframe>
+
+        {children}
+      </textbutton>
+
+      <imagebutton
+        Image={'rbxassetid://5279719038'}
+        BackgroundTransparency={1}
+        Size={new UDim2(0, 12, 0, 12)}
+        ImageColor3={theme.GetColor(styleColor.BrightText)}
+        ScaleType={Enum.ScaleType.Fit}
+        ZIndex={225}
+        Event={{
+          Activated: () => {
+            OnClick();
+          },
+        }}
+      />
+    </frame>
   );
 };
 

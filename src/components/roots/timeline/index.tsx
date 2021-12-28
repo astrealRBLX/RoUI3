@@ -2,7 +2,7 @@ import Roact, { update } from '@rbxts/roact';
 import RoactHooks from '@rbxts/roact-hooks';
 import RoactRodux from '@rbxts/roact-rodux';
 import { Option } from '@rbxts/rust-classes';
-import { RunService } from '@rbxts/services';
+import { RunService, TweenService } from '@rbxts/services';
 import { Container } from 'components/container';
 import { Scrubber } from 'components/scrubber';
 import { Topbar } from 'components/topbar';
@@ -25,6 +25,7 @@ import { getInitialProperty } from 'utils/initialProperties';
 import { KeyboardListener } from 'components/keyboard_listener';
 import prettyStringify from 'utils/prettyStringify';
 import { IKeyframe } from 'rodux/reducers/dataReducer';
+import { Dropdown } from 'components/dropdown';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -100,6 +101,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const [propertyDropdownValue, setPropertyDropdownValue] = useState('UNKNOWN'); // TODO: Implement a better way of doing this
   const [propertyDropdownOpen, setPropertyDropdownOpen] = useState(false);
   const [maxTime, setMaxTime] = useState(5);
+  const [easingStyleDropdownOpen, setEasingStyleDropdownOpen] = useState(false);
+  const [easingDirectionDropdownOpen, setEasingDirectionDropdownOpen] =
+    useState(false);
 
   /* Keyboard Input */
   const shiftPressed = useValue(false);
@@ -555,20 +559,13 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           return a.position < b.position;
         });
 
-        type _Keyframe = {
-          instance: Instance;
-          property: string;
-          position: number;
-          value: KeyframeValue;
-        };
-
         // Convert scrubber position to seconds
         const scrubberPosTime = tonumber(
           string.format('%.2f', scrubberPos * maxTime)
         )!;
 
-        let firstKeyframe: _Keyframe | undefined;
-        let secondKeyframe: _Keyframe | undefined;
+        let firstKeyframe: IKeyframe | undefined;
+        let secondKeyframe: IKeyframe | undefined;
 
         // Find the keyframes surrounding the scrubber
         sortedKeyframes.forEach((kf, index) => {
@@ -610,6 +607,13 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 property: prop,
                 position: 0,
                 value: changedProp.value,
+                kind: 'Tween',
+                kindData: {
+                  easingStyle: Enum.EasingStyle.Linear,
+                  easingDirection: Enum.EasingDirection.InOut,
+                  dampingRatio: 0,
+                  frequency: 0,
+                },
               };
 
               secondKeyframe = sortedKeyframes[0];
@@ -622,11 +626,18 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
           const changedProp = getInitialProperty(selectedInstance, prop);
 
           if (changedProp) {
-            const initialData = {
+            const initialData: IKeyframe = {
               instance: selectedInstance,
               property: prop,
               position: 0,
               value: changedProp.value,
+              kind: 'Tween',
+              kindData: {
+                easingStyle: Enum.EasingStyle.Linear,
+                easingDirection: Enum.EasingDirection.InOut,
+                dampingRatio: 0,
+                frequency: 0,
+              },
             };
 
             firstKeyframe = initialData;
@@ -657,6 +668,15 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               firstKeyframe.position === 0)
           ) {
             normalizedAlpha = 1;
+          }
+
+          // Tween keyframes have their alpha adjusted
+          if (secondKeyframe.kind === 'Tween') {
+            normalizedAlpha = TweenService.GetValue(
+              normalizedAlpha,
+              secondKeyframe.kindData.easingStyle,
+              secondKeyframe.kindData.easingDirection
+            );
           }
 
           let newValue: KeyframeValue | undefined;
@@ -730,10 +750,15 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
       // A keyframe exists with the same instance, property, and position
       if (existingKf) {
-        // Validate keyframe value & kind
+        // Validate keyframe value, kind, & kindData
         if (
           existingKf.value !== selectedKf.value ||
-          existingKf.kind !== selectedKf.kind
+          existingKf.kind !== selectedKf.kind ||
+          existingKf.kindData.easingStyle !== selectedKf.kindData.easingStyle ||
+          existingKf.kindData.easingDirection !==
+            selectedKf.kindData.easingDirection ||
+          existingKf.kindData.frequency !== selectedKf.kindData.frequency ||
+          existingKf.kindData.dampingRatio !== selectedKf.kindData.dampingRatio
         ) {
           changed = true;
         }
@@ -746,6 +771,66 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
     if (changed) setSelectedKeyframes(newSelected);
   }, [keyframes, selectedKeyframes]);
+
+  // Generate EasingStyle & EasingDirection dropdown options
+  const [
+    showEasingDropdowns,
+    styleDropdownText,
+    directionDropdownText,
+    easingStyleDropdownOptions,
+    easingDirectionDropdownOptions,
+  ] = useMemo(() => {
+    if (selectedKeyframes.size() === 0) {
+      return [false, '', '', [] as string[], [] as string[]];
+    }
+
+    let selectedAreTweens = true;
+
+    selectedKeyframes.forEach((kf) => {
+      if (kf.kind !== 'Tween') {
+        selectedAreTweens = false;
+      }
+    });
+
+    if (!selectedAreTweens) {
+      return [false, '', '', [] as string[], [] as string[]];
+    } else {
+      const styleOpts: string[] = [];
+      const dirOpts: string[] = [];
+
+      Enum.EasingStyle.GetEnumItems().forEach((style) => {
+        styleOpts.push(style.Name);
+      });
+
+      Enum.EasingDirection.GetEnumItems().forEach((dir) => {
+        dirOpts.push(dir.Name);
+      });
+
+      let usesSameStyle = true;
+      const styleVal = selectedKeyframes[0].kindData.easingStyle;
+
+      let usesSameDirection = true;
+      const directionVal = selectedKeyframes[0].kindData.easingDirection;
+
+      selectedKeyframes.forEach((kf) => {
+        if (kf.kindData.easingStyle !== styleVal) {
+          usesSameStyle = false;
+        }
+
+        if (kf.kindData.easingDirection !== directionVal) {
+          usesSameDirection = false;
+        }
+      });
+
+      return [
+        true,
+        usesSameStyle ? styleVal.Name : '...',
+        usesSameDirection ? directionVal.Name : '...',
+        styleOpts,
+        dirOpts,
+      ];
+    }
+  }, [selectedKeyframes, keyframes]);
 
   return (
     <Container
@@ -765,6 +850,14 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               if (input.UserInputType === Enum.UserInputType.MouseButton1) {
                 if (propertyDropdownOpen) {
                   setPropertyDropdownOpen(false);
+                }
+
+                if (easingStyleDropdownOpen) {
+                  setEasingStyleDropdownOpen(false);
+                }
+
+                if (easingDirectionDropdownOpen) {
+                  setEasingDirectionDropdownOpen(false);
                 }
 
                 setActiveContextMenuID('');
@@ -892,6 +985,101 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             }}
           />
         ) : undefined}
+
+        {/* Easing Dropdowns */}
+        {showEasingDropdowns ? (
+          <frame
+            Size={new UDim2(0, 0, 1, 0)}
+            BorderSizePixel={0}
+            BackgroundColor3={theme.GetColor(styleColor.Button)}
+            AutomaticSize={Enum.AutomaticSize.X}
+          >
+            <uipadding
+              PaddingLeft={new UDim(0, 4)}
+              PaddingRight={new UDim(0, 4)}
+              PaddingTop={new UDim(0, 1)}
+              PaddingBottom={new UDim(0, 1)}
+            />
+            <uicorner CornerRadius={new UDim(0, 4)} />
+            <uilistlayout
+              FillDirection={Enum.FillDirection.Horizontal}
+              HorizontalAlignment={Enum.HorizontalAlignment.Left}
+              VerticalAlignment={Enum.VerticalAlignment.Center}
+              Padding={new UDim(0, 4)}
+            />
+            <Dropdown
+              Open={easingStyleDropdownOpen}
+              Options={easingStyleDropdownOptions}
+              Selected={styleDropdownText}
+              Height={20}
+              OnOptionSelected={(newStyle) => {
+                selectedKeyframes.forEach((kf) => {
+                  if (kf.kindData.easingStyle.Name !== newStyle) {
+                    updateKeyframe(
+                      kf.instance,
+                      kf.property,
+                      kf.position,
+                      kf.value,
+                      kf.kind,
+                      {
+                        easingStyle: Enum.EasingStyle.GetEnumItems().find(
+                          (sty) => {
+                            return sty.Name === newStyle;
+                          }
+                        ),
+                      }
+                    );
+                  }
+                });
+
+                setEasingStyleDropdownOpen(false);
+              }}
+              OnClick={() => {
+                setEasingStyleDropdownOpen(!easingStyleDropdownOpen);
+              }}
+            >
+              <Tooltip
+                Widget={timelineWidget}
+                Text={'Set EasingStyle of selected keyframes'}
+              />
+            </Dropdown>
+            <Dropdown
+              Open={easingDirectionDropdownOpen}
+              Options={easingDirectionDropdownOptions}
+              Selected={directionDropdownText}
+              Height={20}
+              OnOptionSelected={(newDirection) => {
+                selectedKeyframes.forEach((kf) => {
+                  if (kf.kindData.easingDirection.Name !== newDirection) {
+                    updateKeyframe(
+                      kf.instance,
+                      kf.property,
+                      kf.position,
+                      kf.value,
+                      kf.kind,
+                      {
+                        easingDirection:
+                          Enum.EasingDirection.GetEnumItems().find((dir) => {
+                            return dir.Name === newDirection;
+                          }),
+                      }
+                    );
+                  }
+                });
+
+                setEasingDirectionDropdownOpen(false);
+              }}
+              OnClick={() => {
+                setEasingDirectionDropdownOpen(!easingDirectionDropdownOpen);
+              }}
+            >
+              <Tooltip
+                Widget={timelineWidget}
+                Text={'Set EasingDirection of selected keyframes'}
+              />
+            </Dropdown>
+          </frame>
+        ) : undefined}
       </Topbar>
 
       {/* Resizable Content Panels */}
@@ -1018,60 +1206,60 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                         setActiveContextMenuID('');
                       },
                     },
-                    {
-                      Text: 'Switch keyframe kind to Tween',
-                      Tooltip:
-                        "Sets any currently selected keyframes' kind to Tween",
-                      Callback: (_, input) => {
-                        if (
-                          input.UserInputType !==
-                          Enum.UserInputType.MouseButton1
-                        )
-                          return;
-                        if (input.UserInputState !== Enum.UserInputState.Begin)
-                          return;
+                    // {
+                    //   Text: 'Switch keyframe kind to Tween',
+                    //   Tooltip:
+                    //     "Sets any currently selected keyframes' kind to Tween",
+                    //   Callback: (_, input) => {
+                    //     if (
+                    //       input.UserInputType !==
+                    //       Enum.UserInputType.MouseButton1
+                    //     )
+                    //       return;
+                    //     if (input.UserInputState !== Enum.UserInputState.Begin)
+                    //       return;
 
-                        selectedKeyframes.forEach((kf) => {
-                          if (kf.kind !== 'Tween') {
-                            updateKeyframe(
-                              kf.instance,
-                              kf.property,
-                              kf.position,
-                              kf.value,
-                              'Tween'
-                            );
-                          }
-                        });
-                        setActiveContextMenuID('');
-                      },
-                    },
-                    {
-                      Text: 'Switch keyframe kind to Spring',
-                      Tooltip:
-                        "Sets any currently selected keyframes' kind to Spring",
-                      Callback: (_, input) => {
-                        if (
-                          input.UserInputType !==
-                          Enum.UserInputType.MouseButton1
-                        )
-                          return;
-                        if (input.UserInputState !== Enum.UserInputState.Begin)
-                          return;
+                    //     selectedKeyframes.forEach((kf) => {
+                    //       if (kf.kind !== 'Tween') {
+                    //         updateKeyframe(
+                    //           kf.instance,
+                    //           kf.property,
+                    //           kf.position,
+                    //           kf.value,
+                    //           'Tween'
+                    //         );
+                    //       }
+                    //     });
+                    //     setActiveContextMenuID('');
+                    //   },
+                    // },
+                    // {
+                    //   Text: 'Switch keyframe kind to Spring',
+                    //   Tooltip:
+                    //     "Sets any currently selected keyframes' kind to Spring",
+                    //   Callback: (_, input) => {
+                    //     if (
+                    //       input.UserInputType !==
+                    //       Enum.UserInputType.MouseButton1
+                    //     )
+                    //       return;
+                    //     if (input.UserInputState !== Enum.UserInputState.Begin)
+                    //       return;
 
-                        selectedKeyframes.forEach((kf) => {
-                          if (kf.kind !== 'Spring') {
-                            updateKeyframe(
-                              kf.instance,
-                              kf.property,
-                              kf.position,
-                              kf.value,
-                              'Spring'
-                            );
-                          }
-                        });
-                        setActiveContextMenuID('');
-                      },
-                    },
+                    //     selectedKeyframes.forEach((kf) => {
+                    //       if (kf.kind !== 'Spring') {
+                    //         updateKeyframe(
+                    //           kf.instance,
+                    //           kf.property,
+                    //           kf.position,
+                    //           kf.value,
+                    //           'Spring'
+                    //         );
+                    //       }
+                    //     });
+                    //     setActiveContextMenuID('');
+                    //   },
+                    // },
                   ]}
                 ></ContextMenu>
               </frame>,

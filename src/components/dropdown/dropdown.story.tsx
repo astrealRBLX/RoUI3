@@ -9,7 +9,7 @@ export = (preview: Instance) => {
   const tree = Roact.mount(
     <RoactRodux.StoreProvider store={AppStore}>
       <Dropdown
-        Open={false}
+        Open={true}
         Selected={'Test'}
         Options={['Test', 'Thing', 'Wow']}
         Height={20}
