@@ -83,7 +83,7 @@ const DropdownComponent = ({
         VerticalAlignment={Enum.VerticalAlignment.Center}
       />
       <uicorner CornerRadius={new UDim(0, 4)} />
-      <uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} />
+      {/* <uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} /> */}
 
       <textbutton
         Active
@@ -110,7 +110,7 @@ const DropdownComponent = ({
           },
         }}
       >
-        <frame
+        {/* <frame
           Active
           ZIndex={210}
           AutomaticSize={Enum.AutomaticSize.XY}
@@ -121,14 +121,15 @@ const DropdownComponent = ({
           BorderSizePixel={0}
         >
           <uicorner CornerRadius={new UDim(0, 4)} />
-        </frame>
+        </frame> */}
 
         <scrollingframe
           Active
           ZIndex={210}
-          BackgroundTransparency={1}
-          Position={Open ? new UDim2(0, -4, 1, -10) : new UDim2(0, -4, 0, 0)}
-          Size={Open ? new UDim2(1, 0, OpenScale, 0) : new UDim2(1, 0, 0, 0)}
+          BackgroundTransparency={0}
+          BackgroundColor3={theme.GetColor(styleColor.Mid)}
+          Position={Open ? new UDim2(0, 0, 1, -3) : new UDim2(0, -4, 0, 0)}
+          Size={Open ? new UDim2(1, 0, OpenScale, 5) : new UDim2(1, 0, 0, 0)}
           AutomaticCanvasSize={Enum.AutomaticSize.Y}
           CanvasSize={new UDim2()}
           ScrollBarThickness={4}
@@ -142,7 +143,7 @@ const DropdownComponent = ({
             HorizontalAlignment={Enum.HorizontalAlignment.Left}
             VerticalAlignment={Enum.VerticalAlignment.Top}
           />
-          <uipadding PaddingTop={new UDim(0, 10)} />
+          <uipadding PaddingTop={new UDim(0, 0)} />
 
           {optionsElements}
         </scrollingframe>
@@ -150,7 +151,7 @@ const DropdownComponent = ({
         {children}
       </textbutton>
 
-      <imagebutton
+      {/* <imagebutton
         Image={'rbxassetid://5279719038'}
         BackgroundTransparency={1}
         Size={new UDim2(0, 12, 0, 12)}
@@ -162,7 +163,7 @@ const DropdownComponent = ({
             OnClick();
           },
         }}
-      />
+      /> */}
     </frame>
   );
 };

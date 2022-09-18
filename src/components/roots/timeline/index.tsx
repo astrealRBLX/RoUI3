@@ -249,6 +249,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         // Timeline property label
         timelineProps.push(
           <textlabel
+            Key={propertyName}
             Text={propertyName}
             TextScaled={false}
             TextSize={14}
@@ -407,7 +408,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               <Tooltip
                 Widget={timelineWidget}
                 MaxWidth={250}
-                Text={`(${kf.kind}) ${prettyStringify(kf.value)} @ ${
+                Text={`[${kf.kind}] ${prettyStringify(kf.value)} @ ${
                   kf.position
                 }s`}
               />
@@ -417,7 +418,11 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
         // Generate the actual keyframe bar and the inner keyframes
         timelineKeyfs.push(
-          <frame Size={new UDim2(1, 0, 0, 20)} BackgroundTransparency={1}>
+          <frame
+            Key={propertyName}
+            Size={new UDim2(1, 0, 0, 20)}
+            BackgroundTransparency={1}
+          >
             {/* Keyframe Line */}
             <frame
               Size={new UDim2(1, 0, 0, 1)}
@@ -995,7 +1000,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             AutomaticSize={Enum.AutomaticSize.X}
           >
             <uipadding
-              PaddingLeft={new UDim(0, 4)}
+              PaddingLeft={new UDim(0, 3)}
               PaddingRight={new UDim(0, 4)}
               PaddingTop={new UDim(0, 1)}
               PaddingBottom={new UDim(0, 1)}
@@ -1078,6 +1083,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                 Text={'Set EasingDirection of selected keyframes'}
               />
             </Dropdown>
+            <frame Size={new UDim2(0, 2, 1, 0)} BackgroundTransparency={1} />
           </frame>
         ) : undefined}
       </Topbar>
@@ -1351,7 +1357,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   FillDirection={Enum.FillDirection.Vertical}
                   HorizontalAlignment={Enum.HorizontalAlignment.Left}
                   VerticalAlignment={Enum.VerticalAlignment.Top}
-                  SortOrder={Enum.SortOrder.LayoutOrder}
+                  SortOrder={Enum.SortOrder.Name}
                 />
                 {...timelineContentProperties}
               </frame>
@@ -1367,6 +1373,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                   FillDirection={Enum.FillDirection.Vertical}
                   HorizontalAlignment={Enum.HorizontalAlignment.Left}
                   VerticalAlignment={Enum.VerticalAlignment.Top}
+                  SortOrder={Enum.SortOrder.Name}
                 />
                 {...timelineContentKeyframes}
               </frame>
