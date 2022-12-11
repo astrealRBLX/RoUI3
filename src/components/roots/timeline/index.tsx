@@ -1139,6 +1139,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             Event={{
               Activated: () => {
                 exportAllAnimations();
+                warn(
+                  'RoUI3 | Exported all animations into ReplicatedStorage/RoUI3 Exports'
+                );
               },
               MouseEnter: (rbx) => {
                 rbx.ImageColor3 = theme.GetColor(styleColor.DimmedText);
@@ -1187,6 +1190,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               Event={{
                 Activated: () => {
                   exportAnimation(selected.unwrap());
+                  warn(
+                    'RoUI3 | Exported the current selection into ReplicatedStorage/RoUI3 Exports'
+                  );
                 },
                 MouseEnter: (rbx) => {
                   rbx.ImageColor3 = theme.GetColor(styleColor.DimmedText);
@@ -1590,7 +1596,6 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
             InnerBackgroundColor3={theme.GetColor(styleColor.MainBackground)}
             ZIndex={0}
             Padding={4}
-            // ContainerRef={timelinePanelRef}
             ExternalChildren={[
               // Properties Label
               <textlabel
@@ -1649,60 +1654,6 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
                         setActiveContextMenuID('');
                       },
                     },
-                    // {
-                    //   Text: 'Switch keyframe kind to Tween',
-                    //   Tooltip:
-                    //     "Sets any currently selected keyframes' kind to Tween",
-                    //   Callback: (_, input) => {
-                    //     if (
-                    //       input.UserInputType !==
-                    //       Enum.UserInputType.MouseButton1
-                    //     )
-                    //       return;
-                    //     if (input.UserInputState !== Enum.UserInputState.Begin)
-                    //       return;
-
-                    //     selectedKeyframes.forEach((kf) => {
-                    //       if (kf.kind !== 'Tween') {
-                    //         updateKeyframe(
-                    //           kf.instance,
-                    //           kf.property,
-                    //           kf.position,
-                    //           kf.value,
-                    //           'Tween'
-                    //         );
-                    //       }
-                    //     });
-                    //     setActiveContextMenuID('');
-                    //   },
-                    // },
-                    // {
-                    //   Text: 'Switch keyframe kind to Spring',
-                    //   Tooltip:
-                    //     "Sets any currently selected keyframes' kind to Spring",
-                    //   Callback: (_, input) => {
-                    //     if (
-                    //       input.UserInputType !==
-                    //       Enum.UserInputType.MouseButton1
-                    //     )
-                    //       return;
-                    //     if (input.UserInputState !== Enum.UserInputState.Begin)
-                    //       return;
-
-                    //     selectedKeyframes.forEach((kf) => {
-                    //       if (kf.kind !== 'Spring') {
-                    //         updateKeyframe(
-                    //           kf.instance,
-                    //           kf.property,
-                    //           kf.position,
-                    //           kf.value,
-                    //           'Spring'
-                    //         );
-                    //       }
-                    //     });
-                    //     setActiveContextMenuID('');
-                    //   },
-                    // },
                   ]}
                 ></ContextMenu>
               </frame>,

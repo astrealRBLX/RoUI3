@@ -31,6 +31,5 @@ const RootReducer = (
 };
 
 export const AppStore = new Rodux.Store(RootReducer, undefined, [
-  Rodux.loggerMiddleware,
   Rodux.thunkMiddleware,
 ]);

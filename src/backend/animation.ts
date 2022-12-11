@@ -10,6 +10,8 @@ interface IExportedKeyframe {
   value: KeyframeValue;
 }
 
+const REPLICATED_STORAGE = game.GetService('ReplicatedStorage');
+
 // Exports an animation generating its keyframes
 export const exportAnimation = (inst: Instance) => {
   const appData = AppStore.getState().appData;
@@ -17,6 +19,8 @@ export const exportAnimation = (inst: Instance) => {
   const instanceKeyframes = appData.keyframes.filter(
     (kf) => kf.instance === inst
   );
+
+  if (instanceKeyframes.size() < 1) return;
 
   const propertiesID = appData.instances.indexOf(inst);
   const properties = appData.properties[propertiesID];
@@ -55,7 +59,7 @@ export const exportAnimation = (inst: Instance) => {
   });
 
   const animController = new Instance('AnimationController');
-  animController.Name = inst.Name + ' Animation';
+  animController.Name = inst.Name;
 
   keyframeGroups.forEach((kfGroup, kfGIndex) => {
     const keyframeFolder = new Instance('Folder', animController);
@@ -72,10 +76,9 @@ export const exportAnimation = (inst: Instance) => {
     });
   });
 
-  const RS = game.GetService('ReplicatedStorage');
-  let animExportsFolder = RS.FindFirstChild('RoUI3 Exports');
+  let animExportsFolder = REPLICATED_STORAGE.FindFirstChild('RoUI3 Exports');
   if (!animExportsFolder) {
-    animExportsFolder = new Instance('Folder', RS);
+    animExportsFolder = new Instance('Folder', REPLICATED_STORAGE);
     animExportsFolder.Name = 'RoUI3 Exports';
   }
 

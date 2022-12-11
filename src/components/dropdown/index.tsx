@@ -83,8 +83,6 @@ const DropdownComponent = ({
         VerticalAlignment={Enum.VerticalAlignment.Center}
       />
       <uicorner CornerRadius={new UDim(0, 4)} />
-      {/* <uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} /> */}
-
       <textbutton
         Active
         AutomaticSize={Enum.AutomaticSize.X}
@@ -110,19 +108,6 @@ const DropdownComponent = ({
           },
         }}
       >
-        {/* <frame
-          Active
-          ZIndex={210}
-          AutomaticSize={Enum.AutomaticSize.XY}
-          Position={Open ? new UDim2(0, -4, 1, -10) : new UDim2(0, -4, 0, 0)}
-          Size={Open ? new UDim2(1, 4, OpenScale, 0) : new UDim2(1, 0, 0, 0)}
-          BackgroundTransparency={0}
-          BackgroundColor3={theme.GetColor(styleColor.Mid)}
-          BorderSizePixel={0}
-        >
-          <uicorner CornerRadius={new UDim(0, 4)} />
-        </frame> */}
-
         <scrollingframe
           Active
           ZIndex={210}
@@ -150,20 +135,6 @@ const DropdownComponent = ({
 
         {children}
       </textbutton>
-
-      {/* <imagebutton
-        Image={'rbxassetid://5279719038'}
-        BackgroundTransparency={1}
-        Size={new UDim2(0, 12, 0, 12)}
-        ImageColor3={theme.GetColor(styleColor.BrightText)}
-        ScaleType={Enum.ScaleType.Fit}
-        ZIndex={225}
-        Event={{
-          Activated: () => {
-            OnClick();
-          },
-        }}
-      /> */}
     </frame>
   );
 };
