@@ -1,6 +1,6 @@
 <img width="30%" image-rendering="crisp-edges" src="./assets/logo-0.5x.png" align="right">
 
-# RoUI3 (In Development)
+# RoUI3
 
 [![Install](https://img.shields.io/badge/install-RoUI3-inactive?style=flat-square)](#)
 [![Version](https://img.shields.io/github/package-json/v/astrealRBLX/RoUI3?color=blueviolet&style=flat-square)](#)
@@ -22,9 +22,9 @@ RoUI3's primary plugin widget is known as the Timeline. The Timeline allows you 
 
 ## Installation
 
-A stable release of RoUI3 is not currently available as it is still in development. However, you may compile RoUI3 yourself using [roblox-ts](https://roblox-ts.com/) for an experimental build.
+<!-- A stable release of RoUI3 is not currently available as it is still in development. However, you may compile RoUI3 yourself using [roblox-ts](https://roblox-ts.com/) for an experimental build. -->
 
-<!-- You can install the latest stable release of RoUI3 directly from the Roblox marketplace [here](#). Alternatively, you can compile the source yourself using [roblox-ts](https://roblox-ts.com/) for the most recent and experimental version. -->
+You can purchase the latest stable release of RoUI3 directly from the Roblox marketplace [here](https://www.roblox.com/library/11798243393/RoUI3). Alternatively, you can compile the source yourself using [roblox-ts](https://roblox-ts.com/). The choice is up to you, however, purchasing it from the marketplace is recommended as it's cheap, will automatically update, and helps support me.
 
 ## Using the RoUI3 Animation Module
 
