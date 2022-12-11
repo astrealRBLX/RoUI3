@@ -43,17 +43,17 @@ This is RoUI3's roadmap for every major and minor release and beyond!
 The initial release of RoUI3! 🥳
 
 - ✔️ Start widget
-- 🔜 Timeline widget
-  - 🔜 Topbar
+- ✔️ Timeline widget
+  - ✔️ Topbar
     - ✔️ Scrubber time textbox
     - ✔️ Max time textbox
     - ✔️ Add property dropdown menu
-    - ❔ Save/export animation button
-    - 🔜 Selected keyframe options
-      - ❔ Current time position textbox
+    - ✔️ Save/export animation button
+    - ✔️ Selected keyframe options
+      - ✔️ Current time position textbox
       - ✔️ Easing style / direction dropdown menus for tweens
-    - ❌ Preview button
-  - 🔜 Timeline content
+    - ✔️ Preview button
+  - ✔️ Timeline content
     - ✔️ Property list
       - ✔️ Dynamic rendering based on app state
       - ✔️ Delete property with right-click context menu
@@ -66,23 +66,20 @@ The initial release of RoUI3! 🥳
         - ✔️ Hold `CTRL+SHIFT` to snap to keyframes
         - ✔️ Snap to timestamps
       - ✔️ Preview keyframes based on scrubber time
-    - 🔜 Timeline pane
+    - ✔️ Timeline pane
       - ✔️ Dynamic keyframe rendering based on app state
-      - 🔜 Keyframes
+      - ✔️ Keyframes
         - ✔️ Selection support
         - ✔️ Right-click context menu
           - ✔️ Delete keyframe
         - ✔️ `CTRL` click support for selecting multiple keyframes
-        - ❔ Long press support for moving a keyframe
-- ❌ Exporting
-  - ❌ Data serialization
-- ❌ Importing
-  - ❌ Data deserialization
-- ❌ Animation controller module
-  - ❌ Play an animation
-  - ❌ Support animation options
-    - ❌ Speed scale
-    - ❌ Reverse
-  - ❌ Pause an animation
-  - ❌ Skip to end of an animation
-  - ❌ Reusable animations
+- ✔️ Exporting
+  - ✔️ Data serialization
+- ✔️ Animation controller module
+  - ✔️ Play an animation
+  - ✔️ Support animation options
+    - ✔️ Speed scale
+  - ✔️ Pause an animation
+  - ✔️ Skip to end of an animation
+  - ✔️ Cancel an animation
+  - ✔️ Yield for an animation to conclude

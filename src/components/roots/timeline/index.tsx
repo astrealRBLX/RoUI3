@@ -26,6 +26,8 @@ import { KeyboardListener } from 'components/keyboard_listener';
 import prettyStringify from 'utils/prettyStringify';
 import { IKeyframe } from 'rodux/reducers/dataReducer';
 import { Dropdown } from 'components/dropdown';
+import { exportAllAnimations, exportAnimation } from 'backend/animation';
+import getColorFromEasingStyle from 'utils/getColorFromEasingStyle';
 
 interface IStateProps {
   theme: StudioTheme;
@@ -104,6 +106,8 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
   const [easingStyleDropdownOpen, setEasingStyleDropdownOpen] = useState(false);
   const [easingDirectionDropdownOpen, setEasingDirectionDropdownOpen] =
     useState(false);
+  const [globalScrubber, setGlobalScrubber] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   /* Keyboard Input */
   const shiftPressed = useValue(false);
@@ -346,7 +350,9 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
               BorderColor3={
                 kfSelected ? Color3.fromRGB(217, 217, 217) : new Color3()
               }
-              BackgroundColor3={Color3.fromRGB(255, 0, 0)}
+              BackgroundColor3={getColorFromEasingStyle(
+                kf.kindData.easingStyle
+              )}
               Event={{
                 InputBegan: (_, input) => {
                   if (input.UserInputType === Enum.UserInputType.MouseButton1) {
@@ -548,7 +554,200 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
   // Scrubber preview effect
   useEffect(() => {
-    if (selected.isSome() && instances.includes(selected.unwrap())) {
+    if (globalScrubber) {
+      instances.forEach((inst) => {
+        const selectedInstance = inst;
+        const ID = instances.indexOf(selectedInstance);
+        const instanceProperties = properties[ID];
+
+        instanceProperties.forEach((prop) => {
+          // Get keyframes only related to this property
+          const propKeyframes = keyframes.filter((kf) => {
+            return kf.instance === selectedInstance && kf.property === prop;
+          });
+
+          // Sort keyframes by position
+          const sortedKeyframes = propKeyframes.sort((a, b) => {
+            return a.position < b.position;
+          });
+
+          // Convert scrubber position to seconds
+          const scrubberPosTime = tonumber(
+            string.format('%.2f', scrubberPos * maxTime)
+          )!;
+
+          let firstKeyframe: IKeyframe | undefined;
+          let secondKeyframe: IKeyframe | undefined;
+
+          // Find the keyframes surrounding the scrubber
+          sortedKeyframes.forEach((kf, index) => {
+            if (index !== sortedKeyframes.size() - 1) {
+              const nextKf = sortedKeyframes[index + 1];
+
+              if (
+                kf.position <= scrubberPosTime &&
+                nextKf.position > scrubberPosTime
+              ) {
+                // Scrubber is between two keyframes
+                firstKeyframe = kf;
+                secondKeyframe = nextKf;
+              }
+            }
+          });
+
+          // Handle the scrubber being after the last keyframe
+          if (firstKeyframe === undefined && sortedKeyframes.size() > 0) {
+            const lastKf = sortedKeyframes[sortedKeyframes.size() - 1];
+
+            if (scrubberPosTime >= lastKf.position) {
+              firstKeyframe = lastKf;
+              secondKeyframe = lastKf;
+            }
+          }
+
+          // Handle the scrubber being before the first keyframe
+          if (firstKeyframe === undefined && sortedKeyframes.size() > 0) {
+            if (
+              scrubberPosTime >= 0 &&
+              scrubberPosTime <= sortedKeyframes[0].position
+            ) {
+              const changedProp = getInitialProperty(selectedInstance, prop);
+
+              if (changedProp) {
+                firstKeyframe = {
+                  instance: selectedInstance,
+                  property: prop,
+                  position: 0,
+                  value: changedProp.value,
+                  kind: 'Tween',
+                  kindData: {
+                    easingStyle: Enum.EasingStyle.Linear,
+                    easingDirection: Enum.EasingDirection.InOut,
+                    dampingRatio: 0,
+                    frequency: 0,
+                  },
+                };
+
+                secondKeyframe = sortedKeyframes[0];
+              }
+            }
+          }
+
+          // Handle no keyframes
+          if (sortedKeyframes.size() === 0) {
+            const changedProp = getInitialProperty(selectedInstance, prop);
+
+            if (changedProp) {
+              const initialData: IKeyframe = {
+                instance: selectedInstance,
+                property: prop,
+                position: 0,
+                value: changedProp.value,
+                kind: 'Tween',
+                kindData: {
+                  easingStyle: Enum.EasingStyle.Linear,
+                  easingDirection: Enum.EasingDirection.InOut,
+                  dampingRatio: 0,
+                  frequency: 0,
+                },
+              };
+
+              firstKeyframe = initialData;
+              secondKeyframe = initialData;
+            }
+          }
+
+          if (firstKeyframe !== undefined && secondKeyframe !== undefined) {
+            // Generate an alpha based on the scrubber position relative to
+            // its surrounding keyframes
+            let normalizedAlpha = normalizeToRange(
+              scrubberPosTime,
+              firstKeyframe.position,
+              secondKeyframe.position,
+              0,
+              1
+            );
+
+            // If the keyframes are the same then the scrubber is past
+            // the the second keyframe and therefore you can just use
+            // an alpha of 1. Alternatively, if the keyframes are both
+            // at position 0 (which isn't usually possible), then the
+            // first keyframe is fake and overlapping a new keyframe so
+            // an alpha of 1 should be used.
+            if (
+              firstKeyframe === secondKeyframe ||
+              (firstKeyframe.position === secondKeyframe.position &&
+                firstKeyframe.position === 0)
+            ) {
+              normalizedAlpha = 1;
+            }
+
+            // Tween keyframes have their alpha adjusted
+            if (secondKeyframe.kind === 'Tween') {
+              normalizedAlpha = TweenService.GetValue(
+                normalizedAlpha,
+                secondKeyframe.kindData.easingStyle,
+                secondKeyframe.kindData.easingDirection
+              );
+            }
+
+            let newValue: KeyframeValue | undefined;
+
+            if (typeIs(firstKeyframe.value, 'number')) {
+              // Numbers can use basic lerping
+              newValue = lerp(
+                firstKeyframe.value,
+                secondKeyframe.value as number,
+                normalizedAlpha
+              );
+            } else if (typeIs(firstKeyframe.value, 'boolean')) {
+              // Booleans are instantaneous changes
+              newValue =
+                normalizedAlpha === 1
+                  ? secondKeyframe.value
+                  : firstKeyframe.value;
+            } else if (typeIs(firstKeyframe.value, 'string')) {
+              // Strings are instantaneous changes
+              newValue =
+                normalizedAlpha === 1
+                  ? secondKeyframe.value
+                  : firstKeyframe.value;
+            } else if (typeIs(firstKeyframe.value, 'UDim')) {
+              // UDims need to have both scale and offset manually lerped
+              newValue = new UDim(
+                lerp(
+                  firstKeyframe.value.Scale,
+                  (secondKeyframe.value as UDim).Scale,
+                  normalizedAlpha
+                ),
+                lerp(
+                  firstKeyframe.value.Offset,
+                  (secondKeyframe.value as UDim).Offset,
+                  normalizedAlpha
+                )
+              );
+            } else {
+              // All other values have their own :Lerp() method so we can just use that
+              // FIXME: Ignore because sometimes dynamic typing is difficult :(
+              // @ts-ignore
+              newValue = firstKeyframe.value.Lerp(
+                secondKeyframe.value,
+                normalizedAlpha
+              );
+            }
+
+            internalPropertyChange.value = true;
+            // @ts-ignore
+            selectedInstance[prop] = newValue;
+            internalPropertyChange.value = false;
+          }
+        });
+      });
+    } else if (
+      !globalScrubber &&
+      selected.isSome() &&
+      instances.includes(selected.unwrap())
+    ) {
       const selectedInstance = selected.unwrap();
       const ID = instances.indexOf(selectedInstance);
       const instanceProperties = properties[ID];
@@ -736,7 +935,7 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
         }
       });
     }
-  }, [scrubberPos, properties, keyframes]);
+  }, [scrubberPos, properties, keyframes, globalScrubber, selected]);
 
   // Validates selected keyframes
   useEffect(() => {
@@ -906,6 +1105,244 @@ const TimelineRoot: RoactHooks.FC<IProps> = (
 
       {/* Topbar */}
       <Topbar>
+        {/* Export All Button */}
+        <frame
+          Size={new UDim2(0, 0, 1, 0)}
+          BorderSizePixel={0}
+          BackgroundColor3={theme.GetColor(styleColor.Button)}
+          AutomaticSize={Enum.AutomaticSize.X}
+          LayoutOrder={-5}
+        >
+          <uipadding
+            PaddingLeft={new UDim(0, 2)}
+            PaddingRight={new UDim(0, 2)}
+            PaddingTop={new UDim(0, 1)}
+            PaddingBottom={new UDim(0, 1)}
+          />
+          <uicorner CornerRadius={new UDim(0, 4)} />
+          <uilistlayout
+            FillDirection={Enum.FillDirection.Horizontal}
+            HorizontalAlignment={Enum.HorizontalAlignment.Left}
+            VerticalAlignment={Enum.VerticalAlignment.Center}
+            Padding={new UDim(0, 2)}
+          />
+
+          <imagebutton
+            BorderSizePixel={0}
+            Size={new UDim2(0, 20, 0, 20)}
+            BackgroundTransparency={1}
+            AnchorPoint={new Vector2(0, 0.5)}
+            Position={new UDim2(0, 0, 0.5, 0)}
+            Image={'http://www.roblox.com/asset/?id=11780633056'}
+            ScaleType={Enum.ScaleType.Fit}
+            ImageColor3={theme.GetColor(styleColor.MainText)}
+            Event={{
+              Activated: () => {
+                exportAllAnimations();
+              },
+              MouseEnter: (rbx) => {
+                rbx.ImageColor3 = theme.GetColor(styleColor.DimmedText);
+              },
+              MouseLeave: (rbx) => {
+                rbx.ImageColor3 = theme.GetColor(styleColor.MainText);
+              },
+            }}
+          >
+            <Tooltip Text={'Export all animations'} Widget={timelineWidget} />
+          </imagebutton>
+        </frame>
+
+        {/* Export Selection Button */}
+        {selected.isSome() ? (
+          <frame
+            Size={new UDim2(0, 0, 1, 0)}
+            BorderSizePixel={0}
+            BackgroundColor3={theme.GetColor(styleColor.Button)}
+            AutomaticSize={Enum.AutomaticSize.X}
+            LayoutOrder={-4}
+          >
+            <uipadding
+              PaddingLeft={new UDim(0, 2)}
+              PaddingRight={new UDim(0, 2)}
+              PaddingTop={new UDim(0, 1)}
+              PaddingBottom={new UDim(0, 1)}
+            />
+            <uicorner CornerRadius={new UDim(0, 4)} />
+            <uilistlayout
+              FillDirection={Enum.FillDirection.Horizontal}
+              HorizontalAlignment={Enum.HorizontalAlignment.Left}
+              VerticalAlignment={Enum.VerticalAlignment.Center}
+              Padding={new UDim(0, 2)}
+            />
+
+            <imagebutton
+              BorderSizePixel={0}
+              Size={new UDim2(0, 20, 0, 20)}
+              BackgroundTransparency={1}
+              AnchorPoint={new Vector2(0, 0.5)}
+              Position={new UDim2(0, 0, 0.5, 0)}
+              Image={'http://www.roblox.com/asset/?id=11780632458'}
+              ScaleType={Enum.ScaleType.Fit}
+              ImageColor3={theme.GetColor(styleColor.MainText)}
+              Event={{
+                Activated: () => {
+                  exportAnimation(selected.unwrap());
+                },
+                MouseEnter: (rbx) => {
+                  rbx.ImageColor3 = theme.GetColor(styleColor.DimmedText);
+                },
+                MouseLeave: (rbx) => {
+                  rbx.ImageColor3 = theme.GetColor(styleColor.MainText);
+                },
+              }}
+            >
+              <Tooltip Text={'Export selection'} Widget={timelineWidget} />
+            </imagebutton>
+          </frame>
+        ) : undefined}
+
+        {/* Toggle Global Scrubber Button */}
+        <frame
+          Size={new UDim2(0, 0, 1, 0)}
+          BorderSizePixel={0}
+          BackgroundColor3={theme.GetColor(styleColor.Button)}
+          AutomaticSize={Enum.AutomaticSize.X}
+          LayoutOrder={-3}
+        >
+          <uipadding
+            PaddingLeft={new UDim(0, 2)}
+            PaddingRight={new UDim(0, 2)}
+            PaddingTop={new UDim(0, 1)}
+            PaddingBottom={new UDim(0, 1)}
+          />
+          <uicorner CornerRadius={new UDim(0, 4)} />
+          <uilistlayout
+            FillDirection={Enum.FillDirection.Horizontal}
+            HorizontalAlignment={Enum.HorizontalAlignment.Left}
+            VerticalAlignment={Enum.VerticalAlignment.Center}
+            Padding={new UDim(0, 2)}
+          />
+
+          <imagebutton
+            BorderSizePixel={0}
+            Size={new UDim2(0, 20, 0, 20)}
+            BackgroundTransparency={1}
+            AnchorPoint={new Vector2(0, 0.5)}
+            Position={new UDim2(0, 0, 0.5, 0)}
+            Image={'http://www.roblox.com/asset/?id=11788972495'}
+            ScaleType={Enum.ScaleType.Fit}
+            ImageColor3={theme.GetColor(
+              globalScrubber ? styleColor.DialogMainButton : styleColor.MainText
+            )}
+            Event={{
+              Activated: () => {
+                setGlobalScrubber(!globalScrubber);
+              },
+              MouseEnter: (rbx) => {
+                rbx.ImageColor3 = theme.GetColor(
+                  globalScrubber
+                    ? styleColor.DialogMainButton
+                    : styleColor.DimmedText,
+                  globalScrubber ? styleMod.Hover : undefined
+                );
+              },
+              MouseLeave: (rbx) => {
+                rbx.ImageColor3 = theme.GetColor(
+                  globalScrubber
+                    ? styleColor.DialogMainButton
+                    : styleColor.MainText
+                );
+              },
+            }}
+          >
+            <Tooltip
+              Text={
+                'Toggles the global scrubber so that when scrubbing it affects all instances within the ScreenGui not just the current selection'
+              }
+              Widget={timelineWidget}
+            />
+          </imagebutton>
+        </frame>
+
+        {/* Preview Button */}
+        <frame
+          Size={new UDim2(0, 0, 1, 0)}
+          BorderSizePixel={0}
+          BackgroundColor3={theme.GetColor(styleColor.Button)}
+          AutomaticSize={Enum.AutomaticSize.X}
+          LayoutOrder={-2}
+        >
+          <uipadding
+            PaddingLeft={new UDim(0, 2)}
+            PaddingRight={new UDim(0, 2)}
+            PaddingTop={new UDim(0, 1)}
+            PaddingBottom={new UDim(0, 1)}
+          />
+          <uicorner CornerRadius={new UDim(0, 4)} />
+          <uilistlayout
+            FillDirection={Enum.FillDirection.Horizontal}
+            HorizontalAlignment={Enum.HorizontalAlignment.Left}
+            VerticalAlignment={Enum.VerticalAlignment.Center}
+            Padding={new UDim(0, 2)}
+          />
+
+          <imagebutton
+            BorderSizePixel={0}
+            Size={new UDim2(0, 20, 0, 20)}
+            BackgroundTransparency={1}
+            AnchorPoint={new Vector2(0, 0.5)}
+            Position={new UDim2(0, 0, 0.5, 0)}
+            Image={'http://www.roblox.com/asset/?id=11789170706'}
+            ScaleType={Enum.ScaleType.Fit}
+            ImageColor3={theme.GetColor(
+              previewing ? styleColor.DimmedText : styleColor.MainText
+            )}
+            Event={{
+              Activated: (rbx) => {
+                if (previewing) return;
+
+                setPreviewing(true);
+
+                let nv = new Instance('NumberValue');
+                const tweenService = game.GetService('TweenService');
+
+                nv.GetPropertyChangedSignal('Value').Connect(() => {
+                  setScrubberPos(nv.Value / maxTime);
+                });
+
+                let tween = tweenService.Create(
+                  nv,
+                  new TweenInfo(maxTime, Enum.EasingStyle.Linear),
+                  { Value: maxTime }
+                );
+                tween.Completed.Connect(() => {
+                  nv.Destroy();
+                  setPreviewing(false);
+                  rbx.ImageColor3 = theme.GetColor(styleColor.MainText);
+                });
+                tween.Play();
+              },
+              MouseEnter: (rbx) => {
+                rbx.ImageColor3 = theme.GetColor(styleColor.DimmedText);
+              },
+              MouseLeave: (rbx) => {
+                rbx.ImageColor3 = theme.GetColor(
+                  previewing ? styleColor.DimmedText : styleColor.MainText
+                );
+              },
+            }}
+          >
+            <Tooltip
+              Text={
+                previewing
+                  ? 'Currently running preview...'
+                  : 'Previews the current animation'
+              }
+              Widget={timelineWidget}
+            />
+          </imagebutton>
+        </frame>
+
         {/* Timeline Time Field */}
         <TextBox
           LabelText={'Time'}

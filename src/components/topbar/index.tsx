@@ -26,6 +26,7 @@ const TopbarComponent = (props: Roact.PropsWithChildren<IProps>) => {
         HorizontalAlignment={Enum.HorizontalAlignment.Left}
         VerticalAlignment={Enum.VerticalAlignment.Center}
         Padding={new UDim(0, 5)}
+        SortOrder={Enum.SortOrder.LayoutOrder}
       />
       {props[Roact.Children]}
     </Container>
