@@ -24,12 +24,25 @@ import RoactRodux from '@rbxts/roact-rodux';
 import { Option } from '@rbxts/rust-classes';
 import { Start } from 'components/roots/start';
 import { AppStore } from 'rodux/store';
-import { RunService } from '@rbxts/services';
+import { RunService, Workspace } from '@rbxts/services';
 import restoreRoot from 'rodux/thunks/restoreRoot';
+
+let RoUI3Module: ModuleScript;
 
 if (!RunService.IsRunning()) {
   const toolbar = plugin.CreateToolbar('RoUI3');
-  const animateButton = toolbar.CreateButton('Animate', '', '');
+  const animateButton = toolbar.CreateButton(
+    'roui3_animate',
+    'Start animating with RoUI3',
+    'http://www.roblox.com/asset/?id=11793434500',
+    'Animate'
+  );
+  const downloadButton = toolbar.CreateButton(
+    'roui3_download',
+    'Download the RoUI3 animation module',
+    'http://www.roblox.com/asset/?id=11793434500',
+    'Download RoUI3 Module'
+  );
 
   // Utility function for unmounting a tree wrapped in an option
   const cleanupTree = (tree: Option<Roact.Tree>, cb?: () => void) => {
@@ -83,6 +96,15 @@ if (!RunService.IsRunning()) {
     }
   });
 
+  downloadButton.Click.Connect(() => {
+    const selection = game.GetService('Selection').Get()[0];
+    const clone = RoUI3Module.Clone();
+    clone.Parent =
+      selection === undefined
+        ? game.GetService('ReplicatedStorage')
+        : selection;
+  });
+
   // Cleanup on unload
   plugin.Unloading.Connect(() => {
     cleanupTree(
@@ -103,4 +125,16 @@ if (!RunService.IsRunning()) {
       theme: settings().Studio.Theme,
     });
   });
+}
+
+// Download RoUI3 module
+if (RunService.IsEdit()) {
+  const code = game
+    .GetService('HttpService')
+    .GetAsync(
+      'https://raw.githubusercontent.com/astrealRBLX/RoUI3/master/RoUI3.lua'
+    );
+  RoUI3Module = new Instance('ModuleScript');
+  RoUI3Module.Name = 'RoUI3';
+  RoUI3Module.Source = code;
 }

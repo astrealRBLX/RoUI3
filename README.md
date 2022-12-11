@@ -26,6 +26,10 @@ A stable release of RoUI3 is not currently available as it is still in developme
 
 <!-- You can install the latest stable release of RoUI3 directly from the Roblox marketplace [here](#). Alternatively, you can compile the source yourself using [roblox-ts](https://roblox-ts.com/) for the most recent and experimental version. -->
 
+## Using the RoUI3 Animation Module
+
+To learn more about how to use the module to play your animations check out [the RoUI3 wiki](https://github.com/astrealRBLX/RoUI3/wiki/Using-the-RoUI3-Module).
+
 ## Roadmap
 
 This is RoUI3's roadmap for every major and minor release and beyond!
