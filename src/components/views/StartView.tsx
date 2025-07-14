@@ -1,0 +1,157 @@
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from '@rbxts/react';
+import { Pane } from 'components/ui/Pane';
+import { appPlugin } from 'state/globals';
+import { Fonts, Pallete } from 'utils/styling';
+
+const SelectionService = game.GetService('Selection');
+
+enum SelectionStatus {
+  Pending,
+  Valid,
+  InvalidTooMany,
+  InvalidNotScreenGui,
+}
+
+function resolveSelectionMessage(
+  status: SelectionStatus,
+  selection: Instance[]
+) {
+  switch (status) {
+    case SelectionStatus.Valid:
+      return `Ready to start animating ${selection[0].Name}!`;
+    case SelectionStatus.Pending:
+      return `Please select a ScreenGui to begin animating.`;
+    case SelectionStatus.InvalidTooMany:
+      return `Please only select a single ScreenGui.`;
+    case SelectionStatus.InvalidNotScreenGui:
+      return `Please select a valid ScreenGui.`;
+  }
+}
+
+export function StartView() {
+  const [selection, setSelection] = useState(SelectionService.Get());
+
+  // Updates selection as it changes
+  useEffect(() => {
+    const conn = SelectionService.SelectionChanged.Connect(() => {
+      setSelection(SelectionService.Get());
+    });
+
+    return () => {
+      conn.Disconnect();
+    };
+  }, []);
+
+  // Resolves selection status
+  const resolveSelectionStatus = useCallback(() => {
+    let [successSelectionSize, resultSelectionSize] = pcall(() => {
+      return selection.size() === 1;
+    });
+
+    // Selection size is not equal to 1
+    if (successSelectionSize && !resultSelectionSize) {
+      return SelectionStatus.InvalidTooMany;
+    } else if (!successSelectionSize) {
+      return SelectionStatus.Pending;
+    }
+
+    let [successScreenGui, resultScreenGui] = pcall(() => {
+      return selection[0].IsA('ScreenGui');
+    });
+
+    // Selection is not a ScreenGui
+    if (successScreenGui && !resultScreenGui) {
+      return SelectionStatus.InvalidNotScreenGui;
+    } else if (!successScreenGui) {
+      return SelectionStatus.Pending;
+    }
+
+    return SelectionStatus.Valid;
+  }, [selection]);
+
+  const selectionStatus = resolveSelectionStatus();
+
+  return (
+    <Pane paddingHorizontal={new UDim(0, 4)} paddingVertical={new UDim(0, 16)}>
+      <uilistlayout
+        FillDirection={Enum.FillDirection.Vertical}
+        HorizontalAlignment={Enum.HorizontalAlignment.Center}
+        VerticalAlignment={Enum.VerticalAlignment.Top}
+        Padding={new UDim(0, 16)}
+      />
+
+      {/* StartView Title */}
+      <textlabel
+        Size={new UDim2(1, 0, 0.2, 0)}
+        BackgroundTransparency={1}
+        TextColor3={Pallete.PrimaryText}
+        Text={'RoUI3 v2.0.0'}
+        FontFace={Fonts.JosefinSans.Bold}
+        TextSize={24}
+      />
+
+      {/* StartView Status Label & Editing Button */}
+      <Pane
+        size={new UDim2(0.35, 0, 0.7, 0)}
+        color={Pallete.Background2}
+        rounded={true}
+        paddingHorizontal={new UDim(0, 8)}
+        paddingVertical={new UDim(0, 16)}
+      >
+        <uilistlayout
+          FillDirection={Enum.FillDirection.Vertical}
+          HorizontalAlignment={Enum.HorizontalAlignment.Center}
+          VerticalAlignment={Enum.VerticalAlignment.Center}
+          Padding={new UDim(0, 16)}
+        />
+
+        <textlabel
+          Size={new UDim2(1, 0, 0.2, 0)}
+          BackgroundTransparency={1}
+          TextColor3={Pallete.DefaultText}
+          Text={resolveSelectionMessage(selectionStatus, selection)}
+          FontFace={Fonts.JosefinSans.Regular}
+          TextSize={14}
+        />
+
+        <textbutton
+          Size={new UDim2(0.9, 0, 0.6, 0)}
+          BackgroundColor3={
+            selectionStatus === SelectionStatus.Valid
+              ? Pallete.ButtonPrimaryBackground
+              : Pallete.ButtonDisabledBackground
+          }
+          TextColor3={
+            selectionStatus === SelectionStatus.Valid
+              ? Pallete.White
+              : Pallete.ButtonDisabledText
+          }
+          Text={'Begin Editing'}
+          FontFace={Fonts.JosefinSans.Bold}
+          TextSize={16}
+          AutoButtonColor={selectionStatus === SelectionStatus.Valid}
+          Event={{
+            Activated: () => {},
+            MouseEnter: () => {
+              if (selectionStatus !== SelectionStatus.Valid)
+                appPlugin().unwrap().GetMouse().Icon =
+                  'rbxasset://SystemCursors/Forbidden';
+            },
+            MouseLeave: (rbx) => {
+              appPlugin().unwrap().GetMouse().Icon =
+                'rbxasset://SystemCursors/Arrow';
+            },
+          }}
+        >
+          <uicorner CornerRadius={new UDim(0, 4)} />
+        </textbutton>
+      </Pane>
+    </Pane>
+  );
+}

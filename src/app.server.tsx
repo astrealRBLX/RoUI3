@@ -13,8 +13,11 @@ import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
 import { RunService } from '@rbxts/services';
 import { App } from 'components/App';
+import { appPlugin } from 'state/globals';
 
 let appTree: Option<ReactRoblox.Root> = Option.none();
+
+appPlugin(Option.some(plugin));
 
 if (!RunService.IsRunning()) {
   const toolbar = plugin.CreateToolbar('RoUI3');
@@ -40,6 +43,7 @@ if (!RunService.IsRunning()) {
 
   // `Title` isn't found as a property of `DockWidgetPluginGui` ???
   mainWidget['Title' as never] = 'RoUI3 - v2.0.0' as never;
+  mainWidget.Name = 'RoUI3';
 
   animateButton.Click.Connect(() => {
     if (appTree.isNone()) {

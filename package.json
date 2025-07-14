@@ -17,8 +17,10 @@
     "concurrently": "^6.4.0"
   },
   "dependencies": {
+    "@rbxts/charm": "^0.10.0",
     "@rbxts/pretty-react-hooks": "^0.6.4",
     "@rbxts/react": "^17.2.3",
+    "@rbxts/react-charm": "^0.3.0",
     "@rbxts/react-roblox": "^17.2.3",
     "@rbxts/ripple": "^0.9.3",
     "@rbxts/rust-classes": "^0.13.0",
