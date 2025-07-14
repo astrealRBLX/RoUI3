@@ -24,8 +24,6 @@ export function Pane({
   paddingVertical,
   color = Pallete.Background1,
 }: PaneProps) {
-  print(paddingAll, paddingHorizontal, paddingVertical);
-
   return (
     <frame
       Position={position}

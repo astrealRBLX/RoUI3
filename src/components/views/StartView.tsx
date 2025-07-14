@@ -1,3 +1,4 @@
+import { useMotion } from '@rbxts/pretty-react-hooks';
 import React, {
   Fragment,
   useCallback,
@@ -7,6 +8,8 @@ import React, {
 } from '@rbxts/react';
 import { Pane } from 'components/ui/Pane';
 import { appPlugin } from 'state/globals';
+import { currentRoute, Route } from 'state/routes';
+import { springs } from 'utils/springs';
 import { Fonts, Pallete } from 'utils/styling';
 
 const SelectionService = game.GetService('Selection');
@@ -34,7 +37,15 @@ function resolveSelectionMessage(
   }
 }
 
+/*
+  components/view/StartView
+
+  The initial view seen whenever the plugin is used. This
+  view is used to select a `ScreenGui` to begin animating.
+*/
 export function StartView() {
+  const [buttonSize, buttonSizeMotion] = useMotion(0);
+
   const [selection, setSelection] = useState(SelectionService.Get());
 
   // Updates selection as it changes
@@ -108,7 +119,7 @@ export function StartView() {
           FillDirection={Enum.FillDirection.Vertical}
           HorizontalAlignment={Enum.HorizontalAlignment.Center}
           VerticalAlignment={Enum.VerticalAlignment.Center}
-          Padding={new UDim(0, 16)}
+          Padding={buttonSize.map((px) => new UDim(0, 16 - px))}
         />
 
         <textlabel
@@ -121,7 +132,7 @@ export function StartView() {
         />
 
         <textbutton
-          Size={new UDim2(0.9, 0, 0.6, 0)}
+          Size={buttonSize.map((px) => new UDim2(0.9, px, 0.6, px))}
           BackgroundColor3={
             selectionStatus === SelectionStatus.Valid
               ? Pallete.ButtonPrimaryBackground
@@ -137,13 +148,26 @@ export function StartView() {
           TextSize={16}
           AutoButtonColor={selectionStatus === SelectionStatus.Valid}
           Event={{
-            Activated: () => {},
+            MouseButton1Down: () => {
+              if (selectionStatus === SelectionStatus.Valid) {
+                buttonSizeMotion.spring(-5, springs.bubbly);
+              }
+            },
+            Activated: () => {
+              if (selectionStatus === SelectionStatus.Valid) {
+                currentRoute(Route.EditorView);
+              }
+            },
             MouseEnter: () => {
+              buttonSizeMotion.spring(5, springs.responsive);
+
               if (selectionStatus !== SelectionStatus.Valid)
                 appPlugin().unwrap().GetMouse().Icon =
                   'rbxasset://SystemCursors/Forbidden';
             },
-            MouseLeave: (rbx) => {
+            MouseLeave: () => {
+              buttonSizeMotion.spring(0, springs.responsive);
+
               appPlugin().unwrap().GetMouse().Icon =
                 'rbxasset://SystemCursors/Arrow';
             },

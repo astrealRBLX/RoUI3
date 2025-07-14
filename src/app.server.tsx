@@ -14,6 +14,7 @@ import { Option } from '@rbxts/rust-classes';
 import { RunService } from '@rbxts/services';
 import { App } from 'components/App';
 import { appPlugin } from 'state/globals';
+import { currentRoute, Route } from 'state/routes';
 
 let appTree: Option<ReactRoblox.Root> = Option.none();
 
@@ -45,6 +46,21 @@ if (!RunService.IsRunning()) {
   mainWidget['Title' as never] = 'RoUI3 - v2.0.0' as never;
   mainWidget.Name = 'RoUI3';
 
+  let cleanup = () => {
+    appTree.unwrap().unmount();
+
+    appTree = Option.none();
+
+    mainWidget.Enabled = false;
+
+    currentRoute(Route.StartView);
+  };
+
+  (mainWidget['BindToClose' as never] as Callback)(
+    mainWidget,
+    cleanup
+  ) as never;
+
   animateButton.Click.Connect(() => {
     if (appTree.isNone()) {
       appTree = Option.some(createRoot(mainWidget));
@@ -53,11 +69,7 @@ if (!RunService.IsRunning()) {
 
       mainWidget.Enabled = true;
     } else {
-      appTree.unwrap().unmount();
-
-      appTree = Option.none();
-
-      mainWidget.Enabled = false;
+      cleanup();
     }
   });
 }
