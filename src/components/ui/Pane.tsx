@@ -1,16 +1,18 @@
 import React from '@rbxts/react';
-import { Pallete } from 'utils/styling';
+import { Palette } from 'utils/styling';
 
 interface PaneProps {
   children?: React.ReactNode;
   position?: UDim2;
-  size?: UDim2;
+  size?: UDim2 | React.Binding<UDim2>;
   rounded?: boolean;
   padded?: boolean;
   paddingAll?: UDim;
   paddingVertical?: UDim;
   paddingHorizontal?: UDim;
   color?: Color3;
+  transparency?: number;
+  reference?: React.RefObject<Frame>;
 }
 
 export function Pane({
@@ -22,7 +24,9 @@ export function Pane({
   paddingAll = new UDim(0, 4),
   paddingHorizontal,
   paddingVertical,
-  color = Pallete.Background1,
+  color = Palette.Background1,
+  transparency = 0,
+  reference,
 }: PaneProps) {
   return (
     <frame
@@ -30,6 +34,8 @@ export function Pane({
       Size={size}
       BackgroundColor3={color}
       BorderSizePixel={0}
+      BackgroundTransparency={transparency}
+      ref={reference}
     >
       {padded ? (
         <uipadding

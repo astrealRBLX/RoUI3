@@ -13,7 +13,7 @@ import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
 import { RunService } from '@rbxts/services';
 import { App } from 'components/App';
-import { appPlugin } from 'state/globals';
+import { appPlugin, appWidget } from 'state/globals';
 import { currentRoute, Route } from 'state/routes';
 
 let appTree: Option<ReactRoblox.Root> = Option.none();
@@ -29,45 +29,49 @@ if (!RunService.IsRunning()) {
     'Editor'
   );
 
-  const mainWidget = plugin.CreateDockWidgetPluginGui(
-    'roui3-main-widget',
-    new DockWidgetPluginGuiInfo(
-      Enum.InitialDockState.Bottom,
-      false,
-      true,
-      500,
-      250,
-      500,
-      250
+  appWidget(
+    Option.some(
+      plugin.CreateDockWidgetPluginGui(
+        'roui3-main-widget',
+        new DockWidgetPluginGuiInfo(
+          Enum.InitialDockState.Bottom,
+          false,
+          true,
+          500,
+          250,
+          500,
+          250
+        )
+      )
     )
   );
 
   // `Title` isn't found as a property of `DockWidgetPluginGui` ???
-  mainWidget['Title' as never] = 'RoUI3 - v2.0.0' as never;
-  mainWidget.Name = 'RoUI3';
+  appWidget().unwrap()['Title' as never] = 'RoUI3 - v2.0.0' as never;
+  appWidget().unwrap().Name = 'RoUI3';
 
   let cleanup = () => {
     appTree.unwrap().unmount();
 
     appTree = Option.none();
 
-    mainWidget.Enabled = false;
+    appWidget().unwrap().Enabled = false;
 
     currentRoute(Route.StartView);
   };
 
-  (mainWidget['BindToClose' as never] as Callback)(
-    mainWidget,
+  (appWidget().unwrap()['BindToClose' as never] as Callback)(
+    appWidget().unwrap(),
     cleanup
   ) as never;
 
   animateButton.Click.Connect(() => {
     if (appTree.isNone()) {
-      appTree = Option.some(createRoot(mainWidget));
+      appTree = Option.some(createRoot(appWidget().unwrap()));
 
-      appTree.unwrap().render(createPortal(<App />, mainWidget));
+      appTree.unwrap().render(createPortal(<App />, appWidget().unwrap()));
 
-      mainWidget.Enabled = true;
+      appWidget().unwrap().Enabled = true;
     } else {
       cleanup();
     }

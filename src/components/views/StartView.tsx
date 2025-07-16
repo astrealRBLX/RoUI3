@@ -10,7 +10,7 @@ import { Pane } from 'components/ui/Pane';
 import { appPlugin } from 'state/globals';
 import { currentRoute, Route } from 'state/routes';
 import { springs } from 'utils/springs';
-import { Fonts, Pallete } from 'utils/styling';
+import { Fonts, Palette } from 'utils/styling';
 
 const SelectionService = game.GetService('Selection');
 
@@ -27,7 +27,7 @@ function resolveSelectionMessage(
 ) {
   switch (status) {
     case SelectionStatus.Valid:
-      return `Ready to start animating ${selection[0].Name}!`;
+      return `Ready to start animating "${selection[0].Name}!"`;
     case SelectionStatus.Pending:
       return `Please select a ScreenGui to begin animating.`;
     case SelectionStatus.InvalidTooMany:
@@ -54,9 +54,7 @@ export function StartView() {
       setSelection(SelectionService.Get());
     });
 
-    return () => {
-      conn.Disconnect();
-    };
+    return () => conn.Disconnect();
   }, []);
 
   // Resolves selection status
@@ -101,7 +99,7 @@ export function StartView() {
       <textlabel
         Size={new UDim2(1, 0, 0.2, 0)}
         BackgroundTransparency={1}
-        TextColor3={Pallete.PrimaryText}
+        TextColor3={Palette.PrimaryText}
         Text={'RoUI3 v2.0.0'}
         FontFace={Fonts.JosefinSans.Bold}
         TextSize={24}
@@ -110,7 +108,7 @@ export function StartView() {
       {/* StartView Status Label & Editing Button */}
       <Pane
         size={new UDim2(0.35, 0, 0.7, 0)}
-        color={Pallete.Background2}
+        color={Palette.Background2}
         rounded={true}
         paddingHorizontal={new UDim(0, 8)}
         paddingVertical={new UDim(0, 16)}
@@ -125,7 +123,7 @@ export function StartView() {
         <textlabel
           Size={new UDim2(1, 0, 0.2, 0)}
           BackgroundTransparency={1}
-          TextColor3={Pallete.DefaultText}
+          TextColor3={Palette.DefaultText}
           Text={resolveSelectionMessage(selectionStatus, selection)}
           FontFace={Fonts.JosefinSans.Regular}
           TextSize={14}
@@ -135,13 +133,13 @@ export function StartView() {
           Size={buttonSize.map((px) => new UDim2(0.9, px, 0.6, px))}
           BackgroundColor3={
             selectionStatus === SelectionStatus.Valid
-              ? Pallete.ButtonPrimaryBackground
-              : Pallete.ButtonDisabledBackground
+              ? Palette.ButtonPrimaryBackground
+              : Palette.ButtonDisabledBackground
           }
           TextColor3={
             selectionStatus === SelectionStatus.Valid
-              ? Pallete.White
-              : Pallete.ButtonDisabledText
+              ? Palette.White
+              : Palette.ButtonDisabledText
           }
           Text={'Begin Editing'}
           FontFace={Fonts.JosefinSans.Bold}

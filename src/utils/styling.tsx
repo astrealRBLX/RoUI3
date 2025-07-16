@@ -1,6 +1,7 @@
-export const Pallete = {
-  Background1: new Color3(0.18, 0.18, 0.2),
-  Background2: new Color3(0.21, 0.21, 0.23),
+export const Palette = {
+  Background1: new Color3(0.12, 0.12, 0.13),
+  Background2: new Color3(0.18, 0.18, 0.2),
+  Background3: new Color3(0.21, 0.21, 0.23),
 
   PrimaryText: new Color3(0.45, 0.85, 0.62),
   DefaultText: new Color3(0.63, 0.63, 0.63),
