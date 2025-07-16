@@ -15,6 +15,12 @@ interface PaneProps {
   reference?: React.RefObject<Frame>;
 }
 
+/*
+  components/ui/Pane
+
+  A core UI component that acts as a fancier
+  version of a Frame with pretty defaults.
+*/
 export function Pane({
   children,
   position = UDim2.fromScale(0, 0),

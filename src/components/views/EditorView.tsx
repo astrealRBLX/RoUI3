@@ -4,6 +4,12 @@ import { Pane } from 'components/ui/Pane';
 import { ResizablePanes } from 'components/ui/ResizablePanes';
 import { Palette } from 'utils/styling';
 
+/*
+  components/view/EditorView
+
+  The  view seen whenever editing a `ScreenGui`. This view
+  is made up of the `Topbar` and `Timeline` sections.
+*/
 export function EditorView() {
   return (
     <Pane key={'EditorView'} paddingAll={new UDim(0, 8)}>
