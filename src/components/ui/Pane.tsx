@@ -13,6 +13,9 @@ interface PaneProps {
   color?: Color3;
   transparency?: number;
   reference?: React.RefObject<Frame>;
+  layoutOrder?: number;
+  outlined?: boolean;
+  zIndex?: number;
 }
 
 /*
@@ -33,6 +36,9 @@ export function Pane({
   color = Palette.Background1,
   transparency = 0,
   reference,
+  layoutOrder = 0,
+  outlined = false,
+  zIndex = 1,
 }: PaneProps) {
   return (
     <frame
@@ -41,7 +47,9 @@ export function Pane({
       BackgroundColor3={color}
       BorderSizePixel={0}
       BackgroundTransparency={transparency}
+      LayoutOrder={layoutOrder}
       ref={reference}
+      ZIndex={zIndex}
     >
       {padded ? (
         <uipadding
@@ -62,6 +70,15 @@ export function Pane({
         <></>
       )}
       {rounded ? <uicorner CornerRadius={new UDim(0, 4)} /> : <></>}
+      {outlined ? (
+        <uistroke
+          ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
+          Color={Palette.Outline}
+          Transparency={0}
+        />
+      ) : (
+        <></>
+      )}
       {children}
     </frame>
   );

@@ -18,14 +18,16 @@ export function EditorView() {
         HorizontalAlignment={Enum.HorizontalAlignment.Center}
         VerticalAlignment={Enum.VerticalAlignment.Top}
         Padding={new UDim(0, 4)}
+        SortOrder={Enum.SortOrder.LayoutOrder}
       />
 
       <Topbar />
       <Pane
         key={'Timeline'}
         padded={false}
-        size={new UDim2(1, 0, 0.8, -4)}
+        size={new UDim2(1, 0, 1, -34)}
         transparency={1}
+        layoutOrder={1}
       >
         <ResizablePanes
           leftPane={<Pane color={Palette.Background2} rounded={true} />}
