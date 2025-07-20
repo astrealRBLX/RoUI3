@@ -1,7 +1,7 @@
 import React, { useBinding } from '@rbxts/react';
 import { Option } from '@rbxts/rust-classes';
 import { StudioService } from '@rbxts/services';
-import { ImageButtonElement } from 'components/ui/ImageButtonElement';
+import { ImageButtonElement } from 'components/sections/Topbar/ImageButtonElement';
 import { Pane } from 'components/ui/Pane';
 import { Fonts, Palette } from 'utils/styling';
 

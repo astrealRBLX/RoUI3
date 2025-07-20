@@ -3,9 +3,8 @@ import { Fonts, Palette } from 'utils/styling';
 import { TextElement } from './TextElement';
 import { ImageButtonElement } from './ImageButtonElement';
 import { createNextOrder } from 'utils/createNextOrder';
-import { Pane } from './Pane';
+import { Pane } from 'components/ui/Pane';
 import { TextService } from '@rbxts/services';
-import { TextboxElement } from './TextboxElement';
 import { useToggleState } from 'utils/useToggleState';
 
 interface DropdownOptionElementProps {

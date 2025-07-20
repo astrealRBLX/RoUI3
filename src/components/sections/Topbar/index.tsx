@@ -1,13 +1,13 @@
 import React from '@rbxts/react';
-import { ImageButtonElement } from 'components/ui/ImageButtonElement';
+import { ImageButtonElement } from './ImageButtonElement';
 import { Pane } from 'components/ui/Pane';
-import { TextElement } from 'components/ui/TextElement';
+import { TextElement } from './TextElement';
 import { Tooltip } from 'components/ui/Tooltip';
-import { TopbarElement } from 'components/sections/Topbar/TopbarElement';
+import { TopbarElement } from './TopbarElement';
 import { Fonts, Palette } from 'utils/styling';
-import { TextboxElement } from 'components/ui/TextboxElement';
+import { TextboxElement } from './TextboxElement';
 import { createNextOrder } from 'utils/createNextOrder';
-import { DropdownOptionElement } from 'components/ui/DropdownOptionElement';
+import { DropdownOptionElement } from './DropdownOptionElement';
 
 /*
   components/sections/Topbar
