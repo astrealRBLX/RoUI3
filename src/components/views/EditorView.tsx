@@ -1,16 +1,22 @@
 import React from '@rbxts/react';
+import { useAtom } from '@rbxts/react-charm';
+import { Workspace } from '@rbxts/services';
+import { InstanceTree } from 'components/sections/InstanceTree';
 import { Topbar } from 'components/sections/Topbar';
 import { Pane } from 'components/ui/Pane';
 import { ResizablePanes } from 'components/ui/ResizablePanes';
+import { screenGuiSelection } from 'state/timeline';
 import { Palette } from 'utils/styling';
 
 /*
   components/view/EditorView
 
-  The  view seen whenever editing a `ScreenGui`. This view
+  The view seen whenever editing a `ScreenGui`. This view
   is made up of the `Topbar` and `Timeline` sections.
 */
 export function EditorView() {
+  const animatingScreenGui = useAtom(screenGuiSelection);
+
   return (
     <Pane key={'EditorView'} paddingAll={new UDim(0, 8)}>
       <uilistlayout
@@ -30,8 +36,26 @@ export function EditorView() {
         layoutOrder={1}
       >
         <ResizablePanes
-          leftPane={<Pane color={Palette.Background2} rounded={true} />}
-          rightPane={<Pane color={Palette.Background3} rounded={true} />}
+          leftPane={
+            <Pane
+              key={'InstanceTreePane'}
+              color={Palette.Background2}
+              rounded={true}
+            >
+              <InstanceTree
+                root={animatingScreenGui.unwrap()}
+                baseClassFilter={'GuiObject'}
+                selectFilter={(instance) => !instance.IsA('ScreenGui')}
+              />
+            </Pane>
+          }
+          rightPane={
+            <Pane
+              key={'TimelinePane'}
+              color={Palette.Background3}
+              rounded={true}
+            />
+          }
         />
       </Pane>
     </Pane>

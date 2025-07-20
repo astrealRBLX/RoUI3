@@ -11,6 +11,9 @@ export const Palette = {
   ButtonDisabledBackground: Color3.fromRGB(89, 89, 89),
   ButtonDisabledText: Color3.fromRGB(69, 69, 69),
 
+  TreeSelectionBackground: Color3.fromRGB(41, 71, 108),
+  TreeSelectionHoveringBackground: Color3.fromRGB(61, 102, 150),
+
   White: new Color3(1, 1, 1),
   Outline: Color3.fromRGB(94, 94, 98),
 };

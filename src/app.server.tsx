@@ -8,6 +8,7 @@
 */
 plugin.Activate(true);
 
+import Log, { Logger } from '@rbxts/log';
 import React from '@rbxts/react';
 import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
@@ -19,6 +20,13 @@ import { currentRoute, Route } from 'state/routes';
 let appTree: Option<ReactRoblox.Root> = Option.none();
 
 appPlugin(Option.some(plugin));
+
+Log.SetLogger(
+  Logger.configure()
+    .EnrichWithProperty('PREFIX', '[RoUI3] 2.0.0')
+    .WriteTo(Log.RobloxOutput())
+    .Create()
+);
 
 if (!RunService.IsRunning()) {
   const toolbar = plugin.CreateToolbar('RoUI3');

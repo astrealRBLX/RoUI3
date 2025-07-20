@@ -10,7 +10,7 @@ interface PaneProps {
   paddingAll?: UDim;
   paddingVertical?: UDim;
   paddingHorizontal?: UDim;
-  color?: Color3;
+  color?: Color3 | React.Binding<Color3>;
   transparency?: number;
   reference?: React.RefObject<Frame>;
   layoutOrder?: number;
@@ -66,9 +66,7 @@ export function Pane({
             paddingHorizontal === undefined ? paddingAll : paddingHorizontal
           }
         />
-      ) : (
-        <></>
-      )}
+      ) : undefined}
       {rounded ? <uicorner CornerRadius={new UDim(0, 4)} /> : <></>}
       {outlined ? (
         <uistroke
@@ -76,9 +74,7 @@ export function Pane({
           Color={Palette.Outline}
           Transparency={0}
         />
-      ) : (
-        <></>
-      )}
+      ) : undefined}
       {children}
     </frame>
   );

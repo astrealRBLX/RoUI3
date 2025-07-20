@@ -1,3 +1,4 @@
+import Log from '@rbxts/log';
 import { useMotion } from '@rbxts/pretty-react-hooks';
 import React, {
   Fragment,
@@ -6,9 +7,11 @@ import React, {
   useMemo,
   useState,
 } from '@rbxts/react';
+import { Option } from '@rbxts/rust-classes';
 import { Pane } from 'components/ui/Pane';
 import { appPlugin } from 'state/globals';
 import { currentRoute, Route } from 'state/routes';
+import { screenGuiSelection } from 'state/timeline';
 import { springs } from 'utils/springs';
 import { Fonts, Palette } from 'utils/styling';
 
@@ -153,6 +156,13 @@ export function StartView() {
             },
             Activated: () => {
               if (selectionStatus === SelectionStatus.Valid) {
+                if (selection[0].GetChildren().size() === 0) {
+                  Log.Warn(
+                    `{PREFIX} "${selection[0].Name}" has no children and therefore no instances to animate.`
+                  );
+                }
+
+                screenGuiSelection(Option.some(selection[0] as ScreenGui));
                 currentRoute(Route.EditorView);
               }
             },

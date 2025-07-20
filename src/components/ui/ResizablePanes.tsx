@@ -132,12 +132,14 @@ export function ResizablePanes({
 
         {/* Panes */}
         <Pane
+          key={'LeftPane'}
           size={resizeHandleX.map((x) => new UDim2(x, 0, 1, 0))}
           padded={false}
         >
           {leftPane}
         </Pane>
         <Pane
+          key={'RightPane'}
           size={resizeHandleX.map((x) => new UDim2(1 - x, -4, 1, 0))}
           padded={false}
         >

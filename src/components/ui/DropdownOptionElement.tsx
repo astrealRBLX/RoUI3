@@ -218,9 +218,7 @@ export function DropdownOptionElement({
               {dropdownElements}
             </scrollingframe>
           </Pane>
-        ) : (
-          <></>
-        )}
+        ) : undefined}
       </frame>
       <ImageButtonElement
         image={buttonImage}

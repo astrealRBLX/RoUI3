@@ -16,6 +16,8 @@ interface ImageButtonElementProps {
   useVisualEffects?: boolean; // Should visual effects (e.g. animations) be used
   zIndex?: number;
   sinkInput?: boolean; // Should input be sinked
+  imageRectSize?: Vector2;
+  imageRectOffset?: Vector2;
 }
 
 /*
@@ -34,6 +36,8 @@ export function ImageButtonElement({
   useVisualEffects = true,
   zIndex = 1,
   sinkInput = false,
+  imageRectSize = new Vector2(0, 0),
+  imageRectOffset = new Vector2(0,0),
   onPressed,
 }: ImageButtonElementProps) {
   const [buttonSize, buttonSizeMotion] = useMotion(0);
@@ -42,6 +46,8 @@ export function ImageButtonElement({
   return (
     <imagebutton
       ZIndex={zIndex}
+      ImageRectSize={imageRectSize}
+      ImageRectOffset={imageRectOffset}
       Active={!sinkInput}
       Interactable={!sinkInput}
       Size={buttonSize.map(
