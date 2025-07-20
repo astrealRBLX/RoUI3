@@ -24,7 +24,7 @@ export function TopbarElement({
       Size={new UDim2(0, 0, 1, 0)}
       AutomaticSize={Enum.AutomaticSize.X}
       BackgroundTransparency={visibleBackground ? 0 : 1}
-      BackgroundColor3={Palette.Background3}
+      BackgroundColor3={Palette.Background4}
       LayoutOrder={layoutPosition}
     >
       <uicorner CornerRadius={new UDim(0, 2)} />

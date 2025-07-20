@@ -85,7 +85,7 @@ export function InstanceTreeRow({
           } else if (canSelect && isSelected && !hovering) {
             return Palette.TreeSelectionBackground;
           } else if (canSelect && !isSelected && hovering) {
-            return Palette.Background3;
+            return Palette.Background4;
           } else if (canSelect && !isSelected && !hovering) {
             return Palette.Background1;
           }

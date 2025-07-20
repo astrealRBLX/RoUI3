@@ -24,7 +24,7 @@ export function Topbar() {
       key={'Topbar'}
       paddingAll={new UDim(0, 2)}
       size={new UDim2(1, 0, 0, 30)}
-      color={Palette.Background2}
+      color={Palette.Background3}
       rounded={true}
     >
       <uilistlayout

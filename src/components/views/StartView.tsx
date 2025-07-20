@@ -112,7 +112,7 @@ export function StartView() {
       {/* StartView Status Label & Editing Button */}
       <Pane
         size={new UDim2(0.35, 0, 0.7, 0)}
-        color={Palette.Background2}
+        color={Palette.Background3}
         rounded={true}
         paddingHorizontal={new UDim(0, 8)}
         paddingVertical={new UDim(0, 16)}

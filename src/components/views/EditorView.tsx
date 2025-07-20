@@ -39,7 +39,7 @@ export function EditorView() {
           leftPane={
             <Pane
               key={'InstanceTreePane'}
-              color={Palette.Background2}
+              color={Palette.Background3}
               rounded={true}
             >
               <InstanceTree
@@ -52,7 +52,7 @@ export function EditorView() {
           rightPane={
             <Pane
               key={'TimelinePane'}
-              color={Palette.Background3}
+              color={Palette.Background4}
               rounded={true}
             />
           }

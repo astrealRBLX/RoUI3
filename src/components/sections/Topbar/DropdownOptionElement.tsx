@@ -57,7 +57,7 @@ export function DropdownOptionElement({
             key={`${option}_DropdownOption`}
             ZIndex={6}
             BackgroundTransparency={0}
-            BackgroundColor3={Palette.Background2}
+            BackgroundColor3={Palette.Background3}
             Size={new UDim2(1, 0, 0, textBound.Y + 4)}
             Text={option}
             FontFace={Fonts.JosefinSans.Regular}
