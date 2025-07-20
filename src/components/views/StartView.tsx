@@ -8,10 +8,11 @@ import React, {
   useState,
 } from '@rbxts/react';
 import { Option } from '@rbxts/rust-classes';
+import { CoreGui, Selection, StarterGui } from '@rbxts/services';
 import { Pane } from 'components/ui/Pane';
-import { appPlugin } from 'state/globals';
+import { animatingFolder, appPlugin } from 'state/globals';
 import { currentRoute, Route } from 'state/routes';
-import { screenGuiSelection } from 'state/timeline';
+import { originalScreenGuiSelection, screenGuiSelection } from 'state/timeline';
 import { springs } from 'utils/springs';
 import { Fonts, Palette } from 'utils/styling';
 
@@ -162,7 +163,19 @@ export function StartView() {
                   );
                 }
 
-                screenGuiSelection(Option.some(selection[0] as ScreenGui));
+                // Set the ScreenGui to animate & change to the EditorView
+                const screenGui = selection[0] as ScreenGui;
+                const screenGuiClone = selection[0].Clone() as ScreenGui;
+
+                screenGui.Parent = animatingFolder().unwrap();
+                screenGui.Enabled = false;
+                screenGuiClone.Parent = StarterGui;
+                screenGuiClone.Enabled = true;
+
+                Selection.Set([screenGuiClone]);
+
+                originalScreenGuiSelection(Option.some(screenGui));
+                screenGuiSelection(Option.some(screenGuiClone));
                 currentRoute(Route.EditorView);
               }
             },

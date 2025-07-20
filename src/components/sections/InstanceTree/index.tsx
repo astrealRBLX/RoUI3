@@ -7,6 +7,7 @@ import { createNextOrder } from 'utils/createNextOrder';
 import { Option } from '@rbxts/rust-classes';
 import { instanceTreeSelection } from 'state/timeline';
 import { useAtom } from '@rbxts/react-charm';
+import { Selection } from '@rbxts/services';
 
 interface InstanceTreeProps {
   children?: React.ReactNode;
@@ -71,7 +72,11 @@ export function InstanceTree({
           toggle={toggle}
           nextOrder={nextOrder}
           selectedInstance={treeSelection}
-          onInstanceSelected={instanceTreeSelection}
+          onInstanceSelected={(inst) => {
+            Selection.Set(inst.isSome() ? [inst.unwrap()] : []);
+
+            instanceTreeSelection(inst);
+          }}
           classFilter={baseClassFilter}
           selectFilter={selectFilter}
         />

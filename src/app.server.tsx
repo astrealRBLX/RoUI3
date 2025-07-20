@@ -12,10 +12,11 @@ import Log, { Logger } from '@rbxts/log';
 import React from '@rbxts/react';
 import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
-import { RunService } from '@rbxts/services';
+import { CoreGui, RunService, StarterGui } from '@rbxts/services';
 import { App } from 'components/App';
-import { appPlugin, appWidget } from 'state/globals';
+import { animatingFolder, appPlugin, appWidget } from 'state/globals';
 import { currentRoute, Route } from 'state/routes';
+import { originalScreenGuiSelection, screenGuiSelection } from 'state/timeline';
 
 let appTree: Option<ReactRoblox.Root> = Option.none();
 
@@ -27,6 +28,25 @@ Log.SetLogger(
     .WriteTo(Log.RobloxOutput())
     .Create()
 );
+
+if (
+  animatingFolder().isNone() &&
+  CoreGui.FindFirstChild('RoUI3_Animating') === undefined
+) {
+  const animatingFolderInst = new Instance('Folder');
+
+  animatingFolderInst.Name = 'RoUI3_Animating';
+  animatingFolderInst.Parent = CoreGui;
+
+  animatingFolder(Option.some(animatingFolderInst));
+} else if (
+  animatingFolder().isNone() &&
+  CoreGui.FindFirstChild('RoUI3_Animating')
+) {
+  animatingFolder(
+    Option.some(CoreGui.FindFirstChild('RoUI3_Animating') as Folder)
+  );
+}
 
 if (!RunService.IsRunning()) {
   const toolbar = plugin.CreateToolbar('RoUI3');
@@ -66,6 +86,23 @@ if (!RunService.IsRunning()) {
     appWidget().unwrap().Enabled = false;
 
     currentRoute(Route.StartView);
+
+    // Clean up the cloned ScreenGui
+    if (screenGuiSelection().isSome()) {
+      const screenGuiClone = screenGuiSelection().unwrap();
+
+      screenGuiSelection(Option.none());
+      screenGuiClone.Destroy();
+    }
+
+    // Clean up the original ScreenGui
+    if (originalScreenGuiSelection().isSome()) {
+      const screenGui = originalScreenGuiSelection().unwrap();
+
+      screenGui.Parent = StarterGui;
+      screenGui.Enabled = true;
+      originalScreenGuiSelection(Option.none());
+    }
   };
 
   (appWidget().unwrap()['BindToClose' as never] as Callback)(
