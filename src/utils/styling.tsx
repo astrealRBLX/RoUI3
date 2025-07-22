@@ -1,4 +1,5 @@
 export const Palette = {
+  Background0: Color3.fromRGB(23, 23, 24),
   Background1: Color3.fromRGB(31, 31, 33),
   Background2: Color3.fromRGB(36, 36, 38),
   Background3: Color3.fromRGB(46, 46, 51),
@@ -10,7 +11,7 @@ export const Palette = {
   ButtonPrimaryBackground: Color3.fromRGB(92, 191, 222),
   ButtonPrimaryHoveringBackground: Color3.fromRGB(125, 214, 240),
   ButtonDisabledBackground: Color3.fromRGB(89, 89, 89),
-  ButtonDisabledText: Color3.fromRGB(36, 18, 18),
+  ButtonDisabledText: Color3.fromRGB(69, 69, 69),
 
   TreeSelectionBackground: Color3.fromRGB(41, 71, 108),
   TreeSelectionHoveringBackground: Color3.fromRGB(61, 102, 150),
