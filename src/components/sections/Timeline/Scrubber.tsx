@@ -1,6 +1,7 @@
 import { peek, subscribe } from '@rbxts/charm';
 import { useUpdate } from '@rbxts/pretty-react-hooks';
 import React, { useBinding, useEffect, useRef } from '@rbxts/react';
+import { useAtom } from '@rbxts/react-charm';
 import {
   settingMaxTimelineLength,
   settingScrubberPosition,
@@ -10,7 +11,7 @@ import { Palette } from 'utils/styling';
 export function Scrubber() {
   const update = useUpdate();
 
-  const maxTimelineLength = peek(settingMaxTimelineLength);
+  const maxTimelineLength = useAtom(settingMaxTimelineLength);
 
   const scrubberContainerRef = useRef<Frame>();
   const scrubberHeadRef = useRef<ImageButton>();
@@ -22,6 +23,22 @@ export function Scrubber() {
   const [scrubberPositionScale, setScrubberPositionScale] = useBinding(
     peek(settingScrubberPosition) / maxTimelineLength
   );
+
+  // Effect to recalculate scrubber position when max timeline length changes
+  useEffect(() => {
+    const scrubberPos = peek(settingScrubberPosition);
+
+    // Prevent scrubber position from exceeding the max timeline length
+    if (scrubberPos > maxTimelineLength) {
+      settingScrubberPosition(maxTimelineLength);
+    } else {
+      // Update scrubber position
+      setScrubberPositionScale(scrubberPos / maxTimelineLength);
+    }
+
+    // Force an update
+    update();
+  }, [maxTimelineLength]);
 
   useEffect(() => {
     let dragDetectorConstraintConnection: RBXScriptConnection;
@@ -50,23 +67,6 @@ export function Scrubber() {
     }
 
     const cleanupFunctions: Array<() => void> = [];
-
-    // Subscription to recalculate scrubber position when max timeline length changes
-    cleanupFunctions.push(
-      subscribe(settingMaxTimelineLength, (maxTimelineLengthState, prev) => {
-        if (maxTimelineLengthState !== prev) {
-          const scrubberPos = peek(settingScrubberPosition);
-
-          // Prevent scrubber position from exceeding the max timeline length
-          if (scrubberPos > maxTimelineLength) {
-            settingScrubberPosition(maxTimelineLength);
-          }
-
-          // Force an update
-          update();
-        }
-      })
-    );
 
     // Subscription for when the scrubber position is updated externally to update the scrubber
     cleanupFunctions.push(
