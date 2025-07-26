@@ -6,6 +6,8 @@ import {
   settingMaxTimelineLength,
   settingScrubberPosition,
 } from 'state/editor';
+import { currentTimestamps, pressedKeys } from 'state/timeline';
+import { getSortedDistances } from 'utils/getSortedDistances';
 import { Palette } from 'utils/styling';
 
 export function Scrubber() {
@@ -52,12 +54,33 @@ export function Scrubber() {
             const proposedXScale = proposedPosition.X.Scale;
             const futureXScale =
               initialDragPositionRef.current + proposedXScale;
+            const clampedXScale = math.clamp(futureXScale, 0, 1);
+
+            const activeKeys = peek(pressedKeys);
+
+            // Snap to timestamp
+            if (activeKeys.has(Enum.KeyCode.LeftShift)) {
+              const timestampsData = peek(currentTimestamps);
+              const timestampPositions = timestampsData.map(
+                (data) => data.position
+              );
+              const nearestTimestamp = getSortedDistances(
+                clampedXScale,
+                timestampPositions
+              )[0];
+
+              return $tuple(
+                UDim2.fromScale(
+                  nearestTimestamp.position - initialDragPositionRef.current,
+                  0
+                ),
+                proposedRotation
+              );
+            }
 
             return $tuple(
-              new UDim2(
-                math.clamp(futureXScale, 0, 1) - initialDragPositionRef.current,
-                0,
-                0,
+              UDim2.fromScale(
+                clampedXScale - initialDragPositionRef.current,
                 0
               ),
               proposedRotation

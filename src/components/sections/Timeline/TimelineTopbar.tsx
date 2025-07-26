@@ -3,7 +3,11 @@ import { Pane } from 'components/ui/Pane';
 import { Fonts, Palette } from 'utils/styling';
 import { TextElement } from '../Topbar/TextElement';
 import { useAtom } from '@rbxts/react-charm';
-import { instanceTreeSelection } from 'state/timeline';
+import {
+  currentTimestamps,
+  instanceTreeSelection,
+  TimestampData,
+} from 'state/timeline';
 import { Tooltip } from 'components/ui/Tooltip';
 import {
   settingMaxTimelineLength,
@@ -39,6 +43,12 @@ export function TimelineTopbar({ timelinePaneRef }: TimelineTopbarProps) {
   // Generate timestamp label elements
   const timestampElements: React.ReactChild[] = useMemo(() => {
     const timestamps: React.ReactChild[] = [];
+    const timestampsData: TimestampData[] = [
+      {
+        time: 0,
+        position: 0,
+      },
+    ];
 
     let timestampCount = 20;
     switch (timestampsRenderState) {
@@ -93,8 +103,15 @@ export function TimelineTopbar({ timelinePaneRef }: TimelineTopbarProps) {
         </frame>
       );
 
+      timestampsData.push({
+        time: tonumber(string.format('%.2f', i))!,
+        position: (currentIter + 1) * individualTimestampSize,
+      });
+
       currentIter++;
     }
+
+    currentTimestamps(timestampsData);
 
     return timestamps;
   }, [maxTimelineLength, timestampsRenderState]);
