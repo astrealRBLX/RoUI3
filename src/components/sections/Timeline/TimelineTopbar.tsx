@@ -67,6 +67,7 @@ export function TimelineTopbar({ timelinePaneRef }: TimelineTopbarProps) {
           key={`Timestamp-${string.format('%.2f', i)}`}
           Size={new UDim2(individualTimestampSize, 0, 1, 0)}
           BackgroundTransparency={1}
+          LayoutOrder={currentIter}
         >
           <frame
             key={'TimestampMarking'}
