@@ -1,4 +1,4 @@
-import React from '@rbxts/react';
+import React, { useCallback, useEffect, useRef } from '@rbxts/react';
 import { ImageButtonElement } from './ImageButtonElement';
 import { Pane } from 'components/ui/Pane';
 import { TextElement } from './TextElement';
@@ -8,6 +8,11 @@ import { Fonts, Palette } from 'utils/styling';
 import { TextboxElement } from './TextboxElement';
 import { createNextOrder } from 'utils/createNextOrder';
 import { DropdownOptionElement } from './DropdownOptionElement';
+import {
+  settingMaxTimelineLength,
+  settingScrubberPosition,
+} from 'state/editor';
+import { useAtom } from '@rbxts/react-charm';
 
 /*
   components/sections/Topbar
@@ -18,6 +23,20 @@ import { DropdownOptionElement } from './DropdownOptionElement';
 */
 export function Topbar() {
   const nextOrder = createNextOrder();
+
+  const scrubberPosition = useAtom(settingScrubberPosition);
+  const maxTimelineLength = useAtom(settingMaxTimelineLength);
+  const maxTimelineLengthRef = useRef(maxTimelineLength);
+
+  // Effect to keep maxTimelineLengthRef updated
+  useEffect(() => {
+    maxTimelineLengthRef.current = maxTimelineLength;
+  }, [maxTimelineLength]);
+
+  const scrubberPositionValueClamper = useCallback(
+    (num: number) => math.clamp(num, 0, maxTimelineLengthRef.current),
+    []
+  );
 
   return (
     <Pane
@@ -66,13 +85,14 @@ export function Topbar() {
       <TopbarElement layoutPosition={nextOrder()} visibleBackground={true}>
         <TextboxElement
           labelText={'Scrubber'}
-          initialText={'1.00'}
+          initialText={string.format('%.2f', scrubberPosition)}
           placeholderText={'0.00 s'}
           suffix={'s'}
           asNumberInput={true}
           decimalPlaces={2}
-          onTextChanged={(txt) => {
-            print(`Updated scrubber text to: ${txt}`);
+          valueClamper={scrubberPositionValueClamper}
+          onTextChanged={(num, finishedEditing) => {
+            if (finishedEditing) settingScrubberPosition(tonumber(num)!);
           }}
         >
           <Tooltip
@@ -83,13 +103,14 @@ export function Topbar() {
       <TopbarElement layoutPosition={nextOrder()} visibleBackground={true}>
         <TextboxElement
           labelText={'Animation Length'}
-          initialText={'5.00'}
+          initialText={string.format('%.2f', maxTimelineLength)}
           placeholderText={'0.00 s'}
           suffix={'s'}
           asNumberInput={true}
           decimalPlaces={2}
-          onTextChanged={(txt) => {
-            print(`Updated max timeline text to: ${txt}`);
+          valueClamper={(num) => math.clamp(num, 1, math.huge)}
+          onTextChanged={(num, finishedEditing) => {
+            if (finishedEditing) settingMaxTimelineLength(tonumber(num)!);
           }}
         >
           <Tooltip

@@ -16,6 +16,7 @@ interface PaneProps {
   layoutOrder?: number;
   outlined?: boolean;
   zIndex?: number;
+  event?: React.InstanceEvent<Frame>;
 }
 
 /*
@@ -39,6 +40,7 @@ export function Pane({
   layoutOrder = 0,
   outlined = false,
   zIndex = 1,
+  event,
 }: PaneProps) {
   return (
     <frame
@@ -50,6 +52,7 @@ export function Pane({
       LayoutOrder={layoutOrder}
       ref={reference}
       ZIndex={zIndex}
+      Event={event}
     >
       {padded ? (
         <uipadding

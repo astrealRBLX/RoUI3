@@ -15,7 +15,8 @@ interface TextboxElementProps {
   suffix?: string; // Suffix to display after text when not editing the text box
   asNumberInput?: boolean; // Should only numbers be accepted?
   decimalPlaces?: number; // If only numbers are accepted then how many decimal places to use?
-  onTextChanged?: (text: string) => void; // Callback for when input changes
+  valueClamper?: (num: number) => number; // Calls a clamper function if acting as a number input
+  onTextChanged?: (value: string | number, finishedEditing: boolean) => void; // Callback for when input changes
 }
 
 /*
@@ -63,6 +64,7 @@ export function TextboxElement({
   suffix,
   asNumberInput = false,
   decimalPlaces = 0,
+  valueClamper,
   onTextChanged,
 }: TextboxElementProps) {
   const currentTextRef = useRef(initialText);
@@ -82,6 +84,14 @@ export function TextboxElement({
       // Fix formatting for number of decimal places
       if (asNumberInput && decimalPlaces > 0) {
         finalText = formatWithDecimals(finalText, decimalPlaces);
+      }
+
+      if (asNumberInput && valueClamper !== undefined) {
+        const numVal = valueClamper(tonumber(finalText)!);
+
+        finalText = string.format(`%.${decimalPlaces}f`, tostring(numVal));
+
+        if (onTextChanged) onTextChanged(numVal, true);
       }
 
       // Apply suffix when editing ends
@@ -145,8 +155,9 @@ export function TextboxElement({
     if (onTextChanged)
       onTextChanged(
         asNumberInput && decimalPlaces > 0
-          ? formatWithDecimals(txt, decimalPlaces)
-          : txt
+          ? valueClamper!(tonumber(formatWithDecimals(txt, decimalPlaces))!)
+          : txt,
+        false
       );
   }, []);
 

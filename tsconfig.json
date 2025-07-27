@@ -17,6 +17,9 @@
 		"typeRoots": ["node_modules/@rbxts"],
 		"types": ["types/plugin", "services/plugin"],
 
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+
 		// configurable
 		"rootDir": "src",
 		"outDir": "out",

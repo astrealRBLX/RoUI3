@@ -11,6 +11,7 @@ interface TextElementProps {
   backgroundTransparency?: number;
   layoutOrder?: number;
   zIndex?: number;
+  size?: UDim2;
 }
 
 /*
@@ -28,14 +29,15 @@ export function TextElement({
   backgroundTransparency = 1,
   layoutOrder = 0,
   zIndex = 1,
+  size,
 }: TextElementProps) {
   return (
     <textlabel
       BorderSizePixel={0}
-      AutomaticSize={Enum.AutomaticSize.X}
+      AutomaticSize={size === undefined ? Enum.AutomaticSize.X : undefined}
       BackgroundTransparency={backgroundTransparency}
       BackgroundColor3={backgroundColor}
-      Size={new UDim2(0, 0, 1, 0)}
+      Size={size === undefined ? new UDim2(0, 0, 1, 0) : size}
       FontFace={font}
       TextSize={textSize}
       Text={text}
