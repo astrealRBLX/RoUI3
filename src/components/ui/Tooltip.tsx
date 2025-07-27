@@ -13,6 +13,7 @@ import { Fonts, Palette } from 'utils/styling';
 interface TooltipProps {
   text: string;
   tooltipDelay?: number;
+  tooltipTextSize?: number;
 }
 
 /*
@@ -22,7 +23,11 @@ interface TooltipProps {
   and provide a top-level tooltip displaying information
   when that element is hovered over long enough.
 */
-export function Tooltip({ text, tooltipDelay = 0.3 }: TooltipProps) {
+export function Tooltip({
+  text,
+  tooltipDelay = 0.3,
+  tooltipTextSize = 12,
+}: TooltipProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveringMousePosition, setHoveringMousePosition] = useBinding<
     Option<Vector2>
@@ -80,7 +85,7 @@ export function Tooltip({ text, tooltipDelay = 0.3 }: TooltipProps) {
     const maxAvailableWidth = math.max(0, maxRequestedWidth - paddingSize);
     const textBound = TextService.GetTextSize(
       text,
-      12,
+      tooltipTextSize,
       Enum.Font.JosefinSans,
       new Vector2(maxAvailableWidth, math.huge)
     );
@@ -113,7 +118,7 @@ export function Tooltip({ text, tooltipDelay = 0.3 }: TooltipProps) {
           Size={new UDim2(1, 0, 1, 0)}
           Text={text}
           FontFace={Fonts.JosefinSans.Regular}
-          TextSize={12}
+          TextSize={tooltipTextSize}
           TextWrapped={true}
           TextXAlignment={Enum.TextXAlignment.Left}
           TextColor3={Palette.DefaultText}
