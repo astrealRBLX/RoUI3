@@ -7,20 +7,15 @@ export interface TimestampData {
 }
 
 // Fake ScreenGui to animate that is used by the editor
-export const screenGuiSelection: Atom<Option<ScreenGui>> = atom(Option.none());
+export const screenGuiSelection = atom<Option<ScreenGui>>(Option.none());
 
 // Original ScreenGui to animate that is hidden away to preserve state
-export const originalScreenGuiSelection: Atom<Option<ScreenGui>> = atom(
+export const originalScreenGuiSelection = atom<Option<ScreenGui>>(
   Option.none()
 );
 
 // Current selection in the InstanceTree section
-export const instanceTreeSelection: Atom<Option<Instance>> = atom(
-  Option.none()
-);
-
-// Currently pressed keyboard keys
-export const pressedKeys: Atom<Set<Enum.KeyCode>> = atom(new Set());
+export const instanceTreeSelection = atom<Option<Instance>>(Option.none());
 
 // Currently generated timestamps
 export const currentTimestamps = atom<TimestampData[]>([]);
