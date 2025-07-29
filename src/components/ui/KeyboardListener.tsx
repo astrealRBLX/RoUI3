@@ -47,12 +47,7 @@ export function KeyboardListener({ activeKeysAtom }: KeyboardListenerProps) {
         if (focused.current && activeInput.current.size() > 0) {
           const mousePos = getRelativeMouse();
 
-          if (
-            mousePos.X < 0 ||
-            mousePos.Y < 0 ||
-            mousePos.X > widget.AbsoluteSize.X ||
-            mousePos.Y > widget.AbsoluteSize.Y
-          ) {
+          if (mousePos.X < 0 || mousePos.Y < 0 || mousePos.X > widget.AbsoluteSize.X || mousePos.Y > widget.AbsoluteSize.Y) {
             activeInput.current.clear();
             activeKeysAtom(activeInput.current);
           }

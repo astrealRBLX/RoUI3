@@ -5,17 +5,17 @@ export enum HotkeyIDs {
   ScrubberSnapTimestamp,
   ScrubberSnapKeyframe,
   KeyframesSelectMultiple,
+  KeyframesDragDeselect,
   KeyframesDragInvertSelection,
 }
 
+//
 const hotkeys = new Map<HotkeyIDs, Enum.KeyCode[]>([
   [HotkeyIDs.ScrubberSnapTimestamp, [Enum.KeyCode.LeftControl]],
-  [
-    HotkeyIDs.ScrubberSnapKeyframe,
-    [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftShift],
-  ],
+  [HotkeyIDs.ScrubberSnapKeyframe, [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftShift]],
   [HotkeyIDs.KeyframesSelectMultiple, [Enum.KeyCode.LeftControl]],
-  [HotkeyIDs.KeyframesDragInvertSelection, [Enum.KeyCode.LeftControl]],
+  [HotkeyIDs.KeyframesDragDeselect, [Enum.KeyCode.LeftControl]],
+  [HotkeyIDs.KeyframesDragInvertSelection, [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftShift]],
 ]);
 
 export function isHotkeyPressed(id: HotkeyIDs) {

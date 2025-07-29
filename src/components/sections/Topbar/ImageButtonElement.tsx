@@ -37,7 +37,7 @@ export function ImageButtonElement({
   zIndex = 1,
   sinkInput = false,
   imageRectSize = new Vector2(0, 0),
-  imageRectOffset = new Vector2(0,0),
+  imageRectOffset = new Vector2(0, 0),
   onPressed,
 }: ImageButtonElementProps) {
   const [buttonSize, buttonSizeMotion] = useMotion(0);
@@ -50,9 +50,7 @@ export function ImageButtonElement({
       ImageRectOffset={imageRectOffset}
       Active={!sinkInput}
       Interactable={!sinkInput}
-      Size={buttonSize.map(
-        (size) => new UDim2(0, sizePx - size, 0, sizePx - size)
-      )}
+      Size={buttonSize.map((size) => new UDim2(0, sizePx - size, 0, sizePx - size))}
       BackgroundTransparency={1}
       AnchorPoint={new Vector2(0, 0.5)}
       Position={new UDim2(0, 0, 0.5, 0)}
@@ -70,9 +68,7 @@ export function ImageButtonElement({
         },
         MouseEnter: (rbx) => {
           if (useVisualEffects) {
-            rbx.ImageColor3 = buttonToggled.on
-              ? Palette.ButtonPrimaryHoveringBackground
-              : Palette.White;
+            rbx.ImageColor3 = buttonToggled.on ? Palette.ButtonPrimaryHoveringBackground : Palette.White;
           }
         },
         MouseLeave: (rbx) => {

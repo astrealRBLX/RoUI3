@@ -56,28 +56,14 @@ export function Pane({
     >
       {padded ? (
         <uipadding
-          PaddingTop={
-            paddingVertical === undefined ? paddingAll : paddingVertical
-          }
-          PaddingBottom={
-            paddingVertical === undefined ? paddingAll : paddingVertical
-          }
-          PaddingLeft={
-            paddingHorizontal === undefined ? paddingAll : paddingHorizontal
-          }
-          PaddingRight={
-            paddingHorizontal === undefined ? paddingAll : paddingHorizontal
-          }
+          PaddingTop={paddingVertical === undefined ? paddingAll : paddingVertical}
+          PaddingBottom={paddingVertical === undefined ? paddingAll : paddingVertical}
+          PaddingLeft={paddingHorizontal === undefined ? paddingAll : paddingHorizontal}
+          PaddingRight={paddingHorizontal === undefined ? paddingAll : paddingHorizontal}
         />
       ) : undefined}
       {rounded ? <uicorner CornerRadius={new UDim(0, 4)} /> : <></>}
-      {outlined ? (
-        <uistroke
-          ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
-          Color={Palette.Outline}
-          Transparency={0}
-        />
-      ) : undefined}
+      {outlined ? <uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={Palette.Outline} Transparency={0} /> : undefined}
       {children}
     </frame>
   );

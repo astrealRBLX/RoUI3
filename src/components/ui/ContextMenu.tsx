@@ -19,11 +19,7 @@ interface ContextMenuProps {
   options: Array<ContextMenuOption>;
 }
 
-export function ContextMenu({
-  id,
-  activeContextMenuAtom,
-  options,
-}: ContextMenuProps) {
+export function ContextMenu({ id, activeContextMenuAtom, options }: ContextMenuProps) {
   const activeContextMenu = useAtom(activeContextMenuAtom);
 
   const mousePos = getRelativeMouse();
@@ -44,11 +40,7 @@ export function ContextMenu({
         TextXAlignment={Enum.TextXAlignment.Left}
         Event={{
           InputBegan: (rbx, input) => {
-            if (
-              input.UserInputType !== Enum.UserInputType.MouseButton1 ||
-              input.UserInputState !== Enum.UserInputState.Begin
-            )
-              return;
+            if (input.UserInputType !== Enum.UserInputType.MouseButton1 || input.UserInputState !== Enum.UserInputState.Begin) return;
 
             const closeMenu = option.clicked(rbx, input);
 
@@ -57,20 +49,9 @@ export function ContextMenu({
         }}
       >
         <uicorner CornerRadius={new UDim(0, 2)} />
-        <uistroke
-          Thickness={1}
-          Color={Palette.Outline}
-          ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
-        />
-        <uipadding
-          PaddingBottom={new UDim(0, 2)}
-          PaddingTop={new UDim(0, 2)}
-          PaddingRight={new UDim(0, 4)}
-          PaddingLeft={new UDim(0, 4)}
-        />
-        {option.tooltip ? (
-          <Tooltip text={option.tooltip} tooltipTextSize={10} />
-        ) : undefined}
+        <uistroke Thickness={1} Color={Palette.Outline} ApplyStrokeMode={Enum.ApplyStrokeMode.Border} />
+        <uipadding PaddingBottom={new UDim(0, 2)} PaddingTop={new UDim(0, 2)} PaddingRight={new UDim(0, 4)} PaddingLeft={new UDim(0, 4)} />
+        {option.tooltip ? <Tooltip text={option.tooltip} tooltipTextSize={10} /> : undefined}
       </textbutton>
     );
   });
@@ -82,11 +63,7 @@ export function ContextMenu({
         BackgroundTransparency={1}
         Event={{
           InputBegan: (_, input) => {
-            if (
-              input.UserInputState !== Enum.UserInputState.Begin ||
-              input.UserInputType !== Enum.UserInputType.MouseButton2
-            )
-              return;
+            if (input.UserInputState !== Enum.UserInputState.Begin || input.UserInputType !== Enum.UserInputType.MouseButton2) return;
 
             activeContextMenuAtom(id);
           },
@@ -99,8 +76,7 @@ export function ContextMenu({
               BackgroundTransparency={1}
               Event={{
                 InputBegan: (_, input) => {
-                  if (input.UserInputType !== Enum.UserInputType.MouseButton1)
-                    return;
+                  if (input.UserInputType !== Enum.UserInputType.MouseButton1) return;
 
                   activeContextMenuAtom('');
                 },
@@ -115,12 +91,7 @@ export function ContextMenu({
                 BackgroundColor3={Palette.Background1}
                 BackgroundTransparency={1}
               >
-                <uipadding
-                  PaddingLeft={new UDim(0, 2)}
-                  PaddingBottom={new UDim(0, 2)}
-                  PaddingRight={new UDim(0, 2)}
-                  PaddingTop={new UDim(0, 2)}
-                />
+                <uipadding PaddingLeft={new UDim(0, 2)} PaddingBottom={new UDim(0, 2)} PaddingRight={new UDim(0, 2)} PaddingTop={new UDim(0, 2)} />
                 <uicorner CornerRadius={new UDim(0, 2)} />
                 <uilistlayout
                   FillDirection={Enum.FillDirection.Vertical}

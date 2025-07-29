@@ -3,13 +3,9 @@ import { createMotion, Motion, MotionGoal } from '@rbxts/ripple';
 import { Binding, useBinding, useMemo } from '@rbxts/react';
 import { RunService } from '@rbxts/services';
 
-export function useMotion(
-  initialValue: number
-): LuaTuple<[Binding<number>, Motion]>;
+export function useMotion(initialValue: number): LuaTuple<[Binding<number>, Motion]>;
 
-export function useMotion<T extends MotionGoal>(
-  initialValue: T
-): LuaTuple<[Binding<T>, Motion<T>]>;
+export function useMotion<T extends MotionGoal>(initialValue: T): LuaTuple<[Binding<T>, Motion<T>]>;
 
 export function useMotion<T extends MotionGoal>(initialValue: T) {
   const motion = useMemo(() => {

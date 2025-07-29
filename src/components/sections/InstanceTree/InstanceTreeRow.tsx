@@ -68,9 +68,7 @@ export function InstanceTreeRow({
   const hasChildren = instance.GetChildren().size() > 0;
   const indent = depth * 10;
   const canSelect = selectFilter(instance);
-  const isSelected = selectedInstance.isSome()
-    ? selectedInstance.unwrap() === instance
-    : false;
+  const isSelected = selectedInstance.isSome() ? selectedInstance.unwrap() === instance : false;
 
   return (
     <>
@@ -108,9 +106,7 @@ export function InstanceTreeRow({
             sizePx={10}
             onPressed={() => toggle(instance)}
             imageRectSize={new Vector2(12, 12)}
-            imageRectOffset={
-              isExpanded ? new Vector2(24, 0) : new Vector2(12, 0)
-            }
+            imageRectOffset={isExpanded ? new Vector2(24, 0) : new Vector2(12, 0)}
           />
         ) : undefined}
 
@@ -135,9 +131,7 @@ export function InstanceTreeRow({
           Event={{
             Activated: () => {
               if (canSelect) {
-                onInstanceSelected(
-                  isSelected ? Option.none() : Option.some(instance)
-                );
+                onInstanceSelected(isSelected ? Option.none() : Option.some(instance));
               }
             },
             MouseEnter: () => {

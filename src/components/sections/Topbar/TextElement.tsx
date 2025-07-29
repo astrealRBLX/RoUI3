@@ -52,10 +52,7 @@ export function TextElement({
       ZIndex={zIndex}
       TextXAlignment={textXAlign}
     >
-      <uipadding
-        PaddingLeft={new UDim(0, customPadding)}
-        PaddingRight={new UDim(0, customPadding)}
-      />
+      <uipadding PaddingLeft={new UDim(0, customPadding)} PaddingRight={new UDim(0, customPadding)} />
       {children}
     </textlabel>
   );

@@ -1,9 +1,4 @@
-import React, {
-  useBinding,
-  useCallback,
-  useEffect,
-  useRef,
-} from '@rbxts/react';
+import React, { useBinding, useCallback, useEffect, useRef } from '@rbxts/react';
 import { Fonts, Palette } from 'utils/styling';
 import { TextElement } from './TextElement';
 
@@ -117,10 +112,7 @@ export function TextboxElement({
       let totalReplacements = 0;
       let finalNumberText = txt;
 
-      const [cleanedText, numReplacements1] = txt.gsub(
-        decimalPlaces > 0 ? '[^%d%.]' : '[^%d]',
-        ''
-      );
+      const [cleanedText, numReplacements1] = txt.gsub(decimalPlaces > 0 ? '[^%d%.]' : '[^%d]', '');
 
       finalNumberText = cleanedText;
       totalReplacements += numReplacements1;
@@ -138,9 +130,7 @@ export function TextboxElement({
         });
 
         finalNumberText = formattedText;
-        totalReplacements += decimalFound
-          ? numReplacements2 - 1
-          : numReplacements2;
+        totalReplacements += decimalFound ? numReplacements2 - 1 : numReplacements2;
       }
 
       // If any formatting changes had to be made then update the textbox
@@ -153,12 +143,7 @@ export function TextboxElement({
     currentTextRef.current = txt;
 
     if (onTextChanged)
-      onTextChanged(
-        asNumberInput && decimalPlaces > 0
-          ? valueClamper!(tonumber(formatWithDecimals(txt, decimalPlaces))!)
-          : txt,
-        false
-      );
+      onTextChanged(asNumberInput && decimalPlaces > 0 ? valueClamper!(tonumber(formatWithDecimals(txt, decimalPlaces))!) : txt, false);
   }, []);
 
   return (
@@ -170,12 +155,7 @@ export function TextboxElement({
         Padding={new UDim(0, 2)}
       />
 
-      <TextElement
-        text={labelText}
-        textColor={Palette.DefaultText}
-        textSize={12}
-        font={Fonts.JosefinSans.Medium}
-      >
+      <TextElement text={labelText} textColor={Palette.DefaultText} textSize={12} font={Fonts.JosefinSans.Medium}>
         {children}
       </TextElement>
       <textbox
@@ -208,11 +188,7 @@ export function TextboxElement({
       >
         <uicorner CornerRadius={new UDim(0, 2)} />
         <uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} />
-        <uistroke
-          ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
-          Color={Palette.Outline}
-          Transparency={0}
-        />
+        <uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={Palette.Outline} Transparency={0} />
       </textbox>
     </>
   );

@@ -13,11 +13,7 @@ interface TopbarElementProps {
   This component is wrapped around an element that
   should be added to the topbar.
 */
-export function TopbarElement({
-  children,
-  visibleBackground = false,
-  layoutPosition = 0,
-}: TopbarElementProps) {
+export function TopbarElement({ children, visibleBackground = false, layoutPosition = 0 }: TopbarElementProps) {
   return (
     <frame
       key={'TopbarElement'}

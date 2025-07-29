@@ -20,22 +20,14 @@ interface DropdownOptionElementProps {
 
   Used to select an option from a list of choices
 */
-export function DropdownOptionElement({
-  children,
-  labelText,
-  options,
-  buttonImage,
-  onButtonClicked,
-}: DropdownOptionElementProps) {
+export function DropdownOptionElement({ children, labelText, options, buttonImage, onButtonClicked }: DropdownOptionElementProps) {
   const nextOrder = createNextOrder();
 
   const dropdownButtonRef = useRef<TextButton>();
   const [selectedOption, setSelectedOption] = useState(options[0]);
   const [automaticDropdownY, setAutomaticDropdownY] = useBinding(0);
   const [dropdownMinimumX, setDropdownMinimumX] = useBinding(0);
-  const [dropdownElements, setDropdownElements] = useState<React.ReactChild[]>(
-    []
-  );
+  const [dropdownElements, setDropdownElements] = useState<React.ReactChild[]>([]);
   const dropdownOpen = useToggleState(false);
 
   useEffect(() => {
@@ -45,12 +37,7 @@ export function DropdownOptionElement({
 
     options.forEach((option) => {
       if (option !== selectedOption) {
-        const textBound = TextService.GetTextSize(
-          option,
-          10,
-          Enum.Font.JosefinSans,
-          new Vector2(150, 14)
-        );
+        const textBound = TextService.GetTextSize(option, 10, Enum.Font.JosefinSans, new Vector2(150, 14));
 
         dElements.push(
           <textbutton
@@ -80,17 +67,9 @@ export function DropdownOptionElement({
         totalY += textBound.Y + 6;
       }
 
-      if (
-        dropdownOpen.on &&
-        dropdownButtonRef.current &&
-        minimumX > dropdownButtonRef.current.AbsoluteSize.X
-      ) {
+      if (dropdownOpen.on && dropdownButtonRef.current && minimumX > dropdownButtonRef.current.AbsoluteSize.X) {
         setDropdownMinimumX(minimumX);
-      } else if (
-        dropdownOpen.on &&
-        dropdownButtonRef.current &&
-        minimumX <= dropdownButtonRef.current.AbsoluteSize.X
-      ) {
+      } else if (dropdownOpen.on && dropdownButtonRef.current && minimumX <= dropdownButtonRef.current.AbsoluteSize.X) {
         setDropdownMinimumX(dropdownButtonRef.current.AbsoluteSize.X);
       } else if (!dropdownOpen.on && dropdownButtonRef.current) {
         setDropdownMinimumX(0);
@@ -110,21 +89,10 @@ export function DropdownOptionElement({
         SortOrder={Enum.SortOrder.LayoutOrder}
       />
 
-      <TextElement
-        text={labelText}
-        textColor={Palette.DefaultText}
-        textSize={12}
-        font={Fonts.JosefinSans.Medium}
-        layoutOrder={nextOrder()}
-      >
+      <TextElement text={labelText} textColor={Palette.DefaultText} textSize={12} font={Fonts.JosefinSans.Medium} layoutOrder={nextOrder()}>
         {children}
       </TextElement>
-      <frame
-        AutomaticSize={Enum.AutomaticSize.X}
-        BackgroundTransparency={1}
-        Size={new UDim2(0, 0, 1, -4)}
-        LayoutOrder={nextOrder()}
-      >
+      <frame AutomaticSize={Enum.AutomaticSize.X} BackgroundTransparency={1} Size={new UDim2(0, 0, 1, -4)} LayoutOrder={nextOrder()}>
         <textbutton
           ref={dropdownButtonRef}
           ZIndex={34}
@@ -140,15 +108,8 @@ export function DropdownOptionElement({
           }}
         >
           <uicorner CornerRadius={new UDim(0, 2)} />
-          <uipadding
-            PaddingLeft={new UDim(0, 4)}
-            PaddingRight={new UDim(0, 4)}
-          />
-          <uistroke
-            ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
-            Color={Palette.Outline}
-            Transparency={0}
-          />
+          <uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} />
+          <uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={Palette.Outline} Transparency={0} />
           <uilistlayout
             FillDirection={Enum.FillDirection.Horizontal}
             HorizontalAlignment={Enum.HorizontalAlignment.Left}
@@ -157,13 +118,7 @@ export function DropdownOptionElement({
             SortOrder={Enum.SortOrder.LayoutOrder}
           />
 
-          <TextElement
-            zIndex={35}
-            text={selectedOption}
-            textColor={Palette.DefaultText}
-            textSize={12}
-            font={Fonts.JosefinSans.Regular}
-          />
+          <TextElement zIndex={35} text={selectedOption} textColor={Palette.DefaultText} textSize={12} font={Fonts.JosefinSans.Regular} />
           <ImageButtonElement
             zIndex={35}
             image='rbxassetid://81194770428805'
@@ -176,17 +131,7 @@ export function DropdownOptionElement({
         {dropdownOpen.on ? (
           <Pane
             zIndex={33}
-            size={dropdownMinimumX.map(
-              (x) =>
-                new UDim2(
-                  0,
-                  x,
-                  0,
-                  automaticDropdownY.getValue() > 50
-                    ? 60
-                    : automaticDropdownY.getValue() + 10
-                )
-            )}
+            size={dropdownMinimumX.map((x) => new UDim2(0, x, 0, automaticDropdownY.getValue() > 50 ? 60 : automaticDropdownY.getValue() + 10))}
             position={new UDim2(0, 0, 1, -4)}
             padded={false}
             rounded={true}
@@ -197,9 +142,7 @@ export function DropdownOptionElement({
               ZIndex={34}
               BackgroundTransparency={1}
               BorderSizePixel={0}
-              Size={automaticDropdownY.map(
-                (y) => new UDim2(1, 0, 0, y > 50 ? 50 : y)
-              )}
+              Size={automaticDropdownY.map((y) => new UDim2(1, 0, 0, y > 50 ? 50 : y))}
               Position={new UDim2(0, 0, 0, 8)}
               CanvasSize={automaticDropdownY.map((y) => new UDim2(0, 0, 0, y))}
               ScrollBarImageColor3={Palette.White}

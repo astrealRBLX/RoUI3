@@ -23,17 +23,11 @@ interface InstanceTreeProps {
   functionality to the `Timeline`. Displays a copy
   of an instance's hierarchy using a tree view.
 */
-export function InstanceTree({
-  root,
-  baseClassFilter = 'Instance',
-  selectFilter = () => true,
-}: InstanceTreeProps) {
+export function InstanceTree({ root, baseClassFilter = 'Instance', selectFilter = () => true }: InstanceTreeProps) {
   const nextOrder = createNextOrder();
 
   const treeSelection = useAtom(instanceTreeSelection);
-  const [isExpandedMap, setIsExpandedMap] = useState<Map<Instance, boolean>>(
-    new Map([[root, true]])
-  );
+  const [isExpandedMap, setIsExpandedMap] = useState<Map<Instance, boolean>>(new Map([[root, true]]));
 
   const toggle = useCallback(
     (inst: Instance) => {

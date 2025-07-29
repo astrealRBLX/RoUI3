@@ -3,16 +3,9 @@ import { Pane } from 'components/ui/Pane';
 import { Fonts, Palette } from 'utils/styling';
 import { TextElement } from '../Topbar/TextElement';
 import { useAtom } from '@rbxts/react-charm';
-import {
-  currentTimestamps,
-  instanceTreeSelection,
-  TimestampData,
-} from 'state/timeline';
+import { currentTimestamps, instanceTreeSelection, TimestampData } from 'state/timeline';
 import { Tooltip } from 'components/ui/Tooltip';
-import {
-  settingMaxTimelineLength,
-  settingScrubberPosition,
-} from 'state/editor';
+import { settingMaxTimelineLength, settingScrubberPosition } from 'state/editor';
 import { createPortal } from '@rbxts/react-roblox';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
 
@@ -31,9 +24,7 @@ export function TimelineTopbar({ timelinePaneRef }: TimelineTopbarProps) {
   const maxTimelineLength = useAtom(settingMaxTimelineLength);
 
   const [timelinePaneRefReady, setTimelinePaneRefReady] = useState(false);
-  const [timestampsRenderState, setTimestampsRenderState] = useState(
-    TimestampsRenderState.All
-  );
+  const [timestampsRenderState, setTimestampsRenderState] = useState(TimestampsRenderState.All);
 
   // Effect to determine when the timelinePaneRef is set & ready for use
   useEffect(() => {
@@ -118,32 +109,18 @@ export function TimelineTopbar({ timelinePaneRef }: TimelineTopbarProps) {
 
   return (
     <>
-      <Pane
-        key={'TimelineTopbar'}
-        padded={false}
-        color={Palette.Background2}
-        size={new UDim2(1, 0, 0, 20)}
-        position={new UDim2(0, 0, 0, 0)}
-      >
+      <Pane key={'TimelineTopbar'} padded={false} color={Palette.Background2} size={new UDim2(1, 0, 0, 20)} position={new UDim2(0, 0, 0, 0)}>
         <uilistlayout
           FillDirection={Enum.FillDirection.Horizontal}
           HorizontalAlignment={Enum.HorizontalAlignment.Left}
           VerticalAlignment={Enum.VerticalAlignment.Center}
         />
 
-        <TextElement
-          key={'PropertiesLabel'}
-          text={'Properties'}
-          textSize={12}
-          textColor={Palette.DefaultText}
-          size={new UDim2(0, 150, 1, 0)}
-        >
+        <TextElement key={'PropertiesLabel'} text={'Properties'} textSize={12} textColor={Palette.DefaultText} size={new UDim2(0, 150, 1, 0)}>
           <Tooltip
             text={
               selectedTreeInstance.isSome()
-                ? `Properties being animated for "${
-                    selectedTreeInstance.unwrap().Name
-                  }"`
+                ? `Properties being animated for "${selectedTreeInstance.unwrap().Name}"`
                 : 'Properties to be animated when an instance is selected.'
             }
           />
@@ -154,12 +131,10 @@ export function TimelineTopbar({ timelinePaneRef }: TimelineTopbarProps) {
           paddingHorizontal={new UDim(0, 0)}
           event={{
             InputBegan: (rbx, input) => {
-              if (input.UserInputType !== Enum.UserInputType.MouseButton1)
-                return;
+              if (input.UserInputType !== Enum.UserInputType.MouseButton1) return;
 
               const mousePos = getRelativeMouse();
-              const xScale =
-                (mousePos.X - rbx.AbsolutePosition.X) / rbx.AbsoluteSize.X;
+              const xScale = (mousePos.X - rbx.AbsolutePosition.X) / rbx.AbsoluteSize.X;
 
               settingScrubberPosition(xScale * maxTimelineLength);
             },

@@ -6,7 +6,5 @@ import { appWidget } from 'state/globals';
 export function getRelativeMouse(): Vector2 {
   const widget = appWidget();
 
-  return widget.isSome()
-    ? widget.unwrap().GetRelativeMousePosition()
-    : Vector2.one;
+  return widget.isSome() ? widget.unwrap().GetRelativeMousePosition() : Vector2.one;
 }

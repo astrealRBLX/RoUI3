@@ -22,21 +22,9 @@ export const Palette = {
 
 export const Fonts = {
   JosefinSans: {
-    Regular: new Font(
-      Font.fromEnum(Enum.Font.JosefinSans).Family,
-      Enum.FontWeight.Regular
-    ),
-    Medium: new Font(
-      Font.fromEnum(Enum.Font.JosefinSans).Family,
-      Enum.FontWeight.Medium
-    ),
-    SemiBold: new Font(
-      Font.fromEnum(Enum.Font.JosefinSans).Family,
-      Enum.FontWeight.SemiBold
-    ),
-    Bold: new Font(
-      Font.fromEnum(Enum.Font.JosefinSans).Family,
-      Enum.FontWeight.Bold
-    ),
+    Regular: new Font(Font.fromEnum(Enum.Font.JosefinSans).Family, Enum.FontWeight.Regular),
+    Medium: new Font(Font.fromEnum(Enum.Font.JosefinSans).Family, Enum.FontWeight.Medium),
+    SemiBold: new Font(Font.fromEnum(Enum.Font.JosefinSans).Family, Enum.FontWeight.SemiBold),
+    Bold: new Font(Font.fromEnum(Enum.Font.JosefinSans).Family, Enum.FontWeight.Bold),
   },
 };

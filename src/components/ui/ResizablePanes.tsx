@@ -34,24 +34,14 @@ export function ResizablePanes({
   useEffect(() => {
     const conn = RunService.RenderStepped.Connect(() => {
       // Must be actively dragging, appWidget must exist, & a reference to the dragging hitbox must exist
-      if (
-        !isDragging.getValue() ||
-        appWidget().isNone() ||
-        dragBoxRef.current === undefined
-      )
-        return;
+      if (!isDragging.getValue() || appWidget().isNone() || dragBoxRef.current === undefined) return;
 
       const mousePos = appWidget().unwrap().GetRelativeMousePosition();
       const contentSize = dragBoxRef.current.AbsoluteSize;
-      const leftPaneScaleX =
-        (mousePos.X - mouseDiff.getValue()) / contentSize.X;
+      const leftPaneScaleX = (mousePos.X - mouseDiff.getValue()) / contentSize.X;
 
       // Resize constraints
-      if (
-        leftPaneScaleX < leftPaneMinimumXScale ||
-        leftPaneScaleX > leftPaneMaximumXScale
-      )
-        return;
+      if (leftPaneScaleX < leftPaneMinimumXScale || leftPaneScaleX > leftPaneMaximumXScale) return;
 
       appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/SplitEW';
 
@@ -64,12 +54,7 @@ export function ResizablePanes({
   return (
     <>
       {/* Resizing Hitbox */}
-      <Pane
-        key={'ResizeHandleBox'}
-        padded={false}
-        transparency={1}
-        reference={dragBoxRef}
-      >
+      <Pane key={'ResizeHandleBox'} padded={false} transparency={1} reference={dragBoxRef}>
         <frame
           key={'ResizeHandle'}
           Size={new UDim2(0, 8, 1, 0)}
@@ -77,38 +62,23 @@ export function ResizablePanes({
           BackgroundTransparency={1}
           Event={{
             MouseEnter: () => {
-              appPlugin().unwrap().GetMouse().Icon =
-                'rbxasset://SystemCursors/SplitEW';
+              appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/SplitEW';
             },
             MouseLeave: () => {
-              appPlugin().unwrap().GetMouse().Icon =
-                'rbxasset://SystemCursors/Arrow';
+              appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/Arrow';
             },
             InputBegan: (rbx, input) => {
-              if (
-                input.UserInputType !== Enum.UserInputType.MouseButton1 ||
-                input.UserInputState !== Enum.UserInputState.Begin
-              )
-                return;
+              if (input.UserInputType !== Enum.UserInputType.MouseButton1 || input.UserInputState !== Enum.UserInputState.Begin) return;
 
-              appPlugin().unwrap().GetMouse().Icon =
-                'rbxasset://SystemCursors/SplitEW';
+              appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/SplitEW';
 
-              setMouseDiff(
-                appWidget().unwrap().GetRelativeMousePosition().X -
-                  rbx.AbsolutePosition.X
-              );
+              setMouseDiff(appWidget().unwrap().GetRelativeMousePosition().X - rbx.AbsolutePosition.X);
               setIsDragging(true);
             },
             InputEnded: (_, input) => {
-              if (
-                input.UserInputType !== Enum.UserInputType.MouseButton1 ||
-                input.UserInputState !== Enum.UserInputState.End
-              )
-                return;
+              if (input.UserInputType !== Enum.UserInputType.MouseButton1 || input.UserInputState !== Enum.UserInputState.End) return;
 
-              appPlugin().unwrap().GetMouse().Icon =
-                'rbxasset://SystemCursors/Arrow';
+              appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/Arrow';
 
               setIsDragging(false);
             },
@@ -117,12 +87,7 @@ export function ResizablePanes({
       </Pane>
 
       {/* Content */}
-      <Pane
-        key={'ResizablePanes'}
-        padded={false}
-        size={new UDim2(1, 0, 1, 0)}
-        transparency={1}
-      >
+      <Pane key={'ResizablePanes'} padded={false} size={new UDim2(1, 0, 1, 0)} transparency={1}>
         <uilistlayout
           FillDirection={Enum.FillDirection.Horizontal}
           HorizontalAlignment={Enum.HorizontalAlignment.Left}
@@ -131,18 +96,10 @@ export function ResizablePanes({
         />
 
         {/* Panes */}
-        <Pane
-          key={'LeftPane'}
-          size={resizeHandleX.map((x) => new UDim2(x, 0, 1, 0))}
-          padded={false}
-        >
+        <Pane key={'LeftPane'} size={resizeHandleX.map((x) => new UDim2(x, 0, 1, 0))} padded={false}>
           {leftPane}
         </Pane>
-        <Pane
-          key={'RightPane'}
-          size={resizeHandleX.map((x) => new UDim2(1 - x, -4, 1, 0))}
-          padded={false}
-        >
+        <Pane key={'RightPane'} size={resizeHandleX.map((x) => new UDim2(1 - x, -4, 1, 0))} padded={false}>
           {rightPane}
         </Pane>
       </Pane>
