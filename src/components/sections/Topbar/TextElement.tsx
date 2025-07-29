@@ -12,6 +12,9 @@ interface TextElementProps {
   layoutOrder?: number;
   zIndex?: number;
   size?: UDim2;
+  borderSize?: number;
+  textXAlign?: Enum.TextXAlignment;
+  customPadding?: number;
 }
 
 /*
@@ -30,10 +33,13 @@ export function TextElement({
   layoutOrder = 0,
   zIndex = 1,
   size,
+  borderSize = 0,
+  textXAlign = Enum.TextXAlignment.Center,
+  customPadding = 2,
 }: TextElementProps) {
   return (
     <textlabel
-      BorderSizePixel={0}
+      BorderSizePixel={borderSize}
       AutomaticSize={size === undefined ? Enum.AutomaticSize.X : undefined}
       BackgroundTransparency={backgroundTransparency}
       BackgroundColor3={backgroundColor}
@@ -44,8 +50,12 @@ export function TextElement({
       TextColor3={textColor}
       LayoutOrder={layoutOrder}
       ZIndex={zIndex}
+      TextXAlignment={textXAlign}
     >
-      <uipadding PaddingLeft={new UDim(0, 2)} PaddingRight={new UDim(0, 2)} />
+      <uipadding
+        PaddingLeft={new UDim(0, customPadding)}
+        PaddingRight={new UDim(0, customPadding)}
+      />
       {children}
     </textlabel>
   );

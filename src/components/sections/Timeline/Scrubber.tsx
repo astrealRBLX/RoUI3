@@ -3,11 +3,13 @@ import { useUpdate } from '@rbxts/pretty-react-hooks';
 import React, { useBinding, useEffect, useRef } from '@rbxts/react';
 import { useAtom } from '@rbxts/react-charm';
 import {
+  pressedKeys,
   settingMaxTimelineLength,
   settingScrubberPosition,
 } from 'state/editor';
-import { currentTimestamps, pressedKeys } from 'state/timeline';
+import { currentTimestamps } from 'state/timeline';
 import { getSortedDistances } from 'utils/getSortedDistances';
+import { HotkeyIDs, isHotkeyPressed } from 'utils/hotkeyUtils';
 import { Palette } from 'utils/styling';
 
 export function Scrubber() {
@@ -59,7 +61,7 @@ export function Scrubber() {
             const activeKeys = peek(pressedKeys);
 
             // Snap to timestamp
-            if (activeKeys.has(Enum.KeyCode.LeftShift)) {
+            if (isHotkeyPressed(HotkeyIDs.ScrubberSnapTimestamp)) {
               const timestampsData = peek(currentTimestamps);
               const timestampPositions = timestampsData.map(
                 (data) => data.position
@@ -120,7 +122,7 @@ export function Scrubber() {
       <imagebutton
         key={'ScrubberHead'}
         ref={scrubberHeadRef}
-        ZIndex={102}
+        ZIndex={21}
         Size={new UDim2(0, 14, 0, 14)}
         Position={scrubberPositionScale.map((x) => new UDim2(x, -7, 0, 0))}
         Image={'rbxassetid://788089696'}
@@ -174,7 +176,7 @@ export function Scrubber() {
         Position={scrubberPositionScale.map((x) => new UDim2(x, 0, 0, 14))}
         BackgroundColor3={Palette.PrimaryText}
         BorderSizePixel={0}
-        ZIndex={101}
+        ZIndex={20}
       />
     </frame>
   );

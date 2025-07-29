@@ -55,7 +55,7 @@ export function DropdownOptionElement({
         dElements.push(
           <textbutton
             key={`${option}_DropdownOption`}
-            ZIndex={6}
+            ZIndex={35}
             BackgroundTransparency={0}
             BackgroundColor3={Palette.Background3}
             Size={new UDim2(1, 0, 0, textBound.Y + 4)}
@@ -127,7 +127,7 @@ export function DropdownOptionElement({
       >
         <textbutton
           ref={dropdownButtonRef}
-          ZIndex={5}
+          ZIndex={34}
           AutomaticSize={Enum.AutomaticSize.X}
           BackgroundTransparency={0}
           BackgroundColor3={Palette.Background1}
@@ -158,14 +158,14 @@ export function DropdownOptionElement({
           />
 
           <TextElement
-            zIndex={6}
+            zIndex={35}
             text={selectedOption}
             textColor={Palette.DefaultText}
             textSize={12}
             font={Fonts.JosefinSans.Regular}
           />
           <ImageButtonElement
-            zIndex={6}
+            zIndex={35}
             image='rbxassetid://81194770428805'
             layoutOrder={nextOrder()}
             sizePx={12}
@@ -175,7 +175,7 @@ export function DropdownOptionElement({
         </textbutton>
         {dropdownOpen.on ? (
           <Pane
-            zIndex={4}
+            zIndex={33}
             size={dropdownMinimumX.map(
               (x) =>
                 new UDim2(
@@ -194,7 +194,7 @@ export function DropdownOptionElement({
           >
             <scrollingframe
               key={'DropdownScrollingFrame'}
-              ZIndex={5}
+              ZIndex={34}
               BackgroundTransparency={1}
               BorderSizePixel={0}
               Size={automaticDropdownY.map(
