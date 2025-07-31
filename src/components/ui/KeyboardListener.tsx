@@ -1,5 +1,5 @@
 import { Atom } from '@rbxts/charm';
-import React, { useBinding, useEffect, useRef } from '@rbxts/react';
+import React, { useEffect, useRef } from '@rbxts/react';
 import { useAtom } from '@rbxts/react-charm';
 import { createPortal } from '@rbxts/react-roblox';
 import { RunService } from '@rbxts/services';
