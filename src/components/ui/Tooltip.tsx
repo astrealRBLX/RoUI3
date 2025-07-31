@@ -87,6 +87,7 @@ export function Tooltip({ text, tooltipDelay = 0.3, tooltipTextSize = 12 }: Tool
         <textlabel
           ZIndex={1001}
           Size={new UDim2(1, 0, 1, 0)}
+          RichText={true}
           Text={text}
           FontFace={Fonts.JosefinSans.Regular}
           TextSize={tooltipTextSize}
