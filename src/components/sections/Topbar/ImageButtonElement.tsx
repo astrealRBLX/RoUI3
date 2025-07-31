@@ -2,7 +2,7 @@ import { useMotion } from '@rbxts/pretty-react-hooks';
 import React, { useBinding, useState } from '@rbxts/react';
 import { springs } from 'utils/springs';
 import { Palette } from 'utils/styling';
-import { useToggleState } from 'utils/useToggleState';
+import { useToggleState } from 'utils/hooks/useToggleState';
 
 interface ImageButtonElementProps {
   children?: React.ReactNode;
@@ -10,7 +10,7 @@ interface ImageButtonElementProps {
   imageColor?: Color3;
   asToggle?: boolean; // If `true` acts as a toggle instead of single action
   toggledColor?: Color3; // Color to use when the button is toggled if `asToggle` is true
-  onPressed?: () => void;
+  onPressed?: (isToggled?: boolean) => boolean | void; // Called when the button is pressed
   layoutOrder?: number;
   sizePx?: number;
   useVisualEffects?: boolean; // Should visual effects (e.g. animations) be used
@@ -60,11 +60,19 @@ export function ImageButtonElement({
       ImageColor3={buttonToggled.on ? toggledColor : imageColor}
       Event={{
         Activated: () => {
-          if (asToggle) {
-            buttonToggled.toggle();
-          }
+          if (onPressed !== undefined) {
+            const newState = onPressed(asToggle ? !buttonToggled.on : undefined);
 
-          if (onPressed !== undefined) onPressed();
+            if (asToggle && newState !== undefined) {
+              if (newState === true) {
+                buttonToggled.enable();
+              } else if (newState === false) {
+                buttonToggled.disable();
+              }
+            } else if (asToggle && newState === undefined) {
+              buttonToggled.toggle();
+            }
+          }
         },
         MouseEnter: (rbx) => {
           if (useVisualEffects) {
