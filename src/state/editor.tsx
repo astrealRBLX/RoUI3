@@ -13,15 +13,10 @@ export interface KeyframeData {
   easingDirection: Enum.EasingDirection;
 }
 
-interface ActionDeleteInstanceProperty
-  extends Action<'DeleteInstanceProperty'> {
-  instance: Instance;
-  property: string;
+interface AnimationRegistryData {
+  properties: Set<string>;
+  keyframes: Array<KeyframeData>;
 }
-
-export type EditorStateActions =
-  | ActionAddInstanceProperty
-  | ActionDeleteInstanceProperty;
 
 // Max timeline length (in seconds) setting
 export const settingMaxTimelineLength = atom(5);
@@ -39,14 +34,10 @@ export const activeContextMenu = atom('');
 export const selectedKeyframes = atom<KeyframeData[]>([]);
 
 // Animated instances & properties
-export const animationRegistry = atom<Map<Instance, AnimationRegistryData>>(
-  new Map()
-);
+export const animationRegistry = atom<Map<Instance, AnimationRegistryData>>(new Map());
 
 // Helper function to fetch a flat array of currently animated instances
-export function getInstancesInAnimationRegistry(
-  registry: Map<Instance, AnimationRegistryData>
-) {
+export function getInstancesInAnimationRegistry(registry: Map<Instance, AnimationRegistryData>) {
   const instances: Instance[] = [];
 
   registry.forEach((_, instance) => {
@@ -62,15 +53,15 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
     case 'AddInstanceProperty':
       animationRegistry(
         produce(peek(animationRegistry), (draft) => {
-          const instance = draft.get(action.instance);
+          const instanceData = draft.get(action.instance);
 
-          if (instance === undefined) {
+          if (instanceData === undefined) {
             draft.set(action.instance, {
               properties: new Set([action.property]),
               keyframes: [],
             });
           } else {
-            instance.properties.add(action.property);
+            instanceData.properties.add(action.property);
           }
         })
       );
@@ -79,14 +70,65 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
     case 'DeleteInstanceProperty':
       animationRegistry(
         produce(peek(animationRegistry), (draft) => {
-          const instance = draft.get(action.instance);
+          const instanceData = draft.get(action.instance);
 
-          if (instance !== undefined) {
-            instance.properties.delete(action.property);
+          if (instanceData !== undefined) {
+            instanceData.properties.delete(action.property);
+
+            const newKeyframes = instanceData.keyframes.filter((kf) => kf.property !== action.property);
+
+            instanceData.keyframes = newKeyframes;
           }
         })
       );
 
+      break;
+    case 'UpdateKeyframe':
+      animationRegistry(
+        produce(peek(animationRegistry), (draft) => {
+          const instanceData = draft.get(action.instance);
+          const scrubberPositionUnformatted = peek(settingScrubberPosition);
+          const scrubberPosition = tonumber(string.format('%.2f', scrubberPositionUnformatted))!;
+
+          if (instanceData !== undefined) {
+            const existingKeyframe = instanceData.keyframes.find(
+              (kf) => kf.property === action.property && kf.time === (action.time ?? scrubberPosition)
+            );
+
+            if (existingKeyframe === undefined) {
+              Immut.table.insert(instanceData.keyframes, {
+                instance: action.instance,
+                property: action.property,
+                time: action.time ?? scrubberPosition,
+                value: action.value ?? (action.instance[action.property as never] as KeyframeValue),
+                easingDirection: action.easingDirection ?? Enum.EasingDirection.Out,
+                easingStyle: action.easingStyle ?? Enum.EasingStyle.Quad,
+              });
+            } else {
+              existingKeyframe.value = action.instance[action.property as never] as KeyframeValue;
+              existingKeyframe.easingDirection = action.easingDirection ?? existingKeyframe.easingDirection;
+              existingKeyframe.easingStyle = action.easingStyle ?? existingKeyframe.easingStyle;
+            }
+          }
+        })
+      );
+
+      break;
+
+    case 'DeleteKeyframe':
+      animationRegistry(
+        produce(peek(animationRegistry), (draft) => {
+          const instanceData = draft.get(action.instance);
+
+          if (instanceData !== undefined) {
+            const existingKeyframeIndex = instanceData.keyframes.findIndex((kf) => kf.property === action.property && kf.time === action.time);
+
+            if (existingKeyframeIndex !== -1) {
+              Immut.table.remove(instanceData.keyframes, existingKeyframeIndex + 1);
+            }
+          }
+        })
+      );
       break;
   }
 }
