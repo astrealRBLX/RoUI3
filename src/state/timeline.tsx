@@ -11,6 +11,11 @@ export type ScrubbingData = {
   mouseOffset: number; // Mouse offset
 };
 
+export type PreviewData = {
+  isPreviewing: boolean; // Is previewing
+  previewTime: number; // Start time for a preview
+};
+
 // Fake ScreenGui to animate that is used by the editor
 export const screenGuiSelection = atom<Option<ScreenGui>>(Option.none());
 
@@ -25,3 +30,6 @@ export const currentTimestamps = atom<TimestampData[]>([]);
 
 // Data to alter scrubber
 export const scrubbingData = atom<ScrubbingData>({ isScrubbing: false, mouseOffset: 0 });
+
+// Is previewing
+export const previewData = atom<PreviewData>({ isPreviewing: false, previewTime: 0 });

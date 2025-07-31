@@ -2,23 +2,70 @@ import { peek, subscribe } from '@rbxts/charm';
 import { useUpdate } from '@rbxts/pretty-react-hooks';
 import React, { useBinding, useEffect, useRef } from '@rbxts/react';
 import { useAtom } from '@rbxts/react-charm';
-import { RunService } from '@rbxts/services';
+import { RunService, TweenService } from '@rbxts/services';
 import { animationRegistry, settingMaxTimelineLength, settingScrubberPosition } from 'state/editor';
 import { appPlugin } from 'state/globals';
-import { currentTimestamps, scrubbingData } from 'state/timeline';
+import { currentTimestamps, previewData, scrubbingData } from 'state/timeline';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
 import { getSortedDistances } from 'utils/getSortedDistances';
-import { HotkeyIDs, isHotkeyPressed, useHotkeyDown } from 'utils/hotkeyUtils';
+import { HotkeyIDs, isHotkeyPressed, useHotkey, useHotkeyDown } from 'utils/hotkeyUtils';
 import { Palette } from 'utils/styling';
 
 export function Scrubber() {
   const update = useUpdate();
 
   const maxTimelineLength = useAtom(settingMaxTimelineLength);
+  const previewInfo = useAtom(previewData);
 
   const [scrubberPositionScale, setScrubberPositionScale] = useBinding(peek(settingScrubberPosition) / maxTimelineLength);
 
   const scrubberContainerRef = useRef<Frame>();
+
+  // Effect to preview an animation
+  useEffect(() => {
+    if (!previewInfo.isPreviewing) return;
+    const previewTimeInstance = new Instance('NumberValue');
+    previewTimeInstance.Value = previewInfo.previewTime;
+
+    const tween = TweenService.Create(previewTimeInstance, new TweenInfo(maxTimelineLength - previewInfo.previewTime, Enum.EasingStyle.Linear), {
+      Value: maxTimelineLength,
+    });
+
+    const conn = previewTimeInstance.GetPropertyChangedSignal('Value').Connect(() => {
+      settingScrubberPosition(previewTimeInstance.Value);
+    });
+
+    let completed: RBXScriptConnection;
+
+    const cleanup = () => {
+      conn.Disconnect();
+      completed.Disconnect();
+      tween.Destroy();
+      previewTimeInstance.Destroy();
+      previewData({
+        isPreviewing: false,
+        previewTime: 0,
+      });
+    };
+
+    completed = tween.Completed.Connect(cleanup);
+    tween.Play();
+
+    return cleanup;
+  }, [previewInfo, maxTimelineLength]);
+
+  // Hotkey to preview
+  useHotkey(
+    HotkeyIDs.ScrubberPreview,
+    [],
+    () => {
+      previewData({
+        isPreviewing: !previewInfo.isPreviewing,
+        previewTime: previewInfo.isPreviewing ? 0 : peek(settingScrubberPosition),
+      });
+    },
+    [previewInfo]
+  );
 
   // Hotkey to nudge scrubber left
   useHotkeyDown(
@@ -26,7 +73,7 @@ export function Scrubber() {
     [],
     0.03,
     () => {
-      if (peek(scrubbingData).isScrubbing) return;
+      if (peek(scrubbingData).isScrubbing || previewInfo.isPreviewing) return;
 
       const scrubberTime = peek(settingScrubberPosition);
       const nudgeTime = math.clamp(scrubberTime - 0.005, 0, maxTimelineLength);
@@ -34,7 +81,7 @@ export function Scrubber() {
       setScrubberPositionScale(nudgeTime / maxTimelineLength);
       settingScrubberPosition(nudgeTime);
     },
-    [maxTimelineLength]
+    [maxTimelineLength, previewInfo]
   );
 
   // Hotkey to nudge scrubber left (slow & fast)
@@ -43,7 +90,7 @@ export function Scrubber() {
     [HotkeyIDs.ScrubberNudgeLeftFast],
     0,
     (ctx) => {
-      if (peek(scrubbingData).isScrubbing) return;
+      if (peek(scrubbingData).isScrubbing || previewInfo.isPreviewing) return;
 
       const scrubberTime = peek(settingScrubberPosition);
       let nudgeTime = scrubberTime;
@@ -62,7 +109,7 @@ export function Scrubber() {
       setScrubberPositionScale(nudgeTime / maxTimelineLength);
       settingScrubberPosition(nudgeTime);
     },
-    [maxTimelineLength]
+    [maxTimelineLength, previewInfo]
   );
 
   // Hotkey to nudge scrubber right
@@ -71,7 +118,7 @@ export function Scrubber() {
     [],
     0.03,
     () => {
-      if (peek(scrubbingData).isScrubbing) return;
+      if (peek(scrubbingData).isScrubbing || previewInfo.isPreviewing) return;
 
       const scrubberTime = peek(settingScrubberPosition);
       const nudgeTime = math.clamp(scrubberTime + 0.005, 0, maxTimelineLength);
@@ -79,7 +126,7 @@ export function Scrubber() {
       setScrubberPositionScale(nudgeTime / maxTimelineLength);
       settingScrubberPosition(nudgeTime);
     },
-    [maxTimelineLength]
+    [maxTimelineLength, previewInfo]
   );
 
   // Hotkey to nudge scrubber right (slow & fast)
@@ -88,7 +135,7 @@ export function Scrubber() {
     [HotkeyIDs.ScrubberNudgeRightFast],
     0,
     (ctx) => {
-      if (peek(scrubbingData).isScrubbing) return;
+      if (peek(scrubbingData).isScrubbing || previewInfo.isPreviewing) return;
 
       const scrubberTime = peek(settingScrubberPosition);
       let nudgeTime = scrubberTime;
@@ -107,7 +154,7 @@ export function Scrubber() {
       setScrubberPositionScale(nudgeTime / maxTimelineLength);
       settingScrubberPosition(nudgeTime);
     },
-    [maxTimelineLength]
+    [maxTimelineLength, previewInfo]
   );
 
   // Effect to recalculate scrubber position when max timeline length changes
