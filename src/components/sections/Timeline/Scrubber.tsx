@@ -26,6 +26,8 @@ export function Scrubber() {
     [],
     0.03,
     () => {
+      if (peek(scrubbingData).isScrubbing) return;
+
       const scrubberTime = peek(settingScrubberPosition);
       const nudgeTime = math.clamp(scrubberTime - 0.005, 0, maxTimelineLength);
 
@@ -41,6 +43,8 @@ export function Scrubber() {
     [HotkeyIDs.ScrubberNudgeLeftFast],
     0,
     (ctx) => {
+      if (peek(scrubbingData).isScrubbing) return;
+
       const scrubberTime = peek(settingScrubberPosition);
       let nudgeTime = scrubberTime;
 
@@ -67,6 +71,8 @@ export function Scrubber() {
     [],
     0.03,
     () => {
+      if (peek(scrubbingData).isScrubbing) return;
+
       const scrubberTime = peek(settingScrubberPosition);
       const nudgeTime = math.clamp(scrubberTime + 0.005, 0, maxTimelineLength);
 
@@ -82,6 +88,8 @@ export function Scrubber() {
     [HotkeyIDs.ScrubberNudgeRightFast],
     0,
     (ctx) => {
+      if (peek(scrubbingData).isScrubbing) return;
+
       const scrubberTime = peek(settingScrubberPosition);
       let nudgeTime = scrubberTime;
 
