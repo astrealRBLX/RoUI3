@@ -1,12 +1,6 @@
 import Log from '@rbxts/log';
 import { useMotion } from '@rbxts/pretty-react-hooks';
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from '@rbxts/react';
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from '@rbxts/react';
 import { Option } from '@rbxts/rust-classes';
 import { CoreGui, Selection, StarterGui } from '@rbxts/services';
 import { Pane } from 'components/ui/Pane';
@@ -25,10 +19,7 @@ enum SelectionStatus {
   InvalidNotScreenGui,
 }
 
-function resolveSelectionMessage(
-  status: SelectionStatus,
-  selection: Instance[]
-) {
+function resolveSelectionMessage(status: SelectionStatus, selection: Instance[]) {
   switch (status) {
     case SelectionStatus.Valid:
       return `Ready to start animating "${selection[0].Name}!"`;
@@ -54,7 +45,7 @@ export function StartView() {
 
   // Updates selection as it changes
   useEffect(() => {
-    const conn = SelectionService.SelectionChanged.Connect(() => {
+    const conn = (SelectionService['SelectionChanged' as never] as RBXScriptSignal).Connect(() => {
       setSelection(SelectionService.Get());
     });
 
@@ -135,16 +126,8 @@ export function StartView() {
 
         <textbutton
           Size={buttonSize.map((px) => new UDim2(0.9, px, 0.6, px))}
-          BackgroundColor3={
-            selectionStatus === SelectionStatus.Valid
-              ? Palette.ButtonPrimaryBackground
-              : Palette.ButtonDisabledBackground
-          }
-          TextColor3={
-            selectionStatus === SelectionStatus.Valid
-              ? Palette.White
-              : Palette.ButtonDisabledText
-          }
+          BackgroundColor3={selectionStatus === SelectionStatus.Valid ? Palette.ButtonPrimaryBackground : Palette.ButtonDisabledBackground}
+          TextColor3={selectionStatus === SelectionStatus.Valid ? Palette.White : Palette.ButtonDisabledText}
           Text={'Begin Editing'}
           FontFace={Fonts.JosefinSans.Bold}
           TextSize={16}
@@ -158,9 +141,7 @@ export function StartView() {
             Activated: () => {
               if (selectionStatus === SelectionStatus.Valid) {
                 if (selection[0].GetChildren().size() === 0) {
-                  Log.Warn(
-                    `{PREFIX} "${selection[0].Name}" has no children and therefore no instances to animate.`
-                  );
+                  Log.Warn(`{PREFIX} "${selection[0].Name}" has no children and therefore no instances to animate.`);
                 }
 
                 // Set the ScreenGui to animate & change to the EditorView
@@ -182,15 +163,12 @@ export function StartView() {
             MouseEnter: () => {
               buttonSizeMotion.spring(5, springs.responsive);
 
-              if (selectionStatus !== SelectionStatus.Valid)
-                appPlugin().unwrap().GetMouse().Icon =
-                  'rbxasset://SystemCursors/Forbidden';
+              if (selectionStatus !== SelectionStatus.Valid) appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/Forbidden';
             },
             MouseLeave: () => {
               buttonSizeMotion.spring(0, springs.responsive);
 
-              appPlugin().unwrap().GetMouse().Icon =
-                'rbxasset://SystemCursors/Arrow';
+              appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/Arrow';
             },
           }}
         >
