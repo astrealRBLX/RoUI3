@@ -3,11 +3,12 @@ import { Pane } from 'components/ui/Pane';
 import { Fonts, Palette } from 'utils/styling';
 import { TextElement } from '../Topbar/TextElement';
 import { useAtom } from '@rbxts/react-charm';
-import { currentTimestamps, instanceTreeSelection, TimestampData } from 'state/timeline';
+import { currentTimestamps, instanceTreeSelection, previewData, scrubbingData, TimestampData } from 'state/timeline';
 import { Tooltip } from 'components/ui/Tooltip';
-import { settingMaxTimelineLength, settingScrubberPosition } from 'state/editor';
+import { settingMaxTimelineLength } from 'state/editor';
 import { createPortal } from '@rbxts/react-roblox';
-import { getRelativeMouse } from 'utils/getRelativeMouse';
+import { peek } from '@rbxts/charm';
+import { appPlugin } from 'state/globals';
 
 enum TimestampsRenderState {
   All,
@@ -130,13 +131,32 @@ export function TimelineTopbar({ timelinePaneRef }: TimelineTopbarProps) {
           paddingVertical={new UDim(0, 1)}
           paddingHorizontal={new UDim(0, 0)}
           event={{
-            InputBegan: (rbx, input) => {
+            InputBegan: (_, input) => {
+              if (input.UserInputState !== Enum.UserInputState.Begin) return;
               if (input.UserInputType !== Enum.UserInputType.MouseButton1) return;
+              if (peek(previewData).isPreviewing) return;
 
-              const mousePos = getRelativeMouse();
-              const xScale = (mousePos.X - rbx.AbsolutePosition.X) / rbx.AbsoluteSize.X;
+              // Click on timestamp list to jump scrubber
+              if (!peek(scrubbingData).isScrubbing) {
+                scrubbingData({
+                  isScrubbing: true,
+                  mouseOffset: 7,
+                });
+              }
+            },
+            InputEnded: (_, input) => {
+              if (input.UserInputState !== Enum.UserInputState.End) return;
+              if (input.UserInputType !== Enum.UserInputType.MouseButton1) return;
+              if (peek(previewData).isPreviewing) return;
 
-              settingScrubberPosition(xScale * maxTimelineLength);
+              if (peek(scrubbingData).isScrubbing) {
+                scrubbingData({
+                  isScrubbing: false,
+                  mouseOffset: 0,
+                });
+
+                appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/Arrow';
+              }
             },
           }}
         >
