@@ -60,18 +60,16 @@ export function ImageButtonElement({
       ImageColor3={buttonToggled.on ? toggledColor : imageColor}
       Event={{
         Activated: () => {
-          if (onPressed !== undefined) {
-            const newState = onPressed(asToggle ? !buttonToggled.on : undefined);
+          const newState = onPressed !== undefined ? onPressed(asToggle ? !buttonToggled.on : undefined) : undefined;
 
-            if (asToggle && newState !== undefined) {
-              if (newState === true) {
-                buttonToggled.enable();
-              } else if (newState === false) {
-                buttonToggled.disable();
-              }
-            } else if (asToggle && newState === undefined) {
-              buttonToggled.toggle();
+          if (asToggle && newState !== undefined) {
+            if (newState === true) {
+              buttonToggled.enable();
+            } else if (newState === false) {
+              buttonToggled.disable();
             }
+          } else if (asToggle && newState === undefined) {
+            buttonToggled.toggle();
           }
         },
         MouseEnter: (rbx) => {
