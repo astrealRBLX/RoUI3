@@ -5,13 +5,15 @@ import { ImageButtonElement } from './ImageButtonElement';
 import { createNextOrder } from 'utils/createNextOrder';
 import { Pane } from 'components/ui/Pane';
 import { TextService } from '@rbxts/services';
-import { useToggleState } from 'utils/useToggleState';
+import { useToggleState } from 'utils/hooks/useToggleState';
 
 interface DropdownOptionElementProps {
   children?: React.ReactNode;
   labelText: string; // Text of the label that appears next to the dropdown
   options: string[]; // List of dropdown options (first in the array is used as the default selection)
-  buttonImage: string; // The image used for the button to confirm a selection
+  usesConfirmButton?: boolean; // Should a button be used to confirm a dropdown option selection
+  buttonImage?: string; // The image used for the button to confirm a selection
+  onOptionChosen?: (selectedOption: string) => void; // The selected option callback when an option is chosen
   onButtonClicked?: (selectedOption: string) => void; // Callback for when the button is clicked
 }
 
@@ -20,7 +22,15 @@ interface DropdownOptionElementProps {
 
   Used to select an option from a list of choices
 */
-export function DropdownOptionElement({ children, labelText, options, buttonImage, onButtonClicked }: DropdownOptionElementProps) {
+export function DropdownOptionElement({
+  children,
+  labelText,
+  options,
+  usesConfirmButton = true,
+  buttonImage = 'rbxassetid://3192519002',
+  onOptionChosen,
+  onButtonClicked,
+}: DropdownOptionElementProps) {
   const nextOrder = createNextOrder();
 
   const dropdownButtonRef = useRef<TextButton>();
@@ -56,6 +66,7 @@ export function DropdownOptionElement({ children, labelText, options, buttonImag
               Activated: () => {
                 dropdownOpen.disable();
                 setSelectedOption(option);
+                if (onOptionChosen !== undefined) onOptionChosen(option);
               },
             }}
           >
@@ -162,13 +173,15 @@ export function DropdownOptionElement({ children, labelText, options, buttonImag
           </Pane>
         ) : undefined}
       </frame>
-      <ImageButtonElement
-        image={buttonImage}
-        layoutOrder={nextOrder()}
-        onPressed={() => {
-          if (onButtonClicked !== undefined) onButtonClicked(selectedOption);
-        }}
-      ></ImageButtonElement>
+      {usesConfirmButton ? (
+        <ImageButtonElement
+          image={buttonImage}
+          layoutOrder={nextOrder()}
+          onPressed={() => {
+            if (onButtonClicked !== undefined) onButtonClicked(selectedOption);
+          }}
+        ></ImageButtonElement>
+      ) : undefined}
     </>
   );
 }
