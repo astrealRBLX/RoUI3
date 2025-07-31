@@ -18,6 +18,7 @@ interface ImageButtonElementProps {
   sinkInput?: boolean; // Should input be sinked
   imageRectSize?: Vector2;
   imageRectOffset?: Vector2;
+  initialValue?: boolean;
 }
 
 /*
@@ -38,10 +39,11 @@ export function ImageButtonElement({
   sinkInput = false,
   imageRectSize = new Vector2(0, 0),
   imageRectOffset = new Vector2(0, 0),
+  initialValue = false,
   onPressed,
 }: ImageButtonElementProps) {
   const [buttonSize, buttonSizeMotion] = useMotion(0);
-  const buttonToggled = useToggleState(false);
+  const buttonToggled = useToggleState(initialValue);
 
   return (
     <imagebutton
