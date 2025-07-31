@@ -6,6 +6,11 @@ export interface TimestampData {
   position: number;
 }
 
+export type ScrubbingData = {
+  isScrubbing: boolean; // Is scrubbing
+  mouseOffset: number; // Mouse offset
+};
+
 // Fake ScreenGui to animate that is used by the editor
 export const screenGuiSelection = atom<Option<ScreenGui>>(Option.none());
 
@@ -17,3 +22,6 @@ export const instanceTreeSelection = atom<Option<Instance>>(Option.none());
 
 // Currently generated timestamps
 export const currentTimestamps = atom<TimestampData[]>([]);
+
+// Data to alter scrubber
+export const scrubbingData = atom<ScrubbingData>({ isScrubbing: false, mouseOffset: 0 });

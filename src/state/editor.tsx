@@ -1,18 +1,16 @@
 import { atom, peek } from '@rbxts/charm';
-import { produce } from '@rbxts/immut';
+import Immut, { produce } from '@rbxts/immut';
+import { EditorStateActions } from './editorActions';
 
-interface AnimationRegistryData {
-  properties: Set<string>;
-  keyframes: []; // TODO: Keyframe data
-}
+export type KeyframeValue = number | boolean | string | UDim2 | UDim | Vector2 | Color3;
 
-interface Action<T = string> {
-  type: T;
-}
-
-interface ActionAddInstanceProperty extends Action<'AddInstanceProperty'> {
+export interface KeyframeData {
   instance: Instance;
   property: string;
+  time: number;
+  value: KeyframeValue;
+  easingStyle: Enum.EasingStyle;
+  easingDirection: Enum.EasingDirection;
 }
 
 interface ActionDeleteInstanceProperty
@@ -36,6 +34,9 @@ export const pressedKeys = atom<Set<Enum.KeyCode>>(new Set());
 
 // Active context menu
 export const activeContextMenu = atom('');
+
+// Currently selected keyframes
+export const selectedKeyframes = atom<KeyframeData[]>([]);
 
 // Animated instances & properties
 export const animationRegistry = atom<Map<Instance, AnimationRegistryData>>(
