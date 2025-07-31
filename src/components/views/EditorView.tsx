@@ -1,7 +1,8 @@
-import React from '@rbxts/react';
+import React, { useRef } from '@rbxts/react';
 import { useAtom } from '@rbxts/react-charm';
 import { Workspace } from '@rbxts/services';
 import { InstanceTree } from 'components/sections/InstanceTree';
+import { Timeline } from 'components/sections/Timeline';
 import { Topbar } from 'components/sections/Topbar';
 import { Pane } from 'components/ui/Pane';
 import { ResizablePanes } from 'components/ui/ResizablePanes';
@@ -16,6 +17,7 @@ import { Palette } from 'utils/styling';
 */
 export function EditorView() {
   const animatingScreenGui = useAtom(screenGuiSelection);
+  const timelinePaneRef = useRef<Frame>();
 
   return (
     <Pane key={'EditorView'} paddingAll={new UDim(0, 8)}>
@@ -28,20 +30,10 @@ export function EditorView() {
       />
 
       <Topbar />
-      <Pane
-        key={'Timeline'}
-        padded={false}
-        size={new UDim2(1, 0, 1, -34)}
-        transparency={1}
-        layoutOrder={1}
-      >
+      <Pane key={'Editor'} padded={false} size={new UDim2(1, 0, 1, -34)} transparency={1} layoutOrder={1}>
         <ResizablePanes
           leftPane={
-            <Pane
-              key={'InstanceTreePane'}
-              color={Palette.Background3}
-              rounded={true}
-            >
+            <Pane key={'InstanceTreePane'} color={Palette.Background3} rounded={true}>
               <InstanceTree
                 root={animatingScreenGui.unwrap()}
                 baseClassFilter={'GuiObject'}
@@ -50,11 +42,9 @@ export function EditorView() {
             </Pane>
           }
           rightPane={
-            <Pane
-              key={'TimelinePane'}
-              color={Palette.Background4}
-              rounded={true}
-            />
+            <Pane key={'TimelinePane'} color={Palette.Background4} rounded={true} reference={timelinePaneRef}>
+              <Timeline timelinePaneRef={timelinePaneRef} />
+            </Pane>
           }
         />
       </Pane>
