@@ -15,6 +15,8 @@ interface TextElementProps {
   borderSize?: number;
   textXAlign?: Enum.TextXAlignment;
   customPadding?: number;
+  anchorPoint?: Vector2;
+  position?: UDim2;
 }
 
 /*
@@ -36,9 +38,13 @@ export function TextElement({
   borderSize = 0,
   textXAlign = Enum.TextXAlignment.Center,
   customPadding = 2,
+  anchorPoint = new Vector2(),
+  position = new UDim2(),
 }: TextElementProps) {
   return (
     <textlabel
+      AnchorPoint={anchorPoint}
+      Position={position}
       BorderSizePixel={borderSize}
       AutomaticSize={size === undefined ? Enum.AutomaticSize.X : undefined}
       BackgroundTransparency={backgroundTransparency}

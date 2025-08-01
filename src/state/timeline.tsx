@@ -16,6 +16,19 @@ export type PreviewData = {
   previewTime: number; // Start time for a preview
 };
 
+export enum EditorWarnings {
+  AutoKeyframeOff,
+}
+
+interface EditorWarningInfo {
+  name: string;
+  description: string;
+}
+
+export const editorWarningsInfo = new Map<EditorWarnings, EditorWarningInfo>([
+  [EditorWarnings.AutoKeyframeOff, { name: 'Auto-keyframe Off', description: 'Property changes are not being recorded.' }],
+]);
+
 // Fake ScreenGui to animate that is used by the editor
 export const screenGuiSelection = atom<Option<ScreenGui>>(Option.none());
 
@@ -33,3 +46,6 @@ export const scrubbingData = atom<ScrubbingData>({ isScrubbing: false, mouseOffs
 
 // Is previewing
 export const previewData = atom<PreviewData>({ isPreviewing: false, previewTime: 0 });
+
+// List of warnings
+export const editorWarnings = atom<Set<EditorWarnings>>(new Set());

@@ -13,11 +13,13 @@ import {
   KeyframeData,
   pressedKeys,
   selectedKeyframes,
+  settingAutoKeyframe,
   settingMaxTimelineLength,
   settingScrubberPosition,
+  settingSyncSelections,
 } from 'state/editor';
 import { useAtom } from '@rbxts/react-charm';
-import { instanceTreeSelection, previewData } from 'state/timeline';
+import { EditorWarnings, editorWarnings, editorWarningsInfo, instanceTreeSelection, previewData } from 'state/timeline';
 import { peek, subscribe } from '@rbxts/charm';
 import { getAnimatableProperties, SupportedClass } from 'utils/animatableProperties';
 import { useUpdate } from '@rbxts/pretty-react-hooks';
@@ -41,6 +43,7 @@ export function Topbar() {
   const scrubberPosition = useAtom(settingScrubberPosition);
   const maxTimelineLength = useAtom(settingMaxTimelineLength);
   const selectedKfs = useAtom(selectedKeyframes);
+  const warnings = useAtom(editorWarnings);
 
   const [easingDropdownResetKey] = useResetState([selectedKfs]);
   const [previewButtonResetKey, resetPreviewButton] = useResetState([]);
@@ -96,6 +99,24 @@ export function Topbar() {
     maxTimelineLengthRef.current = maxTimelineLength;
   }, [maxTimelineLength]);
 
+  useEffect(() => {
+    return subscribe(settingAutoKeyframe, (autoKeyframe) => {
+      if (!autoKeyframe) {
+        const newWarnings = new Set([...peek(editorWarnings)]);
+
+        newWarnings.add(EditorWarnings.AutoKeyframeOff);
+
+        editorWarnings(newWarnings);
+      } else {
+        const newWarnings = new Set([...peek(editorWarnings)]);
+
+        newWarnings.delete(EditorWarnings.AutoKeyframeOff);
+
+        editorWarnings(newWarnings);
+      }
+    });
+  }, []);
+
   const scrubberPositionValueClamper = useCallback((num: number) => math.clamp(num, 0, maxTimelineLengthRef.current), []);
 
   // Generate EasingStyle & EasingDirection dropdown options
@@ -120,7 +141,23 @@ export function Topbar() {
     ];
   };
 
+  // Generate the tooltip text for warninsg
+  const generateWarningsText: () => string = () => {
+    let finalString = '';
+
+    warnings.forEach((warning, idx) => {
+      const warningInfo = editorWarningsInfo.get(warning)!;
+
+      finalString += `<font weight="SemiBold" color="${Palette.ErrorHex}">${idx + 1}. ${warningInfo.name}</font><br />${warningInfo.description}${
+        idx + 1 < warnings.size() ? '<br />' : ''
+      }`;
+    });
+
+    return finalString;
+  };
+
   const [easingDropdownsVisible, easingStyleOptions, easingDirectionOptions] = generateEasingInfo();
+  const warningsText = generateWarningsText();
 
   return (
     <Pane key={'Topbar'} paddingAll={new UDim(0, 2)} size={new UDim2(1, 0, 0, 30)} color={Palette.Background3} rounded={true}>
@@ -139,7 +176,7 @@ export function Topbar() {
       </TopbarElement>
       <TopbarElement key={'ExportAllButton'} layoutPosition={nextOrder()}>
         <ImageButtonElement image='http://www.roblox.com/asset/?id=11780633056'>
-          <Tooltip text={'Exports the entire animation.'} />
+          <Tooltip title={'Export All'} text={'Exports the entire animation.'} />
         </ImageButtonElement>
       </TopbarElement>
       <TopbarElement key={'ExportCurrentButton'} layoutPosition={nextOrder()}>
@@ -199,7 +236,7 @@ export function Topbar() {
             }
           }}
         >
-          <Tooltip text={'Click to preview the animation.'} />
+          <Tooltip title={'Preview'} text={'Click to preview the animation.'} />
         </ImageButtonElement>
       </TopbarElement>
       <TopbarElement key={'ScrubberPositionTextbox'} layoutPosition={nextOrder()} visibleBackground={true}>
@@ -335,6 +372,21 @@ export function Topbar() {
             </DropdownOptionElement>
           </TopbarElement>
         </>
+      ) : undefined}
+      {warnings.size() > 0 ? (
+        <TopbarElement key={'AutoKeyframeWarning'} layoutPosition={nextOrder()}>
+          <uiflexitem FlexMode={Enum.UIFlexMode.Fill} />
+          <TextElement
+            anchorPoint={new Vector2(1, 0)}
+            position={new UDim2(1, 0, 0, 0)}
+            text={`Warnings (${warnings.size()})`}
+            textColor={Palette.Error}
+            textSize={12}
+            font={Fonts.JosefinSans.Medium}
+          >
+            <Tooltip text={warningsText} />
+          </TextElement>
+        </TopbarElement>
       ) : undefined}
     </Pane>
   );

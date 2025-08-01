@@ -81,8 +81,8 @@ export function Tooltip({ title, text, tooltipDelay = 0.3, tooltipTextSize = 12 
     const tooltipTargetHeight = textBound.Y + paddingSize + 1;
 
     // Adjust the tooltip's position depending on if it is off screen
-    if (targetX + tooltipTargetWidth >= widgetWidth) targetX = widgetWidth - tooltipTargetWidth;
-    if (targetY + tooltipTargetHeight >= widgetHeight) targetY = widgetHeight - tooltipTargetHeight;
+    if (targetX + tooltipTargetWidth >= widgetWidth) targetX = widgetWidth - tooltipTargetWidth - 5;
+    if (targetY + tooltipTargetHeight >= widgetHeight) targetY = widgetHeight - tooltipTargetHeight - 5;
 
     // The actual tooltip that pops up
     tooltipElement = createPortal(
