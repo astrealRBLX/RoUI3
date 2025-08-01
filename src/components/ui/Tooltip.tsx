@@ -6,6 +6,7 @@ import { appWidget } from 'state/globals';
 import { Fonts, Palette } from 'utils/styling';
 
 interface TooltipProps {
+  title?: string;
   text: string;
   tooltipDelay?: number;
   tooltipTextSize?: number;
@@ -18,7 +19,7 @@ interface TooltipProps {
   and provide a top-level tooltip displaying information
   when that element is hovered over long enough.
 */
-export function Tooltip({ text, tooltipDelay = 0.3, tooltipTextSize = 12 }: TooltipProps) {
+export function Tooltip({ title, text, tooltipDelay = 0.3, tooltipTextSize = 12 }: TooltipProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveringMousePosition, setHoveringMousePosition] = useBinding<Option<Vector2>>(Option.none());
   const [targetHoverTime, setTargetHoverTime] = useBinding(0);
@@ -61,9 +62,11 @@ export function Tooltip({ text, tooltipDelay = 0.3, tooltipTextSize = 12 }: Tool
     let { X: targetX, Y: targetY } = mousePos.add(new Vector2(10, 5));
     const { X: widgetWidth, Y: widgetHeight } = appWidget().unwrap().AbsoluteSize;
 
+    const finalText = title === undefined ? text : `<font weight="Heavy">${title}</font><br />${text}`;
+
     // Calculate the tooltip's target size based on text
     const paddingSize = 8;
-    const maxRequestedWidth = math.min(widgetWidth, 200);
+    const maxRequestedWidth = math.min(widgetWidth, 250);
     const maxAvailableWidth = math.max(0, maxRequestedWidth - paddingSize);
 
     const tParams = new Instance('GetTextBoundsParams');
@@ -71,7 +74,7 @@ export function Tooltip({ text, tooltipDelay = 0.3, tooltipTextSize = 12 }: Tool
     tParams.RichText = true;
     tParams.Size = tooltipTextSize;
     tParams.Width = maxAvailableWidth;
-    tParams.Text = text;
+    tParams.Text = finalText;
 
     const textBound = TextService.GetTextBoundsAsync(tParams);
     const tooltipTargetWidth = textBound.X + paddingSize + 1;
@@ -96,7 +99,7 @@ export function Tooltip({ text, tooltipDelay = 0.3, tooltipTextSize = 12 }: Tool
           ZIndex={1001}
           Size={new UDim2(1, 0, 1, 0)}
           RichText={true}
-          Text={text}
+          Text={finalText}
           FontFace={Fonts.JosefinSans.Regular}
           TextSize={tooltipTextSize}
           TextWrapped={true}
