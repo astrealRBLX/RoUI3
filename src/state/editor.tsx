@@ -99,6 +99,20 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
             );
 
             if (existingKeyframe === undefined) {
+              // Add keyframe at position 0 of initial property's value if it doesn't exist
+              if (!hasPropertyBeenKeyed(action.instance, action.property)) {
+                Immut.table.insert(instanceData.keyframes, {
+                  instance: action.instance,
+                  property: action.property,
+                  time: 0,
+                  value: getCachedValueOfProperty(action.instance, action.property) as KeyframeValue,
+                  easingDirection: Enum.EasingDirection.Out,
+                  easingStyle: Enum.EasingStyle.Quad,
+                });
+
+                setPropertyKeyed(action.instance, action.property);
+              }
+
               Immut.table.insert(instanceData.keyframes, {
                 instance: action.instance,
                 property: action.property,

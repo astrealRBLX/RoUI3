@@ -20,6 +20,12 @@ export const Palette = {
 
   White: new Color3(1, 1, 1),
   Outline: Color3.fromRGB(94, 94, 98),
+
+  Success: Color3.fromRGB(115, 217, 158),
+  SuccessHex: '#73d99e',
+
+  Error: Color3.fromRGB(235, 94, 94),
+  ErrorHex: '#eb5e5e',
 };
 
 export const Fonts = {

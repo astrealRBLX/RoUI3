@@ -5,6 +5,7 @@ import { Option } from '@rbxts/rust-classes';
 import { CoreGui, Selection, StarterGui } from '@rbxts/services';
 import { Pane } from 'components/ui/Pane';
 import { animatingFolder, appPlugin } from 'state/globals';
+import { cacheInstanceProperties } from 'state/properties';
 import { currentRoute, Route } from 'state/routes';
 import { originalScreenGuiSelection, screenGuiSelection } from 'state/timeline';
 import { springs } from 'utils/springs';
@@ -159,6 +160,8 @@ export function StartView() {
                 originalScreenGuiSelection(Option.some(screenGui));
                 screenGuiSelection(Option.some(screenGuiClone));
                 currentRoute(Route.EditorView);
+
+                cacheInstanceProperties(screenGuiClone);
               }
             },
             MouseEnter: () => {

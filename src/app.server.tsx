@@ -22,7 +22,7 @@ let appTree: Option<ReactRoblox.Root> = Option.none();
 
 appPlugin(Option.some(plugin));
 
-Log.SetLogger(Logger.configure().EnrichWithProperty('PREFIX', '[RoUI3] 2.0.0').WriteTo(Log.RobloxOutput()).Create());
+Log.SetLogger(Logger.configure().EnrichWithProperty('PREFIX', '[RoUI3] [2.0.0]').WriteTo(Log.RobloxOutput()).Create());
 
 if (animatingFolder().isNone() && CoreGui.FindFirstChild('RoUI3_Animating') === undefined) {
   const animatingFolderInst = new Instance('Folder');
