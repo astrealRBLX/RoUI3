@@ -24,6 +24,9 @@ export const settingMaxTimelineLength = atom(5);
 // Scrubber position (in seconds) setting
 export const settingScrubberPosition = atom(1);
 
+// Sync selections setting
+export const settingSyncSelections = atom(true);
+
 // Currently pressed keyboard keys
 export const pressedKeys = atom<Set<Enum.KeyCode>>(new Set());
 

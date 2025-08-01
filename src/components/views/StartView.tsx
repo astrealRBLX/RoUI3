@@ -154,6 +154,7 @@ export function StartView() {
                 screenGuiClone.Enabled = true;
 
                 Selection.Set([screenGuiClone]);
+                appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/Arrow';
 
                 originalScreenGuiSelection(Option.some(screenGui));
                 screenGuiSelection(Option.some(screenGuiClone));

@@ -1,8 +1,13 @@
-import React, { useBinding } from '@rbxts/react';
+import { useUpdate } from '@rbxts/pretty-react-hooks';
+import React, { useBinding, useEffect } from '@rbxts/react';
+import { useAtom } from '@rbxts/react-charm';
 import { Option } from '@rbxts/rust-classes';
-import { StudioService } from '@rbxts/services';
+import { Selection, StudioService } from '@rbxts/services';
 import { ImageButtonElement } from 'components/sections/Topbar/ImageButtonElement';
 import { Pane } from 'components/ui/Pane';
+import { Tooltip } from 'components/ui/Tooltip';
+import { settingSyncSelections } from 'state/editor';
+import { isSelectionLinked } from 'utils/selectionUtils';
 import { Fonts, Palette } from 'utils/styling';
 
 interface InstanceTreeRowProps {
@@ -34,6 +39,10 @@ export function InstanceTreeRow({
   nextOrder,
   onInstanceSelected,
 }: InstanceTreeRowProps) {
+  const syncSelections = useAtom(settingSyncSelections);
+
+  const update = useUpdate();
+
   const isExpanded = isExpandedMap.get(instance) ?? false;
 
   const [isHovering, setIsHovering] = useBinding(false);
@@ -70,6 +79,18 @@ export function InstanceTreeRow({
   const canSelect = selectFilter(instance);
   const isSelected = selectedInstance.isSome() ? selectedInstance.unwrap() === instance : false;
 
+  useEffect(() => {
+    const conn = (Selection['SelectionChanged' as never] as RBXScriptSignal).Connect(() => {
+      if (syncSelections) {
+        update();
+      }
+    });
+
+    return () => conn.Disconnect();
+  }, [syncSelections]);
+
+  const isLinked = isSelected && syncSelections ? isSelectionLinked() : false;
+
   return (
     <>
       <Pane
@@ -79,9 +100,17 @@ export function InstanceTreeRow({
         rounded={true}
         color={isHovering.map((hovering) => {
           if (canSelect && isSelected && hovering) {
-            return Palette.TreeSelectionHoveringBackground;
+            return syncSelections && isLinked
+              ? Palette.TreeSelectionHoveringBackground
+              : syncSelections && !isLinked
+              ? Palette.TreeSelectionUnlinkedHoveringBackground
+              : Palette.TreeSelectionHoveringBackground;
           } else if (canSelect && isSelected && !hovering) {
-            return Palette.TreeSelectionBackground;
+            return syncSelections && isLinked
+              ? Palette.TreeSelectionBackground
+              : syncSelections && !isLinked
+              ? Palette.TreeSelectionUnlinkedBackground
+              : Palette.TreeSelectionBackground;
           } else if (canSelect && !isSelected && hovering) {
             return Palette.Background4;
           } else if (canSelect && !isSelected && !hovering) {
@@ -131,7 +160,11 @@ export function InstanceTreeRow({
           Event={{
             Activated: () => {
               if (canSelect) {
-                onInstanceSelected(isSelected ? Option.none() : Option.some(instance));
+                if (!syncSelections) {
+                  onInstanceSelected(isSelected ? Option.none() : Option.some(instance));
+                } else {
+                  onInstanceSelected(isSelected && isLinked ? Option.none() : Option.some(instance));
+                }
               }
             },
             MouseEnter: () => {
@@ -141,7 +174,20 @@ export function InstanceTreeRow({
               setIsHovering(false);
             },
           }}
-        />
+        >
+          {isSelected ? (
+            <Tooltip
+              title={isLinked ? `Linked` : syncSelections ? `Not Linked` : undefined}
+              text={
+                isLinked
+                  ? `RoUI3 selection & Roblox selection are <font color="#73d99e">linked</font>.`
+                  : syncSelections
+                  ? `RoUI3 selection & Roblox selection are <font color="#ff4f52">not linked</font>.`
+                  : `Enable <font weight="medium">Selection Syncing</font> in the topbar to sync RoUI3 and Roblox selections.`
+              }
+            />
+          ) : undefined}
+        </textbutton>
       </Pane>
       {...childRows}
     </>

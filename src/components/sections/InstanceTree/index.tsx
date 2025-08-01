@@ -8,6 +8,9 @@ import { Option } from '@rbxts/rust-classes';
 import { instanceTreeSelection } from 'state/timeline';
 import { useAtom } from '@rbxts/react-charm';
 import { Selection } from '@rbxts/services';
+import { settingSyncSelections } from 'state/editor';
+import { peek } from '@rbxts/charm';
+import { appPlugin } from 'state/globals';
 
 interface InstanceTreeProps {
   children?: React.ReactNode;
@@ -67,7 +70,10 @@ export function InstanceTree({ root, baseClassFilter = 'Instance', selectFilter 
           nextOrder={nextOrder}
           selectedInstance={treeSelection}
           onInstanceSelected={(inst) => {
-            Selection.Set(inst.isSome() ? [inst.unwrap()] : []);
+            if (peek(settingSyncSelections)) {
+              Selection.Set(inst.isSome() ? [inst.unwrap()] : []);
+              appPlugin().unwrap().GetMouse().Icon = 'rbxasset://SystemCursors/Arrow';
+            }
 
             instanceTreeSelection(inst);
           }}

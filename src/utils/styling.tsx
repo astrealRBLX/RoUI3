@@ -15,6 +15,8 @@ export const Palette = {
 
   TreeSelectionBackground: Color3.fromRGB(41, 71, 108),
   TreeSelectionHoveringBackground: Color3.fromRGB(61, 102, 150),
+  TreeSelectionUnlinkedBackground: Color3.fromRGB(163, 56, 41),
+  TreeSelectionUnlinkedHoveringBackground: Color3.fromRGB(156, 79, 69),
 
   White: new Color3(1, 1, 1),
   Outline: Color3.fromRGB(94, 94, 98),

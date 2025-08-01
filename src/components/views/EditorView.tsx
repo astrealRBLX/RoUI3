@@ -1,12 +1,16 @@
-import React, { useRef } from '@rbxts/react';
+import { peek } from '@rbxts/charm';
+import React, { useEffect, useRef } from '@rbxts/react';
 import { useAtom } from '@rbxts/react-charm';
-import { Workspace } from '@rbxts/services';
+import { Option } from '@rbxts/rust-classes';
+import { Selection, Workspace } from '@rbxts/services';
 import { InstanceTree } from 'components/sections/InstanceTree';
 import { Timeline } from 'components/sections/Timeline';
 import { Topbar } from 'components/sections/Topbar';
 import { Pane } from 'components/ui/Pane';
 import { ResizablePanes } from 'components/ui/ResizablePanes';
-import { screenGuiSelection } from 'state/timeline';
+import { settingSyncSelections } from 'state/editor';
+import { instanceTreeSelection, screenGuiSelection } from 'state/timeline';
+import { isValidAnimatableSelection } from 'utils/selectionUtils';
 import { Palette } from 'utils/styling';
 
 /*
@@ -17,7 +21,22 @@ import { Palette } from 'utils/styling';
 */
 export function EditorView() {
   const animatingScreenGui = useAtom(screenGuiSelection);
+
   const timelinePaneRef = useRef<Frame>();
+
+  // Sync selections from Roblox Explorer -> RoUI3
+  useEffect(() => {
+    const conn = (Selection['SelectionChanged' as never] as RBXScriptSignal).Connect(() => {
+      const syncSelections = peek(settingSyncSelections);
+      const selections = Selection.Get();
+
+      if (syncSelections && selections.size() === 1 && animatingScreenGui.isSome()) {
+        if (isValidAnimatableSelection(selections[0])) instanceTreeSelection(Option.some(selections[0]));
+      }
+    });
+
+    return () => conn.Disconnect();
+  }, []);
 
   return (
     <Pane key={'EditorView'} paddingAll={new UDim(0, 8)}>

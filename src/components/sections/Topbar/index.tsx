@@ -144,7 +144,19 @@ export function Topbar() {
       </TopbarElement>
       <TopbarElement key={'ExportCurrentButton'} layoutPosition={nextOrder()}>
         <ImageButtonElement image='http://www.roblox.com/asset/?id=11780632458'>
-          <Tooltip text={'Exports the current selection.'} />
+          <Tooltip title={'Export Selection'} text={'Exports the current selection.'} />
+        </ImageButtonElement>
+      </TopbarElement>
+      <TopbarElement key={'SyncSelectionsButton'} layoutPosition={nextOrder()}>
+        <ImageButtonElement
+          image='rbxassetid://84948256301138'
+          initialValue={true}
+          asToggle={true}
+          onPressed={(newState) => {
+            if (newState !== undefined) settingSyncSelections(newState);
+          }}
+        >
+          <Tooltip title={'Selection Syncing'} text={'Selections are synced between RoUI3&apos;s instance tree and Roblox&apos;s explorer.'} />
         </ImageButtonElement>
       </TopbarElement>
       <TopbarElement key={'PreviewButton'} layoutPosition={nextOrder()}>
