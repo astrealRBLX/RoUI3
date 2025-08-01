@@ -269,36 +269,36 @@ export function TimelineContent() {
 
       const newSelectedKeyframes: KeyframeData[] = [];
       const notSelectedKeyframes: KeyframeData[] = [];
-      const isDeselectKeyPressed = isHotkeyPressed(HotkeyIDs.KeyframesDragDeselect);
-      const isInvertSelectionKeyPressed = isHotkeyPressed(HotkeyIDs.KeyframesDragInvertSelection);
+      const isAdditiveKeyPressed = isHotkeyPressed(HotkeyIDs.KeyframesDragAdditiveSelection);
+      const isInvertKeyPressed = isHotkeyPressed(HotkeyIDs.KeyframesDragInvertSelection);
 
       keyframesToUpdate.forEach((kf) => {
         const selectedKeyframeIndex = selectedKfs.findIndex((_kf) => matchKeyframes(_kf, kf));
         const isKeyframeSelected = selectedKeyframeIndex !== -1;
 
-        if (isKeyframeSelected) {
-          if (isInvertSelectionKeyPressed) {
+        if (!isAdditiveKeyPressed && !isInvertKeyPressed) {
+          newSelectedKeyframes.push(kf);
+        } else if (isAdditiveKeyPressed) {
+          newSelectedKeyframes.push(kf);
+        } else if (isInvertKeyPressed) {
+          if (isKeyframeSelected) {
             notSelectedKeyframes.push(kf);
-          } else if (!isInvertSelectionKeyPressed && isDeselectKeyPressed) {
-            notSelectedKeyframes.push(kf);
-          } else if (!isInvertSelectionKeyPressed && !isDeselectKeyPressed) {
-            newSelectedKeyframes.push(kf);
-          }
-        } else {
-          if (isInvertSelectionKeyPressed || (!isInvertSelectionKeyPressed && !isDeselectKeyPressed)) {
+          } else {
             newSelectedKeyframes.push(kf);
           }
         }
       });
 
-      selectedKfs
-        .filter((currentlySelectedKf) => {
-          const shouldStillBeSelected =
-            notSelectedKeyframes.find((notSelectedKf) => matchKeyframes(currentlySelectedKf, notSelectedKf)) === undefined;
+      if (isAdditiveKeyPressed || isInvertKeyPressed) {
+        selectedKfs
+          .filter((currentlySelectedKf) => {
+            const shouldStillBeSelected =
+              notSelectedKeyframes.find((notSelectedKf) => matchKeyframes(currentlySelectedKf, notSelectedKf)) === undefined;
 
-          return shouldStillBeSelected;
-        })
-        .forEach((kf) => newSelectedKeyframes.push({ ...kf }));
+            return shouldStillBeSelected;
+          })
+          .forEach((kf) => newSelectedKeyframes.push({ ...kf }));
+      }
 
       selectedKeyframes(newSelectedKeyframes);
     },

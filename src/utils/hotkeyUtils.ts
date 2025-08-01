@@ -20,7 +20,7 @@ export enum HotkeyIDs {
   // Keyframes contextual
   KeyframesSelectMultiple,
   KeyframesSelectRange,
-  KeyframesDragDeselect,
+  KeyframesDragAdditiveSelection,
   KeyframesDragInvertSelection,
 
   // Keyframes static
@@ -42,8 +42,8 @@ const hotkeys = new Map<HotkeyIDs, Enum.KeyCode[]>([
 
   [HotkeyIDs.KeyframesSelectMultiple, [Enum.KeyCode.LeftControl]],
   [HotkeyIDs.KeyframesSelectRange, [Enum.KeyCode.LeftShift]],
-  [HotkeyIDs.KeyframesDragDeselect, [Enum.KeyCode.LeftControl]],
-  [HotkeyIDs.KeyframesDragInvertSelection, [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftShift]],
+  [HotkeyIDs.KeyframesDragAdditiveSelection, [Enum.KeyCode.LeftShift]],
+  [HotkeyIDs.KeyframesDragInvertSelection, [Enum.KeyCode.LeftControl]],
 
   [HotkeyIDs.KeyframesInsert, [Enum.KeyCode.I]],
   [HotkeyIDs.KeyframesDeleteSelected, [Enum.KeyCode.LeftAlt, Enum.KeyCode.I]],
