@@ -4,8 +4,11 @@ import {
   activeContextMenu,
   animationRegistry,
   dispatchEditorStateUpdate,
+  internalPropertyChange,
   KeyframeData,
+  KeyframeValue,
   selectedKeyframes,
+  settingAutoKeyframe,
   settingMaxTimelineLength,
 } from 'state/editor';
 import { instanceTreeSelection } from 'state/timeline';
@@ -17,11 +20,15 @@ import { Tooltip } from 'components/ui/Tooltip';
 import { HotkeyIDs, isHotkeyPressed, useHotkey } from 'utils/hotkeyUtils';
 import { RunService } from '@rbxts/services';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
+import { getAnimatableProperties, SupportedClass } from 'utils/animatableProperties';
+import { peek } from '@rbxts/charm';
+import Log from '@rbxts/log';
 
 export function TimelineContent() {
   const animRegistry = useAtom(animationRegistry);
   const instTreeSelection = useAtom(instanceTreeSelection);
   const maxTimelineLength = useAtom(settingMaxTimelineLength);
+  const autoKeyframe = useAtom(settingAutoKeyframe);
   const selectedKfs = useAtom(selectedKeyframes);
 
   const timelineContentRef = useRef<ScrollingFrame>();
@@ -32,6 +39,43 @@ export function TimelineContent() {
   const startDragMousePos = useRef<Vector2>(Vector2.zero);
   const [currentDragMousePos, setCurrentDragMousePos] = useBinding(Vector2.zero);
   const attempingDrag = useRef(false);
+
+  // Auto-keyframe property update effect
+  useEffect(() => {
+    const connections: RBXScriptConnection[] = [];
+
+    if (autoKeyframe && instTreeSelection.isSome()) {
+      const selection = instTreeSelection.unwrap();
+      const supportedProperties = getAnimatableProperties(selection.ClassName as SupportedClass);
+
+      type SelectionProperty = InstancePropertyNames<typeof selection>;
+
+      supportedProperties.forEach((prop) => {
+        connections.push(
+          selection.GetPropertyChangedSignal(prop as SelectionProperty).Connect(() => {
+            if (peek(internalPropertyChange)) return;
+
+            dispatchEditorStateUpdate({
+              type: 'AddInstanceProperty',
+              instance: selection,
+              property: prop,
+            });
+            dispatchEditorStateUpdate({
+              type: 'UpdateKeyframe',
+              instance: selection,
+              property: prop,
+            });
+          })
+        );
+      });
+    } else if (!autoKeyframe) {
+      Log.Warn(`{PREFIX} Auto-keyframe is disabled. Property changes are not being recorded!`);
+    }
+
+    return () => {
+      connections.forEach((conn) => conn.Disconnect());
+    };
+  }, [instTreeSelection, maxTimelineLength, autoKeyframe]);
 
   // Hotkey to delete all selected keyframes
   useHotkey(

@@ -147,6 +147,23 @@ export function Topbar() {
           <Tooltip title={'Export Selection'} text={'Exports the current selection.'} />
         </ImageButtonElement>
       </TopbarElement>
+      <TopbarElement key={'AutoKeyframeButton'} layoutPosition={nextOrder()}>
+        <ImageButtonElement
+          image='rbxassetid://140257108862380'
+          initialValue={true}
+          asToggle={true}
+          onPressed={(newState) => {
+            if (newState !== undefined) {
+              settingAutoKeyframe(newState);
+            }
+          }}
+        >
+          <Tooltip
+            title={'Auto Keyframe'}
+            text={`Keyframes are automatically added as properties change.<br /><br /><font color="${Palette.ErrorHex}" weight="Medium">It is recommended to always leave this enabled.</font>`}
+          />
+        </ImageButtonElement>
+      </TopbarElement>
       <TopbarElement key={'SyncSelectionsButton'} layoutPosition={nextOrder()}>
         <ImageButtonElement
           image='rbxassetid://84948256301138'

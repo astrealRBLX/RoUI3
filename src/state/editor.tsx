@@ -1,6 +1,7 @@
 import { atom, peek } from '@rbxts/charm';
 import Immut, { produce } from '@rbxts/immut';
 import { EditorStateActions } from './editorActions';
+import { getCachedValueOfProperty, hasPropertyBeenKeyed, setPropertyKeyed } from './properties';
 
 export type KeyframeValue = number | boolean | string | UDim2 | UDim | Vector2 | Color3;
 
@@ -23,6 +24,12 @@ export const settingMaxTimelineLength = atom(5);
 
 // Scrubber position (in seconds) setting
 export const settingScrubberPosition = atom(1);
+
+// Auto keyframe setting
+export const settingAutoKeyframe = atom(true);
+
+// Internal property change state to prevent cyclical updates when auto keyframing
+export const internalPropertyChange = atom(false);
 
 // Sync selections setting
 export const settingSyncSelections = atom(true);
