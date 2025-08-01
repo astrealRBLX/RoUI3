@@ -88,6 +88,8 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
             const newKeyframes = instanceData.keyframes.filter((kf) => kf.property !== action.property);
 
             instanceData.keyframes = newKeyframes;
+
+            setPropertyKeyed(action.instance, action.property, false);
           }
         })
       );
@@ -117,7 +119,7 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
                   easingStyle: Enum.EasingStyle.Quad,
                 });
 
-                setPropertyKeyed(action.instance, action.property);
+                setPropertyKeyed(action.instance, action.property, true);
               }
 
               Immut.table.insert(instanceData.keyframes, {

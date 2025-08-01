@@ -27,8 +27,8 @@ export function clearCache() {
   initallyKeyedProperties.clear();
 }
 
-export function setPropertyKeyed(instance: Instance, property: string) {
-  initallyKeyedProperties.get(instance)!.set(property, true);
+export function setPropertyKeyed(instance: Instance, property: string, isKeyed: boolean) {
+  initallyKeyedProperties.get(instance)!.set(property, isKeyed);
 }
 
 export function hasPropertyBeenKeyed(instance: Instance, property: string) {
