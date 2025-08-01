@@ -46,7 +46,7 @@ const hotkeys = new Map<HotkeyIDs, Enum.KeyCode[]>([
   [HotkeyIDs.KeyframesDragInvertSelection, [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftShift]],
 
   [HotkeyIDs.KeyframesInsert, [Enum.KeyCode.I]],
-  [HotkeyIDs.KeyframesDeleteSelected, [Enum.KeyCode.Delete]],
+  [HotkeyIDs.KeyframesDeleteSelected, [Enum.KeyCode.LeftAlt, Enum.KeyCode.I]],
 ]);
 
 export function isHotkeyPressed(id: HotkeyIDs) {
