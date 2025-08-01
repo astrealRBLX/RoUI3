@@ -126,6 +126,19 @@ export function TimelineContent() {
             id={`${selectedInstance.Name}-${property}-contextmenu`}
             options={[
               {
+                label: 'Insert/Update Keyframe',
+                tooltip: "Inserts or updates a keyframe at the scrubber's current position.",
+                clicked: () => {
+                  dispatchEditorStateUpdate({
+                    type: 'UpdateKeyframe',
+                    instance: selectedInstance,
+                    property: property,
+                  });
+
+                  return true;
+                },
+              },
+              {
                 label: `Delete ${property}`,
                 tooltip: 'Deletes this property and all associated keyframes.',
                 clicked: () => {
@@ -134,6 +147,9 @@ export function TimelineContent() {
                     instance: selectedInstance,
                     property: property,
                   });
+
+                  const newSelected = selectedKfs.filter((kf) => kf.property !== property);
+                  selectedKeyframes(newSelected);
 
                   return true;
                 },
@@ -223,6 +239,14 @@ export function TimelineContent() {
               },
             }}
           >
+            <imagebutton
+              key={'InputSink'}
+              ZIndex={14}
+              Size={new UDim2(1, 0, 1, 0)}
+              Position={new UDim2(0, 0, 0, 0)}
+              BackgroundTransparency={1}
+              ImageTransparency={1}
+            />
             <Tooltip
               text={`${getKeyframeValuePrettified(kf.value)} @ ${string.format('%.2f', kf.time)} s\n${kf.easingStyle.Name} | ${
                 kf.easingDirection.Name
@@ -424,6 +448,30 @@ export function TimelineContent() {
           },
         }}
       >
+        <ContextMenu
+          activeContextMenuAtom={activeContextMenu}
+          id={`timeline-contextmenu`}
+          options={[
+            {
+              label: 'Delete Selected Keyframes',
+              tooltip: 'Deletes all currently selected keyframes.',
+              clicked: () => {
+                selectedKfs.forEach((kf) => {
+                  dispatchEditorStateUpdate({
+                    type: 'DeleteKeyframe',
+                    instance: kf.instance,
+                    property: kf.property,
+                    time: kf.time,
+                  });
+                });
+
+                selectedKeyframes([]);
+
+                return true;
+              },
+            },
+          ]}
+        />
         {isDragSelecting && dragHitboxRef.current ? (
           <frame
             key={'DragBox'}
