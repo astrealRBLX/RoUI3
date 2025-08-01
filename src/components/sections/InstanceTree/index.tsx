@@ -15,7 +15,7 @@ import { appPlugin } from 'state/globals';
 interface InstanceTreeProps {
   children?: React.ReactNode;
   root: Instance;
-  baseClassFilter?: any;
+  classFilter?: string[];
   selectFilter?: (inst: Instance) => boolean;
 }
 
@@ -26,7 +26,7 @@ interface InstanceTreeProps {
   functionality to the `Timeline`. Displays a copy
   of an instance's hierarchy using a tree view.
 */
-export function InstanceTree({ root, baseClassFilter = 'Instance', selectFilter = () => true }: InstanceTreeProps) {
+export function InstanceTree({ root, classFilter = ['Instance'], selectFilter = () => true }: InstanceTreeProps) {
   const nextOrder = createNextOrder();
 
   const treeSelection = useAtom(instanceTreeSelection);
@@ -77,7 +77,7 @@ export function InstanceTree({ root, baseClassFilter = 'Instance', selectFilter 
 
             instanceTreeSelection(inst);
           }}
-          classFilter={baseClassFilter}
+          classFilter={classFilter}
           selectFilter={selectFilter}
         />
       </scrollingframe>

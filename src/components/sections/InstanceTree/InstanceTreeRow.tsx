@@ -15,7 +15,7 @@ interface InstanceTreeRowProps {
   depth: number;
   isExpandedMap: Map<Instance, boolean>;
   selectedInstance: Option<Instance>;
-  classFilter: any;
+  classFilter: string[];
   selectFilter: (inst: Instance) => boolean;
   toggle: (inst: Instance) => void;
   nextOrder: () => number;
@@ -50,7 +50,7 @@ export function InstanceTreeRow({
   const childRows: React.ReactChild[] = isExpanded
     ? instance
         .GetChildren()
-        .filter((child) => child.IsA(classFilter))
+        .filter((child) => classFilter.some((cs) => child.IsA(cs as any)))
         .map((child) => {
           return (
             <InstanceTreeRow

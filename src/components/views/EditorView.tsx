@@ -55,8 +55,8 @@ export function EditorView() {
             <Pane key={'InstanceTreePane'} color={Palette.Background3} rounded={true}>
               <InstanceTree
                 root={animatingScreenGui.unwrap()}
-                baseClassFilter={'GuiObject'}
-                selectFilter={(instance) => !instance.IsA('ScreenGui')}
+                classFilter={['GuiObject', 'Folder']}
+                selectFilter={(instance) => !instance.IsA('ScreenGui') && !instance.IsA('Folder')}
               />
             </Pane>
           }
