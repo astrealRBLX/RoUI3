@@ -65,7 +65,15 @@ export function Tooltip({ text, tooltipDelay = 0.3, tooltipTextSize = 12 }: Tool
     const paddingSize = 8;
     const maxRequestedWidth = math.min(widgetWidth, 200);
     const maxAvailableWidth = math.max(0, maxRequestedWidth - paddingSize);
-    const textBound = TextService.GetTextSize(text, tooltipTextSize, Enum.Font.JosefinSans, new Vector2(maxAvailableWidth, math.huge));
+
+    const tParams = new Instance('GetTextBoundsParams');
+    tParams.Font = Fonts.JosefinSans.Regular;
+    tParams.RichText = true;
+    tParams.Size = tooltipTextSize;
+    tParams.Width = maxAvailableWidth;
+    tParams.Text = text;
+
+    const textBound = TextService.GetTextBoundsAsync(tParams);
     const tooltipTargetWidth = textBound.X + paddingSize + 1;
     const tooltipTargetHeight = textBound.Y + paddingSize + 1;
 
