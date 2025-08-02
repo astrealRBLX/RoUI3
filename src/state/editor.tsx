@@ -28,8 +28,34 @@ export const settingScrubberPosition = atom(1);
 // Auto keyframe setting
 export const settingAutoKeyframe = atom(true);
 
-// Internal property change state to prevent cyclical updates when auto keyframing
-export const internalPropertyChange = atom(false);
+// Internal property change map to prevent cyclical updates when auto keyframing
+export const internalPropertyChange = atom<Map<Instance, Set<string>>>(new Map());
+
+export function startInternalPropertyChange(instance: Instance, property: string) {
+  const internalMap = new Map([...peek(internalPropertyChange)]);
+
+  if (internalMap.get(instance) === undefined) {
+    internalMap.set(instance, new Set([property]));
+  } else {
+    internalMap.get(instance)?.add(property);
+  }
+
+  internalPropertyChange(internalMap);
+}
+
+export function finishInternalPropertyChange(instance: Instance, property: string) {
+  const internalMap = new Map([...peek(internalPropertyChange)]);
+
+  if (internalMap.get(instance) !== undefined) {
+    internalMap.get(instance)?.delete(property);
+
+    if (internalMap.get(instance)?.isEmpty()) {
+      internalMap.delete(instance);
+    }
+  }
+
+  internalPropertyChange(internalMap);
+}
 
 // Sync selections setting
 export const settingSyncSelections = atom(true);
@@ -131,7 +157,7 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
                 easingStyle: action.easingStyle ?? Enum.EasingStyle.Quad,
               });
             } else {
-              existingKeyframe.value = action.instance[action.property as never] as KeyframeValue;
+              existingKeyframe.value = action.value ?? (action.instance[action.property as never] as KeyframeValue);
               existingKeyframe.easingDirection = action.easingDirection ?? existingKeyframe.easingDirection;
               existingKeyframe.easingStyle = action.easingStyle ?? existingKeyframe.easingStyle;
             }

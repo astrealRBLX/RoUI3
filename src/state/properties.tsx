@@ -34,3 +34,9 @@ export function setPropertyKeyed(instance: Instance, property: string, isKeyed: 
 export function hasPropertyBeenKeyed(instance: Instance, property: string) {
   return initallyKeyedProperties.get(instance)?.get(property);
 }
+
+export function addProperties<T extends Instance>(instance: T, properties: Partial<WritableProperties<T>>): void {
+  for (const [key, value] of pairs(properties)) {
+    instance[key as WritablePropertyNames<T>] = value as WritableProperties<T>[WritablePropertyNames<T>];
+  }
+}

@@ -1,10 +1,20 @@
 import { peek, subscribe } from '@rbxts/charm';
-import { useUpdate } from '@rbxts/pretty-react-hooks';
+import { lerp, useUpdate } from '@rbxts/pretty-react-hooks';
 import React, { useBinding, useEffect, useRef } from '@rbxts/react';
 import { useAtom } from '@rbxts/react-charm';
 import { RunService, TweenService } from '@rbxts/services';
-import { animationRegistry, settingMaxTimelineLength, settingScrubberPosition } from 'state/editor';
+import {
+  animationRegistry,
+  finishInternalPropertyChange,
+  internalPropertyChange,
+  KeyframeData,
+  KeyframeValue,
+  settingMaxTimelineLength,
+  settingScrubberPosition,
+  startInternalPropertyChange,
+} from 'state/editor';
 import { appPlugin } from 'state/globals';
+import { addProperties, getCachedValueOfProperty } from 'state/properties';
 import { currentTimestamps, previewData, scrubbingData } from 'state/timeline';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
 import { getSortedDistances } from 'utils/getSortedDistances';
@@ -53,6 +63,98 @@ export function Scrubber() {
 
     return cleanup;
   }, [previewInfo, maxTimelineLength]);
+
+  // Effect to preview animation changes when the scrubber moves
+  useEffect(() => {
+    return subscribe(settingScrubberPosition, (scrubberPosUnformatted) => {
+      const scrubberPos = tonumber(string.format('%.2f', scrubberPosUnformatted))!;
+      const animRegistry = peek(animationRegistry);
+
+      animRegistry.forEach((data, instance) => {
+        data.properties.forEach((property) => {
+          // Get keyframes only related to this property
+          const propertyKeyframes = data.keyframes.filter((kf) => kf.property === property);
+
+          // Sort keyframes by position
+          const sortedKeyframes = propertyKeyframes.sort((a, b) => a.time < b.time);
+
+          // Find the keyframe exactly on the scrubber position (if it exists)
+          const keyframeAtScrubberPos = sortedKeyframes.find((kf) => kf.time === scrubberPos);
+
+          if (keyframeAtScrubberPos !== undefined) {
+            // Scrubber is exactly at a keyframe
+
+            startInternalPropertyChange(instance, property);
+            addProperties(instance, {
+              [property]: keyframeAtScrubberPos.value,
+            });
+            task.defer(() => finishInternalPropertyChange(instance, property));
+          } else if (sortedKeyframes.size() === 0 || (sortedKeyframes.size() > 0 && scrubberPos < sortedKeyframes[0].time)) {
+            // Scrubber is before the first keyframe OR there are no keyframes
+
+            startInternalPropertyChange(instance, property);
+            addProperties(instance, {
+              [property]: getCachedValueOfProperty(instance, property),
+            });
+            task.defer(() => finishInternalPropertyChange(instance, property));
+          } else if (scrubberPos > sortedKeyframes[sortedKeyframes.size() - 1].time) {
+            // Scrubber is after the last keyframe
+
+            startInternalPropertyChange(instance, property);
+            addProperties(instance, {
+              [property]: sortedKeyframes[sortedKeyframes.size() - 1].value,
+            });
+            task.defer(() => finishInternalPropertyChange(instance, property));
+          } else {
+            // Scrubber is between 2 keyframes
+
+            let keyframe1: KeyframeData | undefined;
+            let keyframe2: KeyframeData | undefined;
+
+            // Find keyframes surrounding the scrubber
+            sortedKeyframes.forEach((kf, index) => {
+              if (index === sortedKeyframes.size() - 1) return;
+
+              const nextKeyframe = sortedKeyframes[index + 1];
+
+              if (scrubberPos > kf.time && scrubberPos < nextKeyframe.time) {
+                keyframe1 = kf;
+                keyframe2 = nextKeyframe;
+              }
+            });
+
+            if (keyframe1 !== undefined && keyframe2 !== undefined) {
+              const normalizedAlpha = ((scrubberPos - keyframe1.time) / (keyframe2.time - keyframe1.time)) * (1 - 0) + 0;
+              const tweenAlpha = TweenService.GetValue(normalizedAlpha, keyframe2.easingStyle, keyframe2.easingDirection);
+
+              const value1 = keyframe1.value;
+              const value2 = keyframe2.value;
+              let finalValue: KeyframeValue | undefined;
+
+              if (typeIs(value1, 'number')) {
+                finalValue = lerp(value1, value2 as number, tweenAlpha);
+              } else if (typeIs(value1, 'boolean') || typeIs(value1, 'string')) {
+                finalValue = tweenAlpha === 1 ? value2 : value1;
+              } else if (typeIs(value1, 'UDim')) {
+                finalValue = new UDim(
+                  lerp(value1.Scale, (value2 as UDim).Scale, tweenAlpha),
+                  lerp(value1.Offset, (value2 as UDim).Offset, tweenAlpha)
+                );
+              } else {
+                finalValue = (value1 as UDim2 & Vector2 & Color3).Lerp(value2 as UDim2 & Vector2 & Color3, tweenAlpha);
+              }
+
+              startInternalPropertyChange(instance, property);
+              addProperties(instance, {
+                [property]: finalValue,
+              });
+              task.defer(() => finishInternalPropertyChange(instance, property));
+            }
+          }
+        });
+      });
+    });
+  }, []);
 
   // Hotkey to preview
   useHotkey(

@@ -53,7 +53,9 @@ export function TimelineContent() {
       supportedProperties.forEach((prop) => {
         connections.push(
           selection.GetPropertyChangedSignal(prop as SelectionProperty).Connect(() => {
-            if (peek(internalPropertyChange)) return;
+            const internalChangeMap = peek(internalPropertyChange);
+
+            if (internalChangeMap.get(selection) !== undefined || internalChangeMap.get(selection)?.has(prop)) return;
 
             dispatchEditorStateUpdate({
               type: 'AddInstanceProperty',
