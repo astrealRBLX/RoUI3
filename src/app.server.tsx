@@ -14,9 +14,30 @@ import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
 import { CoreGui, RunService, StarterGui } from '@rbxts/services';
 import { App } from 'components/App';
+import {
+  activeContextMenu,
+  animationRegistry,
+  internalPropertyChange,
+  pressedKeys,
+  selectedKeyframes,
+  settingAutoKeyframe,
+  settingMaxTimelineLength,
+  settingScrubberPosition,
+  settingSyncSelections,
+  startInternalPropertyChange,
+} from 'state/editor';
 import { animatingFolder, appPlugin, appWidget } from 'state/globals';
+import { clearCache } from 'state/properties';
 import { currentRoute, Route } from 'state/routes';
-import { originalScreenGuiSelection, screenGuiSelection } from 'state/timeline';
+import {
+  currentTimestamps,
+  editorWarnings,
+  instanceTreeSelection,
+  originalScreenGuiSelection,
+  previewData,
+  screenGuiSelection,
+  scrubbingData,
+} from 'state/timeline';
 
 let appTree: Option<ReactRoblox.Root> = Option.none();
 
@@ -39,18 +60,16 @@ if (!RunService.IsRunning()) {
   const toolbar = plugin.CreateToolbar('RoUI3');
   const animateButton = toolbar.CreateButton('roui3_edit', 'Start animating with RoUI3', 'http://www.roblox.com/asset/?id=11793434500', 'Editor');
 
-  appWidget(
-    Option.some(
-      plugin.CreateDockWidgetPluginGui(
-        'roui3-main-widget',
-        new DockWidgetPluginGuiInfo(Enum.InitialDockState.Bottom, false, true, 500, 250, 500, 250)
-      )
-    )
+  const widget = plugin.CreateDockWidgetPluginGui(
+    'roui3-main-widget',
+    new DockWidgetPluginGuiInfo(Enum.InitialDockState.Bottom, false, true, 500, 250, 500, 250)
   );
 
+  appWidget(Option.some(widget));
+
   // `Title` isn't found as a property of `DockWidgetPluginGui` ???
-  appWidget().unwrap()['Title' as never] = 'RoUI3 - v2.0.0' as never;
-  appWidget().unwrap().Name = 'RoUI3';
+  widget['Title' as never] = 'RoUI3 - v2.0.0' as never;
+  widget.Name = 'RoUI3';
 
   let cleanup = () => {
     appTree.unwrap().unmount();
@@ -58,8 +77,6 @@ if (!RunService.IsRunning()) {
     appTree = Option.none();
 
     appWidget().unwrap().Enabled = false;
-
-    currentRoute(Route.StartView);
 
     // Clean up the cloned ScreenGui
     if (screenGuiSelection().isSome()) {
@@ -77,9 +94,30 @@ if (!RunService.IsRunning()) {
       screenGui.Enabled = true;
       originalScreenGuiSelection(Option.none());
     }
+
+    // Clean up state
+    currentRoute(Route.StartView);
+
+    clearCache();
+
+    settingMaxTimelineLength(5);
+    settingScrubberPosition(1);
+    settingAutoKeyframe(true);
+    internalPropertyChange(new Map());
+    settingSyncSelections(true);
+    pressedKeys(new Set());
+    activeContextMenu('');
+    selectedKeyframes([]);
+    animationRegistry(new Map());
+
+    instanceTreeSelection(Option.none());
+    currentTimestamps([]);
+    scrubbingData({ isScrubbing: false, mouseOffset: 0 });
+    previewData({ isPreviewing: false, previewTime: 0 });
+    editorWarnings(new Set());
   };
 
-  (appWidget().unwrap()['BindToClose' as never] as Callback)(appWidget().unwrap(), cleanup) as never;
+  (widget['BindToClose' as never] as Callback)(appWidget().unwrap(), cleanup) as never;
 
   animateButton.Click.Connect(() => {
     if (appTree.isNone()) {
