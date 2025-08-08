@@ -1,4 +1,4 @@
-import { peek, subscribe } from '@rbxts/charm';
+import { effect, peek, subscribe } from '@rbxts/charm';
 import { lerp, useUpdate } from '@rbxts/pretty-react-hooks';
 import React, { useBinding, useEffect, useRef } from '@rbxts/react';
 import { useAtom } from '@rbxts/react-charm';
@@ -15,7 +15,7 @@ import {
 } from 'state/editor';
 import { appPlugin } from 'state/globals';
 import { addProperties, getCachedValueOfProperty } from 'state/properties';
-import { currentTimestamps, previewData, scrubbingData } from 'state/timeline';
+import { currentTimestamps, previewData, scrubbingData, previewUpdate } from 'state/timeline';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
 import { getSortedDistances } from 'utils/getSortedDistances';
 import { HotkeyIDs, isHotkeyPressed, useHotkey, useHotkeyDown } from 'utils/hotkeyUtils';
@@ -66,9 +66,12 @@ export function Scrubber() {
 
   // Effect to preview animation changes when the scrubber moves
   useEffect(() => {
-    return subscribe(settingScrubberPosition, (scrubberPosUnformatted) => {
-      const scrubberPos = tonumber(string.format('%.2f', scrubberPosUnformatted))!;
+    effect(() => {
+      const scrubberPos = tonumber(string.format('%.2f', settingScrubberPosition()))!;
       const animRegistry = peek(animationRegistry);
+
+      // Listen for any forced updates
+      previewUpdate();
 
       animRegistry.forEach((data, instance) => {
         data.properties.forEach((property) => {

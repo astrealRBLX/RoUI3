@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from '@rbxts/react';
+import React, { useCallback, useEffect, useRef } from '@rbxts/react';
 import { ImageButtonElement } from './ImageButtonElement';
 import { Pane } from 'components/ui/Pane';
 import { TextElement } from './TextElement';
@@ -9,9 +9,7 @@ import { TextboxElement } from './TextboxElement';
 import { createNextOrder } from 'utils/createNextOrder';
 import { DropdownOptionElement } from './DropdownOptionElement';
 import {
-  dispatchEditorStateUpdate,
   KeyframeData,
-  pressedKeys,
   selectedKeyframes,
   settingAutoKeyframe,
   settingMaxTimelineLength,
@@ -19,13 +17,13 @@ import {
   settingSyncSelections,
 } from 'state/editor';
 import { useAtom } from '@rbxts/react-charm';
-import { EditorWarnings, editorWarnings, editorWarningsInfo, instanceTreeSelection, previewData } from 'state/timeline';
+import { EditorWarnings, editorWarnings, editorWarningsInfo, forceUpdatePreview, instanceTreeSelection, previewData } from 'state/timeline';
 import { peek, subscribe } from '@rbxts/charm';
 import { getAnimatableProperties, SupportedClass } from 'utils/animatableProperties';
 import { useUpdate } from '@rbxts/pretty-react-hooks';
 import { useResetState } from 'utils/hooks/useResetState';
-import { KeyboardListener } from 'components/ui/KeyboardListener';
-import { HotkeyIDs, isHotkeyPressed, useHotkey } from 'utils/hotkeyUtils';
+import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
+import { ActionBatch, ActionManager, makeUpdateKeyframeAction } from 'state/history';
 
 /*
   components/sections/Topbar
@@ -71,16 +69,12 @@ export function Topbar() {
 
       const currentPropOption = currentPropertyDropdownOption.current;
 
-      dispatchEditorStateUpdate({
-        type: 'AddInstanceProperty',
+      const action = makeUpdateKeyframeAction({
         instance: instTreeSelection.unwrap(),
         property: currentPropOption,
       });
-      dispatchEditorStateUpdate({
-        type: 'UpdateKeyframe',
-        instance: instTreeSelection.unwrap(),
-        property: currentPropOption,
-      });
+
+      ActionManager.execute(action);
     },
     [instTreeSelection]
   );
@@ -279,16 +273,12 @@ export function Topbar() {
             labelText={'Property'}
             buttonImage={'rbxassetid://3192519002'}
             onButtonClicked={(prop) => {
-              dispatchEditorStateUpdate({
-                type: 'AddInstanceProperty',
+              const action = makeUpdateKeyframeAction({
                 instance: instTreeSelection.unwrap(),
                 property: prop,
               });
-              dispatchEditorStateUpdate({
-                type: 'UpdateKeyframe',
-                instance: instTreeSelection.unwrap(),
-                property: prop,
-              });
+              forceUpdatePreview();
+              ActionManager.execute(action);
             }}
             options={getAnimatableProperties(instTreeSelection.unwrap().ClassName as SupportedClass)}
             onOptionChosen={(option) => {
@@ -310,6 +300,7 @@ export function Topbar() {
               usesConfirmButton={false}
               onOptionChosen={(newStyle) => {
                 const newSelectedKfs: KeyframeData[] = [];
+                const actionBatch = new ActionBatch();
 
                 selectedKfs.forEach((kf) => {
                   const newKf: KeyframeData = {
@@ -321,14 +312,12 @@ export function Topbar() {
                     easingStyle: Enum.EasingStyle.FromName(newStyle)!,
                   };
 
-                  dispatchEditorStateUpdate({
-                    type: 'UpdateKeyframe',
-                    ...newKf,
-                  });
+                  actionBatch.addAction(makeUpdateKeyframeAction({ ...newKf }));
 
                   newSelectedKfs.push(newKf);
                 });
 
+                ActionManager.execute(actionBatch);
                 selectedKeyframes(newSelectedKfs);
                 update();
               }}
@@ -344,6 +333,7 @@ export function Topbar() {
               usesConfirmButton={false}
               onOptionChosen={(newDirection) => {
                 const newSelectedKfs: KeyframeData[] = [];
+                const actionBatch = new ActionBatch();
 
                 selectedKfs.forEach((kf) => {
                   const newKf: KeyframeData = {
@@ -355,14 +345,12 @@ export function Topbar() {
                     easingStyle: kf.easingStyle,
                   };
 
-                  dispatchEditorStateUpdate({
-                    type: 'UpdateKeyframe',
-                    ...newKf,
-                  });
+                  actionBatch.addAction(makeUpdateKeyframeAction({ ...newKf }));
 
                   newSelectedKfs.push(newKf);
                 });
 
+                ActionManager.execute(actionBatch);
                 selectedKeyframes(newSelectedKfs);
                 update();
               }}

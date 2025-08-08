@@ -4,14 +4,16 @@ import {
   activeContextMenu,
   animationRegistry,
   dispatchEditorStateUpdate,
+  finishInternalPropertyChange,
   internalPropertyChange,
   KeyframeData,
   KeyframeValue,
   selectedKeyframes,
   settingAutoKeyframe,
   settingMaxTimelineLength,
+  startInternalPropertyChange,
 } from 'state/editor';
-import { instanceTreeSelection } from 'state/timeline';
+import { forceUpdatePreview, instanceTreeSelection } from 'state/timeline';
 import { Palette } from 'utils/styling';
 import { TextElement } from '../Topbar/TextElement';
 import { ContextMenu } from 'components/ui/ContextMenu';
@@ -23,6 +25,16 @@ import { getRelativeMouse } from 'utils/getRelativeMouse';
 import { getAnimatableProperties, SupportedClass } from 'utils/animatableProperties';
 import { peek } from '@rbxts/charm';
 import Log from '@rbxts/log';
+import {
+  ActionBatch,
+  DeleteKeyframeAction,
+  ActionManager,
+  HistoryAction,
+  makeUpdateKeyframeAction,
+  UpdateKeyframeAction,
+  DeleteInstancePropertyAction,
+} from 'state/history';
+import { addProperties, getCachedValueOfProperty } from 'state/properties';
 
 export function TimelineContent() {
   const animRegistry = useAtom(animationRegistry);
@@ -57,16 +69,15 @@ export function TimelineContent() {
 
             if (internalChangeMap.get(selection) !== undefined || internalChangeMap.get(selection)?.has(prop)) return;
 
-            dispatchEditorStateUpdate({
-              type: 'AddInstanceProperty',
-              instance: selection,
-              property: prop,
-            });
-            dispatchEditorStateUpdate({
-              type: 'UpdateKeyframe',
-              instance: selection,
-              property: prop,
-            });
+            const action = makeUpdateKeyframeAction(
+              {
+                instance: selection,
+                property: prop,
+              },
+              true
+            );
+
+            ActionManager.execute(action, true);
           })
         );
       });
@@ -84,15 +95,20 @@ export function TimelineContent() {
     HotkeyIDs.KeyframesDeleteSelected,
     [],
     () => {
+      const actionBatch = new ActionBatch();
+
       selectedKfs.forEach((kf) => {
-        dispatchEditorStateUpdate({
-          type: 'DeleteKeyframe',
-          instance: kf.instance,
-          property: kf.property,
-          time: kf.time,
-        });
+        actionBatch.addAction(
+          new DeleteKeyframeAction({
+            instance: kf.instance,
+            property: kf.property,
+            time: kf.time,
+          })
+        );
       });
 
+      ActionManager.execute(actionBatch);
+      forceUpdatePreview();
       selectedKeyframes([]);
     },
     [selectedKfs]
@@ -131,11 +147,13 @@ export function TimelineContent() {
                 label: 'Insert/Update Keyframe',
                 tooltip: "Inserts or updates a keyframe at the scrubber's current position.",
                 clicked: () => {
-                  dispatchEditorStateUpdate({
-                    type: 'UpdateKeyframe',
+                  const action = makeUpdateKeyframeAction({
                     instance: selectedInstance,
                     property: property,
                   });
+
+                  ActionManager.execute(action);
+                  forceUpdatePreview();
 
                   return true;
                 },
@@ -144,14 +162,35 @@ export function TimelineContent() {
                 label: `Delete ${property}`,
                 tooltip: 'Deletes this property and all associated keyframes.',
                 clicked: () => {
-                  dispatchEditorStateUpdate({
-                    type: 'DeleteInstanceProperty',
-                    instance: selectedInstance,
-                    property: property,
-                  });
-
-                  const newSelected = selectedKfs.filter((kf) => kf.property !== property);
+                  const newSelected = selectedKfs.filter((kf) => kf.instance !== selectedInstance && kf.property !== property);
                   selectedKeyframes(newSelected);
+
+                  ActionManager.execute(
+                    new DeleteInstancePropertyAction({
+                      instance: selectedInstance,
+                      property: property,
+                    })
+                  );
+
+                  startInternalPropertyChange(selectedInstance, property);
+                  addProperties(selectedInstance, {
+                    [property]: getCachedValueOfProperty(selectedInstance, property),
+                  });
+                  task.defer(() => finishInternalPropertyChange(selectedInstance, property));
+
+                  return true;
+                },
+              },
+              {
+                label: `Select Keyframes`,
+                tooltip: `Selects all keyframes for this property.`,
+                clicked: () => {
+                  const instData = peek(animRegistry).get(selectedInstance);
+                  if (instData !== undefined) {
+                    const newSelected = instData.keyframes.filter((kf) => kf.property === property);
+
+                    selectedKeyframes(newSelected);
+                  }
 
                   return true;
                 },
@@ -458,15 +497,20 @@ export function TimelineContent() {
               label: 'Delete Selected Keyframes',
               tooltip: 'Deletes all currently selected keyframes.',
               clicked: () => {
+                const actionBatch = new ActionBatch();
+
                 selectedKfs.forEach((kf) => {
-                  dispatchEditorStateUpdate({
-                    type: 'DeleteKeyframe',
-                    instance: kf.instance,
-                    property: kf.property,
-                    time: kf.time,
-                  });
+                  actionBatch.addAction(
+                    new DeleteKeyframeAction({
+                      instance: kf.instance,
+                      property: kf.property,
+                      time: kf.time,
+                    })
+                  );
                 });
 
+                ActionManager.execute(actionBatch);
+                forceUpdatePreview();
                 selectedKeyframes([]);
 
                 return true;

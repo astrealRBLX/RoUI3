@@ -27,6 +27,7 @@ import {
   startInternalPropertyChange,
 } from 'state/editor';
 import { animatingFolder, appPlugin, appWidget } from 'state/globals';
+import { ActionManager } from 'state/history';
 import { clearCache } from 'state/properties';
 import { currentRoute, Route } from 'state/routes';
 import {
@@ -115,6 +116,9 @@ if (!RunService.IsRunning()) {
     scrubbingData({ isScrubbing: false, mouseOffset: 0 });
     previewData({ isPreviewing: false, previewTime: 0 });
     editorWarnings(new Set());
+
+    // Clear action history
+    ActionManager.clearHistory();
   };
 
   (widget['BindToClose' as never] as Callback)(appWidget().unwrap(), cleanup) as never;

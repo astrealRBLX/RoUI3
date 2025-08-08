@@ -84,6 +84,9 @@ export function getInstancesInAnimationRegistry(registry: Map<Instance, Animatio
 }
 
 // Function to dispatch complex actions to update editor state
+// Dispatching editor state is discouraged as then no history is saved.
+// Actions should be executed through the `ActionManager.execute()` method from `history.ts`
+// and they will dispatch editor state updates as needed.
 export function dispatchEditorStateUpdate(action: EditorStateActions) {
   switch (action.type) {
     case 'AddInstanceProperty':
@@ -111,62 +114,51 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
           if (instanceData !== undefined) {
             instanceData.properties.delete(action.property);
 
-            const newKeyframes = instanceData.keyframes.filter((kf) => kf.property !== action.property);
-
-            instanceData.keyframes = newKeyframes;
-
             setPropertyKeyed(action.instance, action.property, false);
           }
         })
       );
 
       break;
+    case 'CreateKeyframe':
+      animationRegistry(
+        produce(peek(animationRegistry), (draft) => {
+          const instanceData = draft.get(action.instance);
+
+          if (instanceData !== undefined) {
+            Immut.table.insert(instanceData.keyframes, {
+              instance: action.instance,
+              property: action.property,
+              time: action.time,
+              value: action.value,
+              easingDirection: action.easingDirection,
+              easingStyle: action.easingStyle,
+            });
+          }
+
+          setPropertyKeyed(action.instance, action.property, true);
+        })
+      );
+      break;
     case 'UpdateKeyframe':
       animationRegistry(
         produce(peek(animationRegistry), (draft) => {
           const instanceData = draft.get(action.instance);
-          const scrubberPositionUnformatted = peek(settingScrubberPosition);
-          const scrubberPosition = tonumber(string.format('%.2f', scrubberPositionUnformatted))!;
 
           if (instanceData !== undefined) {
-            const existingKeyframe = instanceData.keyframes.find(
-              (kf) => kf.property === action.property && kf.time === (action.time ?? scrubberPosition)
-            );
+            const existingKeyframe = instanceData.keyframes.find((kf) => kf.property === action.property && kf.time === action.time);
 
-            if (existingKeyframe === undefined) {
-              // Add keyframe at position 0 of initial property's value if it doesn't exist
-              if (!hasPropertyBeenKeyed(action.instance, action.property)) {
-                Immut.table.insert(instanceData.keyframes, {
-                  instance: action.instance,
-                  property: action.property,
-                  time: 0,
-                  value: getCachedValueOfProperty(action.instance, action.property) as KeyframeValue,
-                  easingDirection: Enum.EasingDirection.Out,
-                  easingStyle: Enum.EasingStyle.Quad,
-                });
-
-                setPropertyKeyed(action.instance, action.property, true);
-              }
-
-              Immut.table.insert(instanceData.keyframes, {
-                instance: action.instance,
-                property: action.property,
-                time: action.time ?? scrubberPosition,
-                value: action.value ?? (action.instance[action.property as never] as KeyframeValue),
-                easingDirection: action.easingDirection ?? Enum.EasingDirection.Out,
-                easingStyle: action.easingStyle ?? Enum.EasingStyle.Quad,
-              });
-            } else {
-              existingKeyframe.value = action.value ?? (action.instance[action.property as never] as KeyframeValue);
-              existingKeyframe.easingDirection = action.easingDirection ?? existingKeyframe.easingDirection;
-              existingKeyframe.easingStyle = action.easingStyle ?? existingKeyframe.easingStyle;
+            if (existingKeyframe !== undefined) {
+              existingKeyframe.value =
+                action.value ?? (action.instance[action.property as InstancePropertyNames<typeof action.instance>] as KeyframeValue);
+              existingKeyframe.easingDirection = action.easingDirection ?? Enum.EasingDirection.Out;
+              existingKeyframe.easingStyle = action.easingStyle ?? Enum.EasingStyle.Quad;
             }
           }
         })
       );
 
       break;
-
     case 'DeleteKeyframe':
       animationRegistry(
         produce(peek(animationRegistry), (draft) => {

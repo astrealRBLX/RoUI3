@@ -47,5 +47,13 @@ export const scrubbingData = atom<ScrubbingData>({ isScrubbing: false, mouseOffs
 // Is previewing
 export const previewData = atom<PreviewData>({ isPreviewing: false, previewTime: 0 });
 
+// Set to the inverse value to force a preview update
+export const previewUpdate = atom(true);
+
+// Helper function to force a preview update
+export function forceUpdatePreview() {
+  previewUpdate((v) => !v);
+}
+
 // List of warnings
 export const editorWarnings = atom<Set<EditorWarnings>>(new Set());

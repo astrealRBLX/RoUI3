@@ -14,6 +14,15 @@ export interface ActionDeleteInstanceProperty extends Action<'DeleteInstanceProp
   property: string;
 }
 
+export interface ActionCreateKeyframe extends Action<'CreateKeyframe'> {
+  instance: Instance;
+  property: string;
+  time: number;
+  value: KeyframeValue;
+  easingDirection: Enum.EasingDirection;
+  easingStyle: Enum.EasingStyle;
+}
+
 export interface ActionUpdateKeyframe extends Action<'UpdateKeyframe'> {
   instance: Instance;
   property: string;
@@ -29,4 +38,9 @@ export interface ActionDeleteKeyframe extends Action<'DeleteKeyframe'> {
   time: number;
 }
 
-export type EditorStateActions = ActionAddInstanceProperty | ActionDeleteInstanceProperty | ActionUpdateKeyframe | ActionDeleteKeyframe;
+export type EditorStateActions =
+  | ActionAddInstanceProperty
+  | ActionDeleteInstanceProperty
+  | ActionCreateKeyframe
+  | ActionUpdateKeyframe
+  | ActionDeleteKeyframe;

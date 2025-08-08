@@ -1,5 +1,7 @@
 import React, { Fragment } from '@rbxts/react';
 import { Router } from './Router';
+import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
+import { ActionManager } from 'state/history';
 
 /*
   components/App
@@ -8,5 +10,23 @@ import { Router } from './Router';
   what React directly mounts.
 */
 export function App() {
+  useHotkey(
+    HotkeyIDs.Undo,
+    [],
+    () => {
+      ActionManager.undo();
+    },
+    []
+  );
+
+  useHotkey(
+    HotkeyIDs.Redo,
+    [],
+    () => {
+      ActionManager.redo();
+    },
+    []
+  );
+
   return <Router />;
 }
