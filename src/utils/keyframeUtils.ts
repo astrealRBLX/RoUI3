@@ -1,17 +1,17 @@
 import { KeyframeData, KeyframeValue } from 'state/editor';
 
 const keyframeEasingStyleColorMappings = new Map<Enum.EasingStyle, Color3>([
-  [Enum.EasingStyle.Linear, Color3.fromRGB(148, 10, 10)],
-  [Enum.EasingStyle.Sine, Color3.fromRGB(201, 87, 10)],
-  [Enum.EasingStyle.Exponential, Color3.fromRGB(184, 166, 10)],
-  [Enum.EasingStyle.Cubic, Color3.fromRGB(13, 181, 41)],
-  [Enum.EasingStyle.Quad, Color3.fromRGB(13, 71, 196)],
-  [Enum.EasingStyle.Quint, Color3.fromRGB(77, 8, 189)],
-  [Enum.EasingStyle.Quart, Color3.fromRGB(158, 3, 179)],
-  [Enum.EasingStyle.Circular, Color3.fromRGB(227, 161, 41)],
-  [Enum.EasingStyle.Bounce, Color3.fromRGB(199, 18, 138)],
-  [Enum.EasingStyle.Back, Color3.fromRGB(0, 181, 156)],
-  [Enum.EasingStyle.Elastic, Color3.fromRGB(143, 201, 5)],
+  [Enum.EasingStyle.Linear, Color3.fromRGB(232, 148, 148)],
+  [Enum.EasingStyle.Sine, Color3.fromRGB(230, 176, 143)],
+  [Enum.EasingStyle.Exponential, Color3.fromRGB(232, 222, 135)],
+  [Enum.EasingStyle.Cubic, Color3.fromRGB(102, 232, 122)],
+  [Enum.EasingStyle.Quad, Color3.fromRGB(122, 158, 230)],
+  [Enum.EasingStyle.Quint, Color3.fromRGB(161, 122, 219)],
+  [Enum.EasingStyle.Quart, Color3.fromRGB(214, 112, 227)],
+  [Enum.EasingStyle.Circular, Color3.fromRGB(227, 179, 87)],
+  [Enum.EasingStyle.Bounce, Color3.fromRGB(217, 107, 181)],
+  [Enum.EasingStyle.Back, Color3.fromRGB(120, 235, 219)],
+  [Enum.EasingStyle.Elastic, Color3.fromRGB(207, 242, 122)],
 ]);
 
 export function getKeyframeColorFromEasingStyle(style: Enum.EasingStyle) {

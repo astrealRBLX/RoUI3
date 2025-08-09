@@ -401,7 +401,7 @@ export namespace ActionManager {
   function formatToastMessage(action: HistoryAction, actionType: 'undo' | 'redo') {
     const prefix = actionType === 'undo' ? 'UNDO' : 'REDO';
 
-    let message: string = 'UNDO';
+    let message: string = `<b>${prefix}</b> Action ${actionType === 'undo' ? 'undone' : 'redone'}!`;
 
     switch (true) {
       case action instanceof CreateKeyframeAction:
