@@ -56,6 +56,12 @@ export function ContextMenu({ id, activeContextMenuAtom, options }: ContextMenuP
     );
   });
 
+  const widgetSizeY = appWidget().unwrap().AbsoluteSize.Y;
+  let targetPos = mousePos;
+  if (mousePos.Y + contextMenuButtons.size() * 19 >= widgetSizeY) {
+    targetPos = new Vector2(mousePos.X, widgetSizeY - contextMenuButtons.size() * 19 - 10);
+  }
+
   return (
     <>
       <frame
@@ -86,7 +92,7 @@ export function ContextMenu({ id, activeContextMenuAtom, options }: ContextMenuP
                 Active={true}
                 Size={new UDim2(0, 0, 0, 0)}
                 AutomaticSize={Enum.AutomaticSize.XY}
-                Position={new UDim2(0, mousePos.X + 5, 0, mousePos.Y + 5)}
+                Position={new UDim2(0, targetPos.X + 5, 0, targetPos.Y + 5)}
                 ZIndex={49}
                 BackgroundColor3={Palette.Background1}
                 BackgroundTransparency={1}
