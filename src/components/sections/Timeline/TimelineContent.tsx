@@ -35,6 +35,7 @@ import {
   DeleteInstancePropertyAction,
 } from 'state/history';
 import { addProperties, getCachedValueOfProperty } from 'state/properties';
+import { ClipboardManager } from 'state/clipboard';
 
 export function TimelineContent() {
   const animRegistry = useAtom(animationRegistry);
@@ -512,6 +513,33 @@ export function TimelineContent() {
                 ActionManager.execute(actionBatch);
                 forceUpdatePreview();
                 selectedKeyframes([]);
+
+                return true;
+              },
+            },
+            {
+              label: 'Copy Selected Keyframes',
+              tooltip: 'Copies all selected keyframes.',
+              clicked: () => {
+                ClipboardManager.copy();
+
+                return true;
+              },
+            },
+            {
+              label: 'Cut Selected Keyframes',
+              tooltip: 'Cuts all selected keyframes.',
+              clicked: () => {
+                ClipboardManager.cut();
+
+                return true;
+              },
+            },
+            {
+              label: 'Paste Clipboard',
+              tooltip: 'Pastes the clipboard at the scrubber position.',
+              clicked: () => {
+                ClipboardManager.paste();
 
                 return true;
               },

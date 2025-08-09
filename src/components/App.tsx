@@ -2,6 +2,7 @@ import React, { Fragment } from '@rbxts/react';
 import { Router } from './Router';
 import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
 import { ActionManager } from 'state/history';
+import { ClipboardManager } from 'state/clipboard';
 
 /*
   components/App
@@ -24,6 +25,33 @@ export function App() {
     [],
     () => {
       ActionManager.redo();
+    },
+    []
+  );
+
+  useHotkey(
+    HotkeyIDs.Copy,
+    [],
+    () => {
+      ClipboardManager.copy();
+    },
+    []
+  );
+
+  useHotkey(
+    HotkeyIDs.Cut,
+    [],
+    () => {
+      ClipboardManager.cut();
+    },
+    []
+  );
+
+  useHotkey(
+    HotkeyIDs.Paste,
+    [],
+    () => {
+      ClipboardManager.paste();
     },
     []
   );

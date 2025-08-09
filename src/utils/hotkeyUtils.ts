@@ -30,6 +30,9 @@ export enum HotkeyIDs {
   // General
   Undo,
   Redo,
+  Copy,
+  Paste,
+  Cut,
 }
 
 const hotkeys = new Map<HotkeyIDs, Enum.KeyCode[]>([
@@ -54,6 +57,9 @@ const hotkeys = new Map<HotkeyIDs, Enum.KeyCode[]>([
 
   [HotkeyIDs.Undo, [Enum.KeyCode.LeftAlt, Enum.KeyCode.Z]],
   [HotkeyIDs.Redo, [Enum.KeyCode.LeftAlt, Enum.KeyCode.Y]],
+  [HotkeyIDs.Copy, [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftAlt, Enum.KeyCode.C]],
+  [HotkeyIDs.Paste, [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftAlt, Enum.KeyCode.V]],
+  [HotkeyIDs.Cut, [Enum.KeyCode.LeftControl, Enum.KeyCode.LeftAlt, Enum.KeyCode.X]],
 ]);
 
 export function isHotkeyPressed(id: HotkeyIDs) {

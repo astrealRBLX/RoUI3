@@ -14,6 +14,7 @@ import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
 import { CoreGui, RunService, StarterGui } from '@rbxts/services';
 import { App } from 'components/App';
+import { ClipboardManager } from 'state/clipboard';
 import {
   activeContextMenu,
   animationRegistry,
@@ -120,6 +121,7 @@ if (!RunService.IsRunning()) {
 
     ActionManager.clearHistory();
     ToastManager.clearToasts();
+    ClipboardManager.clearClipboard();
   };
 
   (widget['BindToClose' as never] as Callback)(appWidget().unwrap(), cleanup) as never;
