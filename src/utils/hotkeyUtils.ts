@@ -10,11 +10,11 @@ export enum HotkeyIDs {
 
   // Scrubber static
   ScrubberPreview,
+  ScrubberNudgeLeftPrecise,
   ScrubberNudgeLeft,
-  ScrubberNudgeLeftSlow,
   ScrubberNudgeLeftFast,
+  ScrubberNudgeRightPrecise,
   ScrubberNudgeRight,
-  ScrubberNudgeRightSlow,
   ScrubberNudgeRightFast,
 
   // Keyframes contextual
@@ -40,11 +40,11 @@ const hotkeys = new Map<HotkeyIDs, Enum.KeyCode[]>([
   [HotkeyIDs.ScrubberSnapKeyframe, [Enum.KeyCode.LeftShift]],
 
   [HotkeyIDs.ScrubberPreview, [Enum.KeyCode.Space]],
+  [HotkeyIDs.ScrubberNudgeLeftPrecise, [Enum.KeyCode.Q, Enum.KeyCode.LeftControl]],
   [HotkeyIDs.ScrubberNudgeLeft, [Enum.KeyCode.Q]],
-  [HotkeyIDs.ScrubberNudgeLeftSlow, [Enum.KeyCode.Q, Enum.KeyCode.LeftControl]],
   [HotkeyIDs.ScrubberNudgeLeftFast, [Enum.KeyCode.Q, Enum.KeyCode.LeftShift]],
+  [HotkeyIDs.ScrubberNudgeRightPrecise, [Enum.KeyCode.E, Enum.KeyCode.LeftControl]],
   [HotkeyIDs.ScrubberNudgeRight, [Enum.KeyCode.E]],
-  [HotkeyIDs.ScrubberNudgeRightSlow, [Enum.KeyCode.E, Enum.KeyCode.LeftControl]],
   [HotkeyIDs.ScrubberNudgeRightFast, [Enum.KeyCode.E, Enum.KeyCode.LeftShift]],
 
   [HotkeyIDs.KeyframesSelectMultiple, [Enum.KeyCode.LeftControl]],

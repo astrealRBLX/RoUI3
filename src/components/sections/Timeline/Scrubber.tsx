@@ -174,7 +174,7 @@ export function Scrubber() {
 
   // Hotkey to nudge scrubber left
   useHotkeyDown(
-    HotkeyIDs.ScrubberNudgeLeft,
+    HotkeyIDs.ScrubberNudgeLeftPrecise,
     [],
     0.03,
     () => {
@@ -191,7 +191,7 @@ export function Scrubber() {
 
   // Hotkey to nudge scrubber left (slow & fast)
   useHotkeyDown(
-    HotkeyIDs.ScrubberNudgeLeftSlow,
+    HotkeyIDs.ScrubberNudgeLeft,
     [HotkeyIDs.ScrubberNudgeLeftFast],
     0,
     (ctx) => {
@@ -219,7 +219,7 @@ export function Scrubber() {
 
   // Hotkey to nudge scrubber right
   useHotkeyDown(
-    HotkeyIDs.ScrubberNudgeRight,
+    HotkeyIDs.ScrubberNudgeRightPrecise,
     [],
     0.03,
     () => {
@@ -236,7 +236,7 @@ export function Scrubber() {
 
   // Hotkey to nudge scrubber right (slow & fast)
   useHotkeyDown(
-    HotkeyIDs.ScrubberNudgeRightSlow,
+    HotkeyIDs.ScrubberNudgeRight,
     [HotkeyIDs.ScrubberNudgeRightFast],
     0,
     (ctx) => {
