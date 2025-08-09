@@ -3,6 +3,8 @@ import { animationRegistry, dispatchEditorStateUpdate, KeyframeData, KeyframeVal
 import { Action, ActionCreateKeyframe, ActionDeleteInstanceProperty, ActionDeleteKeyframe, ActionUpdateKeyframe } from './editorActions';
 import { getCachedValueOfProperty, hasPropertyBeenKeyed, setPropertyKeyed } from './properties';
 import { forceUpdatePreview } from './timeline';
+import { ToastManager, ToastType } from './toasts';
+import { getKeyframeValuePrettified } from 'utils/keyframeUtils';
 
 export interface HistoryAction {
   actionName: string;
@@ -92,6 +94,10 @@ export class DeleteKeyframeAction implements HistoryAction {
 
   constructor(payload: ActionPayload<ActionDeleteKeyframe>) {
     this.keyframe = { ...findKeyframe(payload) } as KeyframeData;
+  }
+
+  getKeyframe() {
+    return this.keyframe;
   }
 
   do() {
@@ -392,6 +398,62 @@ export namespace ActionManager {
     }
   }
 
+  function formatToastMessage(action: HistoryAction, actionType: 'undo' | 'redo') {
+    const prefix = actionType === 'undo' ? 'UNDO' : 'REDO';
+
+    let message: string = 'UNDO';
+
+    switch (true) {
+      case action instanceof CreateKeyframeAction:
+        const createKeyframe = action.getKeyframe();
+        message = `<b>${prefix}</b> • Keyframe created ${createKeyframe.instance.Name} (${createKeyframe.property}) @ ${string.format(
+          '%.2f',
+          createKeyframe.time
+        )} s`;
+        break;
+      case action instanceof DeleteKeyframeAction:
+        const deleteKeyfame = action.getKeyframe();
+        if (deleteKeyfame !== undefined)
+          message = `<b>${prefix}</b> • Keyframe deleted ${deleteKeyfame.instance.Name} (${deleteKeyfame.property}) @ ${string.format(
+            '%.2f',
+            deleteKeyfame.time
+          )} s`;
+        break;
+      case action instanceof UpdateKeyframeAction:
+        const toKeyframe = action.getToKeyframe();
+        message = `<b>${prefix}</b> • Keyframe updated ${toKeyframe.instance.Name} (${toKeyframe.property}) @ ${string.format(
+          '%.2f',
+          toKeyframe.time
+        )} s`;
+        break;
+      case action instanceof AutoKeyframeWithUpdateAction:
+        const actions = action.getActions();
+        if (actions.size() > 1) {
+          const updateKeyframeAction = actions[1] as UpdateKeyframeAction;
+          const updateKeyframe = updateKeyframeAction.getToKeyframe();
+          message = `<b>${prefix}</b> • Keyframe created & updated ${updateKeyframe.instance.Name} (${updateKeyframe.property}) @ ${string.format(
+            '%.2f',
+            updateKeyframe.time
+          )} s`;
+        }
+        break;
+      case action instanceof BaselineKeyframeAction:
+        const bActions = action.getActions();
+        if (bActions.size() > 1) {
+          const autoKeyframeWithUpdateAction = bActions[1] as AutoKeyframeWithUpdateAction;
+          const updateKfAction = autoKeyframeWithUpdateAction.getActions()[1] as UpdateKeyframeAction;
+          const updateKeyframe = updateKfAction.getToKeyframe();
+          message = `<b>${prefix}</b> • Keyframes created & updated ${updateKeyframe.instance.Name} (${updateKeyframe.property}) @ ${string.format(
+            '%.2f',
+            updateKeyframe.time
+          )} s`;
+        }
+        break;
+    }
+
+    return message;
+  }
+
   export function undo() {
     const action = undoStack.pop();
 
@@ -402,6 +464,14 @@ export namespace ActionManager {
 
     selectedKeyframes([]);
     forceUpdatePreview();
+
+    const message = formatToastMessage(action, 'undo');
+
+    ToastManager.addToast({
+      type: ToastType.Success,
+      message: message,
+      duration: 3,
+    });
   }
 
   export function redo() {
@@ -414,6 +484,14 @@ export namespace ActionManager {
 
     selectedKeyframes([]);
     forceUpdatePreview();
+
+    const message = formatToastMessage(action, 'redo');
+
+    ToastManager.addToast({
+      type: ToastType.Success,
+      message: message,
+      duration: 3,
+    });
   }
 
   export function clearHistory() {

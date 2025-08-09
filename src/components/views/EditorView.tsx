@@ -8,6 +8,7 @@ import { Timeline } from 'components/sections/Timeline';
 import { Topbar } from 'components/sections/Topbar';
 import { Pane } from 'components/ui/Pane';
 import { ResizablePanes } from 'components/ui/ResizablePanes';
+import { ToastList } from 'components/ui/ToastList';
 import { settingSyncSelections } from 'state/editor';
 import { instanceTreeSelection, screenGuiSelection } from 'state/timeline';
 import { isValidAnimatableSelection } from 'utils/selectionUtils';
@@ -67,6 +68,8 @@ export function EditorView() {
           }
         />
       </Pane>
+
+      <ToastList />
     </Pane>
   );
 }

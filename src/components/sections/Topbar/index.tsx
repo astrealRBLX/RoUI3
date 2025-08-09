@@ -24,6 +24,7 @@ import { useUpdate } from '@rbxts/pretty-react-hooks';
 import { useResetState } from 'utils/hooks/useResetState';
 import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
 import { ActionBatch, ActionManager, makeUpdateKeyframeAction } from 'state/history';
+import { ToastManager, ToastType } from 'state/toasts';
 
 /*
   components/sections/Topbar
@@ -101,6 +102,12 @@ export function Topbar() {
         newWarnings.add(EditorWarnings.AutoKeyframeOff);
 
         editorWarnings(newWarnings);
+
+        ToastManager.addToast({
+          type: ToastType.Error,
+          message: 'Auto-keyframe was turned off. Property changes are not being recorded!',
+          duration: 5,
+        });
       } else {
         const newWarnings = new Set([...peek(editorWarnings)]);
 

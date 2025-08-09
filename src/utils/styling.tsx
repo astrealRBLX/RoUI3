@@ -26,6 +26,10 @@ export const Palette = {
 
   Error: Color3.fromRGB(235, 94, 94),
   ErrorHex: '#eb5e5e',
+
+  Info: Color3.fromRGB(92, 163, 222),
+
+  Warning: Color3.fromRGB(237, 214, 138),
 };
 
 export const Fonts = {

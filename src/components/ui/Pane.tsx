@@ -10,11 +10,13 @@ interface PaneProps {
   paddingAll?: UDim;
   paddingVertical?: UDim;
   paddingHorizontal?: UDim;
+  autoSize?: Enum.AutomaticSize;
   color?: Color3 | React.Binding<Color3>;
   transparency?: number;
   reference?: React.RefObject<Frame>;
   layoutOrder?: number;
   outlined?: boolean;
+  outlineColor?: Color3;
   zIndex?: number;
   event?: React.InstanceEvent<Frame>;
 }
@@ -34,11 +36,13 @@ export function Pane({
   paddingAll = new UDim(0, 4),
   paddingHorizontal,
   paddingVertical,
+  autoSize,
   color = Palette.Background1,
   transparency = 0,
   reference,
   layoutOrder = 0,
   outlined = false,
+  outlineColor = Palette.Outline,
   zIndex = 1,
   event,
 }: PaneProps) {
@@ -53,6 +57,7 @@ export function Pane({
       ref={reference}
       ZIndex={zIndex}
       Event={event}
+      AutomaticSize={autoSize}
     >
       {padded ? (
         <uipadding
@@ -63,7 +68,7 @@ export function Pane({
         />
       ) : undefined}
       {rounded ? <uicorner CornerRadius={new UDim(0, 4)} /> : <></>}
-      {outlined ? <uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={Palette.Outline} Transparency={0} /> : undefined}
+      {outlined ? <uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={outlineColor} Transparency={0} /> : undefined}
       {children}
     </frame>
   );

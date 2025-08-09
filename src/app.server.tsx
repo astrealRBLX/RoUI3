@@ -39,6 +39,7 @@ import {
   screenGuiSelection,
   scrubbingData,
 } from 'state/timeline';
+import { ToastManager } from 'state/toasts';
 
 let appTree: Option<ReactRoblox.Root> = Option.none();
 
@@ -117,8 +118,8 @@ if (!RunService.IsRunning()) {
     previewData({ isPreviewing: false, previewTime: 0 });
     editorWarnings(new Set());
 
-    // Clear action history
     ActionManager.clearHistory();
+    ToastManager.clearToasts();
   };
 
   (widget['BindToClose' as never] as Callback)(appWidget().unwrap(), cleanup) as never;
