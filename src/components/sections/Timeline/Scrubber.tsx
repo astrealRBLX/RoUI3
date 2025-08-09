@@ -15,7 +15,7 @@ import {
 } from 'state/editor';
 import { appPlugin } from 'state/globals';
 import { addProperties, getCachedValueOfProperty } from 'state/properties';
-import { currentTimestamps, previewData, scrubbingData, previewUpdate } from 'state/timeline';
+import { currentTimestamps, previewData, scrubbingData, previewUpdate, instanceTreeSelection } from 'state/timeline';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
 import { getSortedDistances } from 'utils/getSortedDistances';
 import { HotkeyIDs, isHotkeyPressed, useHotkey, useHotkeyDown } from 'utils/hotkeyUtils';
@@ -300,10 +300,26 @@ export function Scrubber() {
         setScrubberPositionScale(nearestTimestamp.position);
         settingScrubberPosition(nearestTimestamp.position * maxTLength);
       } else if (snapToKeyframe) {
+        const selectedInstanceOption = peek(instanceTreeSelection);
+
+        if (selectedInstanceOption.isNone()) {
+          setScrubberPositionScale(newScrubberPosScale);
+          settingScrubberPosition(newScrubberPosScale * maxTLength);
+          return;
+        }
+
+        const selectedInstance = selectedInstanceOption.unwrap();
         const animRegistry = peek(animationRegistry);
+
+        if (animRegistry.get(selectedInstance) === undefined) {
+          setScrubberPositionScale(newScrubberPosScale);
+          settingScrubberPosition(newScrubberPosScale * maxTLength);
+          return;
+        }
+
         const allKeyframePositions: Set<number> = new Set();
 
-        animRegistry.forEach((data) => data.keyframes.forEach((kf) => allKeyframePositions.add(kf.time / maxTLength)));
+        animRegistry.get(selectedInstance)!.keyframes.forEach((kf) => allKeyframePositions.add(kf.time / maxTLength));
 
         const nearestKeyframePositionsArray = getSortedDistances(newScrubberPosScale, [...allKeyframePositions]);
 
