@@ -27,6 +27,10 @@ import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
 import { ActionBatch, ActionKeyframeMove, ActionManager, CreateKeyframeAction, DeleteKeyframeAction, makeUpdateKeyframeAction } from 'state/history';
 import { ToastManager, ToastType } from 'state/toasts';
 import { matchKeyframes } from 'utils/keyframeUtils';
+import { hotkeysTreeAtom, hotkeysWidget } from 'state/globals';
+import { createPortal, createRoot } from '@rbxts/react-roblox';
+import { Option } from '@rbxts/rust-classes';
+import { HotkeyView } from 'components/views/HotkeyView';
 
 /*
   components/sections/Topbar
@@ -176,6 +180,34 @@ export function Topbar() {
         <TextElement text={'RoUI3 | v2.0.0'} textColor={Palette.PrimaryText} textSize={16} font={Fonts.JosefinSans.SemiBold}>
           <Tooltip text={'Thanks for using RoUI3! 😀'} />
         </TextElement>
+      </TopbarElement>
+      <TopbarElement key={'ViewHotkeysButton'} layoutPosition={nextOrder()}>
+        <ImageButtonElement
+          image={'rbxassetid://103676541549818'}
+          onPressed={() => {
+            const hotkeyWidgetOption = hotkeysWidget();
+
+            if (hotkeyWidgetOption.isSome()) {
+              const hotkeyWidget = hotkeyWidgetOption.unwrap();
+
+              if (hotkeyWidget.Enabled === false) {
+                const hotkeysTreeOption = hotkeysTreeAtom();
+
+                if (hotkeysTreeOption.isNone()) {
+                  hotkeysTreeAtom(Option.some(createRoot(hotkeyWidget)));
+
+                  hotkeysTreeAtom()
+                    .unwrap()
+                    .render(createPortal(<HotkeyView />, hotkeyWidget));
+
+                  hotkeyWidget.Enabled = true;
+                }
+              }
+            }
+          }}
+        >
+          <Tooltip title={'View Hotkeys'} text={'Opens the hotkeys table.'} />
+        </ImageButtonElement>
       </TopbarElement>
       <TopbarElement key={'ExportAllButton'} layoutPosition={nextOrder()}>
         <ImageButtonElement image='http://www.roblox.com/asset/?id=11780633056'>

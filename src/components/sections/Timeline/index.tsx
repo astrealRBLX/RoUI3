@@ -56,7 +56,7 @@ export function Timeline({ timelinePaneRef }: TimelineProps) {
           Text={
             '<u>No Instance Selected</u>\n\n<font weight="regular" size="14" color="rgb(121,121,121)">Please select an Instance from the instance tree to start animating it.</font>'
           }
-          TextColor3={Palette.PrimaryText}
+          TextColor3={Palette.Error}
           FontFace={Fonts.JosefinSans.SemiBold}
           TextSize={18}
           TextWrapped={true}

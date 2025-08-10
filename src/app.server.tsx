@@ -29,7 +29,7 @@ import {
   settingSyncSelections,
   startInternalPropertyChange,
 } from 'state/editor';
-import { animatingFolder, appPlugin, appWidget } from 'state/globals';
+import { animatingFolder, appPlugin, appTreeAtom, appWidget, hotkeysTreeAtom, hotkeysWidget } from 'state/globals';
 import { ActionManager } from 'state/history';
 import { clearCache } from 'state/properties';
 import { currentRoute, Route } from 'state/routes';
@@ -43,8 +43,6 @@ import {
   scrubbingData,
 } from 'state/timeline';
 import { ToastManager } from 'state/toasts';
-
-let appTree: Option<ReactRoblox.Root> = Option.none();
 
 appPlugin(Option.some(plugin));
 
@@ -69,19 +67,39 @@ if (!RunService.IsRunning()) {
     'roui3-main-widget',
     new DockWidgetPluginGuiInfo(Enum.InitialDockState.Bottom, false, true, 500, 250, 500, 250)
   );
+  const hotkeyWidget = plugin.CreateDockWidgetPluginGui(
+    'roui3-hotkey-widget',
+    new DockWidgetPluginGuiInfo(Enum.InitialDockState.Float, false, false, 250, 250, 250, 250)
+  );
 
   appWidget(Option.some(widget));
+  hotkeysWidget(Option.some(hotkeyWidget));
 
   // `Title` isn't found as a property of `DockWidgetPluginGui` ???
-  widget['Title' as never] = 'RoUI3 - v2.0.0' as never;
+  widget['Title' as never] = 'RoUI3' as never;
   widget.Name = 'RoUI3';
 
-  let cleanup = () => {
-    appTree.unwrap().unmount();
+  hotkeyWidget['Title' as never] = 'RoUI3 - Hotkeys' as never;
+  hotkeyWidget.Name = 'RoUI3_Hotkeys';
 
-    appTree = Option.none();
+  let cleanup = () => {
+    appTreeAtom((rootOption) => {
+      return rootOption.andWith((root) => {
+        root.unmount();
+
+        return Option.none();
+      });
+    });
+    hotkeysTreeAtom((rootOption) => {
+      return rootOption.andWith((root) => {
+        root.unmount();
+
+        return Option.none();
+      });
+    });
 
     appWidget().unwrap().Enabled = false;
+    hotkeysWidget().unwrap().Enabled = false;
 
     // Clean up the cloned ScreenGui
     if (screenGuiSelection().isSome()) {
@@ -128,13 +146,28 @@ if (!RunService.IsRunning()) {
     ClipboardManager.clearClipboard();
   };
 
+  let cleanupHotkeys = () => {
+    hotkeysTreeAtom((rootOption) => {
+      return rootOption.andWith((root) => {
+        root.unmount();
+
+        return Option.none();
+      });
+    });
+
+    hotkeysWidget().unwrap().Enabled = false;
+  };
+
   (widget['BindToClose' as never] as Callback)(appWidget().unwrap(), cleanup) as never;
+  (hotkeyWidget['BindToClose' as never] as Callback)(hotkeysWidget().unwrap(), cleanupHotkeys) as never;
 
   animateButton.Click.Connect(() => {
-    if (appTree.isNone()) {
-      appTree = Option.some(createRoot(appWidget().unwrap()));
+    if (appTreeAtom().isNone()) {
+      appTreeAtom(Option.some(createRoot(appWidget().unwrap())));
 
-      appTree.unwrap().render(createPortal(<App />, appWidget().unwrap()));
+      appTreeAtom()
+        .unwrap()
+        .render(createPortal(<App />, appWidget().unwrap()));
 
       appWidget().unwrap().Enabled = true;
     } else {

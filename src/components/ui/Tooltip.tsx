@@ -10,6 +10,7 @@ interface TooltipProps {
   text: string;
   tooltipDelay?: number;
   tooltipTextSize?: number;
+  widgetOption?: Option<DockWidgetPluginGui>;
 }
 
 /*
@@ -19,7 +20,7 @@ interface TooltipProps {
   and provide a top-level tooltip displaying information
   when that element is hovered over long enough.
 */
-export function Tooltip({ title, text, tooltipDelay = 0.3, tooltipTextSize = 12 }: TooltipProps) {
+export function Tooltip({ title, text, tooltipDelay = 0.3, tooltipTextSize = 12, widgetOption = appWidget() }: TooltipProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveringMousePosition, setHoveringMousePosition] = useBinding<Option<Vector2>>(Option.none());
   const [targetHoverTime, setTargetHoverTime] = useBinding(0);
@@ -115,7 +116,7 @@ export function Tooltip({ title, text, tooltipDelay = 0.3, tooltipTextSize = 12 
           />
         </textlabel>
       </frame>,
-      appWidget().unwrap()
+      widgetOption.unwrap()
     );
   }
 
