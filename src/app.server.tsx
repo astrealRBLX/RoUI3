@@ -19,7 +19,9 @@ import {
   activeContextMenu,
   animationRegistry,
   internalPropertyChange,
+  mutedPropertiesAtom,
   pressedKeys,
+  previewKeyframesAtom,
   selectedKeyframes,
   settingAutoKeyframe,
   settingMaxTimelineLength,
@@ -107,10 +109,12 @@ if (!RunService.IsRunning()) {
     settingScrubberPosition(1);
     settingAutoKeyframe(true);
     internalPropertyChange(new Map());
+    mutedPropertiesAtom(new Map());
     settingSyncSelections(true);
     pressedKeys(new Set());
     activeContextMenu('');
     selectedKeyframes([]);
+    previewKeyframesAtom([]);
     animationRegistry(new Map());
 
     instanceTreeSelection(Option.none());

@@ -101,10 +101,19 @@ function dragCallback(
 
   let finalTime = math.clamp(kf.time + deltaTime, 0, maxTLength);
 
+  let deltaTimestampTime: number | undefined;
+  let deltaKeyframeTime: number | undefined;
+
   if (snapToTimestamp) {
     finalTime = getNearestTimestamp(finalTime);
+    deltaTimestampTime = finalTime - kf.time;
   } else if (snapToKeyframe) {
-    finalTime = getNearestKeyframe(finalTime) ?? finalTime;
+    const nearest = getNearestKeyframe(finalTime);
+
+    if (nearest) {
+      finalTime = nearest;
+      deltaKeyframeTime = nearest - kf.time;
+    }
   }
 
   finalTime = tonumber(string.format('%.2f', finalTime))!;
@@ -125,9 +134,9 @@ function dragCallback(
     finalTime = math.clamp(selKf.time + deltaTime, 0, maxTLength);
 
     if (snapToTimestamp) {
-      finalTime = getNearestTimestamp(finalTime);
-    } else if (snapToKeyframe) {
-      finalTime = getNearestKeyframe(finalTime) ?? finalTime;
+      finalTime = math.clamp(selKf.time + deltaTimestampTime!, 0, maxTLength);
+    } else if (snapToKeyframe && deltaKeyframeTime !== undefined) {
+      finalTime = math.clamp(selKf.time + deltaKeyframeTime, 0, maxTLength);
     }
 
     const newTime = tonumber(string.format('%.2f', finalTime))!;
