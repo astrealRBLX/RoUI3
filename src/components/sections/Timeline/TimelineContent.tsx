@@ -3,22 +3,22 @@ import { useAtom } from '@rbxts/react-charm';
 import {
   activeContextMenu,
   animationRegistry,
-  dispatchEditorStateUpdate,
+  DraggingKeyframeData,
   finishInternalPropertyChange,
   internalPropertyChange,
   KeyframeData,
-  KeyframeValue,
+  mutedPropertiesAtom,
+  previewKeyframesAtom,
   selectedKeyframes,
   settingAutoKeyframe,
   settingMaxTimelineLength,
   startInternalPropertyChange,
 } from 'state/editor';
-import { forceUpdatePreview, instanceTreeSelection } from 'state/timeline';
+import { currentTimestamps, forceUpdatePreview, instanceTreeSelection } from 'state/timeline';
 import { Palette } from 'utils/styling';
 import { TextElement } from '../Topbar/TextElement';
 import { ContextMenu } from 'components/ui/ContextMenu';
-import { getKeyframeColorFromEasingStyle, getKeyframeValuePrettified, matchKeyframes } from 'utils/keyframeUtils';
-import { Tooltip } from 'components/ui/Tooltip';
+import { matchKeyframes } from 'utils/keyframeUtils';
 import { HotkeyIDs, isHotkeyPressed, useHotkey } from 'utils/hotkeyUtils';
 import { RunService } from '@rbxts/services';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
@@ -29,13 +29,136 @@ import {
   ActionBatch,
   DeleteKeyframeAction,
   ActionManager,
-  HistoryAction,
   makeUpdateKeyframeAction,
-  UpdateKeyframeAction,
   DeleteInstancePropertyAction,
+  ActionKeyframeMove,
 } from 'state/history';
 import { addProperties, getCachedValueOfProperty } from 'state/properties';
 import { ClipboardManager } from 'state/clipboard';
+import { Keyframe } from './Keyframe';
+import { KeyframeVisualizer } from './KeyframeVisualizer';
+import { ToastManager, ToastType } from 'state/toasts';
+import { getSortedDistances } from 'utils/getSortedDistances';
+
+// Helper function to get the delta of mouse movement in seconds
+function getDeltaTime(startMousePos: Vector2, mousePos: Vector2, timelineContentRef: React.RefObject<ScrollingFrame>, maxTimelineLength: number) {
+  const deltaX = mousePos.X - startMousePos.X;
+  const deltaPosition = deltaX / (timelineContentRef.current!.AbsoluteSize.X - 150);
+  const deltaTime = deltaPosition * maxTimelineLength;
+
+  return deltaTime;
+}
+
+// Heplper function to find the nearest timestamp from a given time
+function getNearestTimestamp(from: number) {
+  const timestampsData = peek(currentTimestamps);
+  const timestampsTime = timestampsData.map((data) => data.time);
+  const nearestTimestamp = getSortedDistances(from, timestampsTime)[0];
+
+  return nearestTimestamp.position;
+}
+
+// Helper function to get the nearest keyframe from a given time
+function getNearestKeyframe(from: number) {
+  const selectedInstanceOption = peek(instanceTreeSelection);
+
+  if (selectedInstanceOption.isSome()) {
+    const selectedInstance = selectedInstanceOption.unwrap();
+    const animRegistry = peek(animationRegistry);
+
+    if (animRegistry.get(selectedInstance) !== undefined) {
+      const allKeyframeTimes: Set<number> = new Set();
+
+      animRegistry.get(selectedInstance)!.keyframes.forEach((kf) => allKeyframeTimes.add(kf.time));
+
+      const nearestKeyframePositionsArray = getSortedDistances(from, [...allKeyframeTimes]);
+
+      return nearestKeyframePositionsArray[0].position;
+    }
+  }
+}
+
+// Handles keyframe drag moving functionality
+function dragCallback(
+  isActivelyDragging: boolean,
+  startMousePos: Vector2,
+  currentMousePos: Vector2,
+  timelineContentRef: React.RefObject<ScrollingFrame>,
+  kf: KeyframeData
+) {
+  const sKeyframes = peek(selectedKeyframes);
+  const maxTLength = peek(settingMaxTimelineLength);
+
+  const isActivelySelected = sKeyframes.findIndex((_kf) => matchKeyframes(_kf, kf)) !== -1;
+
+  const action = new ActionKeyframeMove();
+  const previewList: DraggingKeyframeData[] = [];
+
+  const deltaTime = getDeltaTime(startMousePos, currentMousePos, timelineContentRef, maxTLength);
+
+  const snapToTimestamp = isHotkeyPressed(HotkeyIDs.ScrubberSnapTimestamp);
+  const snapToKeyframe = isHotkeyPressed(HotkeyIDs.ScrubberSnapKeyframe);
+
+  let finalTime = math.clamp(kf.time + deltaTime, 0, maxTLength);
+
+  if (snapToTimestamp) {
+    finalTime = getNearestTimestamp(finalTime);
+  } else if (snapToKeyframe) {
+    finalTime = getNearestKeyframe(finalTime) ?? finalTime;
+  }
+
+  finalTime = tonumber(string.format('%.2f', finalTime))!;
+
+  if (!isActivelySelected) {
+    if (isActivelyDragging) {
+      previewList.push({
+        keyframe: { ...kf },
+        oldTime: kf.time,
+        newTime: finalTime,
+      });
+    } else {
+      action.addMove(kf, finalTime);
+    }
+  }
+
+  sKeyframes.forEach((selKf) => {
+    finalTime = math.clamp(selKf.time + deltaTime, 0, maxTLength);
+
+    if (snapToTimestamp) {
+      finalTime = getNearestTimestamp(finalTime);
+    } else if (snapToKeyframe) {
+      finalTime = getNearestKeyframe(finalTime) ?? finalTime;
+    }
+
+    const newTime = tonumber(string.format('%.2f', finalTime))!;
+
+    if (isActivelyDragging) {
+      previewList.push({
+        keyframe: { ...selKf },
+        oldTime: selKf.time,
+        newTime: newTime,
+      });
+    } else {
+      action.addMove(selKf, newTime);
+    }
+  });
+
+  if (isActivelyDragging) {
+    previewKeyframesAtom(previewList);
+  } else {
+    ActionManager.execute(action);
+    forceUpdatePreview();
+
+    const newSelected: KeyframeData[] = [];
+
+    peek(previewKeyframesAtom).forEach((data) => {
+      newSelected.push({ ...data.keyframe, time: data.newTime });
+    });
+
+    previewKeyframesAtom([]);
+    selectedKeyframes(newSelected);
+  }
+}
 
 export function TimelineContent() {
   const animRegistry = useAtom(animationRegistry);
@@ -43,6 +166,7 @@ export function TimelineContent() {
   const maxTimelineLength = useAtom(settingMaxTimelineLength);
   const autoKeyframe = useAtom(settingAutoKeyframe);
   const selectedKfs = useAtom(selectedKeyframes);
+  const mutedProps = useAtom(mutedPropertiesAtom);
 
   const timelineContentRef = useRef<ScrollingFrame>();
 
@@ -66,6 +190,10 @@ export function TimelineContent() {
       supportedProperties.forEach((prop) => {
         connections.push(
           selection.GetPropertyChangedSignal(prop as SelectionProperty).Connect(() => {
+            const mutedProperties = peek(mutedPropertiesAtom);
+
+            if (mutedProperties.get(selection)?.includes(prop)) return;
+
             const internalChangeMap = peek(internalPropertyChange);
 
             if (internalChangeMap.get(selection) !== undefined || internalChangeMap.get(selection)?.has(prop)) return;
@@ -127,6 +255,9 @@ export function TimelineContent() {
     const kfRefs: { kf: KeyframeData; ref: React.RefObject<Frame> }[] = [];
 
     propertyStrings.forEach((property) => {
+      const mutedProperties = peek(mutedPropertiesAtom);
+      const isMuted = mutedProperties.get(selectedInstance)?.includes(property) ?? false;
+
       // Property TextLabel
       propertyTextLabels.push(
         <TextElement
@@ -196,6 +327,38 @@ export function TimelineContent() {
                   return true;
                 },
               },
+              {
+                label: `${isMuted ? 'Unmute' : 'Mute'} Property Track`,
+                tooltip: 'Stops/starts listening for property changes for this track if auto-keyframe is on.',
+                clicked: () => {
+                  const mutedProperties = peek(mutedPropertiesAtom);
+                  const mutedPropertiesForInstance = mutedProperties.get(selectedInstance);
+                  const newMuted = new Map([...mutedProperties]);
+
+                  if (mutedPropertiesForInstance === undefined || !mutedPropertiesForInstance.includes(property)) {
+                    newMuted.set(selectedInstance, [property]);
+
+                    ToastManager.addToast({
+                      type: ToastType.Info,
+                      message: `Muted ${property} track!`,
+                      duration: 4,
+                    });
+                  } else if (mutedPropertiesForInstance.includes(property)) {
+                    const filtered = newMuted.get(selectedInstance)!.filter((p) => p !== property);
+                    newMuted.set(selectedInstance, filtered);
+
+                    ToastManager.addToast({
+                      type: ToastType.Success,
+                      message: `Unmuted ${property} track!`,
+                      duration: 4,
+                    });
+                  }
+
+                  mutedPropertiesAtom(newMuted);
+
+                  return true;
+                },
+              },
             ]}
           />
         </TextElement>
@@ -218,83 +381,60 @@ export function TimelineContent() {
         };
 
         keyframeElements.push(
-          <frame
+          <Keyframe
             key={`Keyframe-${string.format('%.2f', kf.time)}-${kf.property}-${typeOf(kf.value)}-${kf.value}`}
-            ref={newKfRefData.ref}
-            Active={true}
-            AnchorPoint={new Vector2(0.5, 0.5)}
-            Size={new UDim2(0, 9, 0, 9)}
-            Position={new UDim2(kf.time / maxTimelineLength, 0, 0.5, 0)}
-            ZIndex={15}
-            Rotation={45}
-            BorderSizePixel={isKeyframeSelected ? 1 : 0}
-            BorderColor3={Palette.White}
-            BackgroundColor3={getKeyframeColorFromEasingStyle(kf.easingStyle)}
-            Event={{
-              InputBegan: (_, input) => {
-                if (input.UserInputState !== Enum.UserInputState.Begin || input.UserInputType !== Enum.UserInputType.MouseButton1) return;
+            data={kf}
+            refData={newKfRefData}
+            isSelected={isKeyframeSelected}
+            onDragging={(startMousePos, currentMousePos) => dragCallback(true, startMousePos, currentMousePos, timelineContentRef, kf)}
+            onDragged={(startMousePos, endMousePos) => dragCallback(false, startMousePos, endMousePos, timelineContentRef, kf)}
+            onSelected={() => {
+              const selectMultiple = isHotkeyPressed(HotkeyIDs.KeyframesSelectMultiple);
+              const selectRange = isHotkeyPressed(HotkeyIDs.KeyframesSelectRange);
 
-                const selectMultiple = isHotkeyPressed(HotkeyIDs.KeyframesSelectMultiple);
-                const selectRange = isHotkeyPressed(HotkeyIDs.KeyframesSelectRange);
+              if (isKeyframeSelected) {
+                if (selectMultiple) {
+                  const newKeyframes = [...selectedKfs];
 
-                if (isKeyframeSelected) {
-                  if (selectMultiple) {
-                    const newKeyframes = [...selectedKfs];
+                  newKeyframes.remove(selectedKeyframeIndex);
+                  selectedKeyframes(newKeyframes);
+                } else {
+                  selectedKeyframes([{ ...kf }]);
+                }
+              } else {
+                if (isHotkeyPressed(HotkeyIDs.KeyframesSelectMultiple)) {
+                  selectedKeyframes([...selectedKfs, { ...kf }]);
+                } else if (selectRange) {
+                  const selectedKfsOfProperty = selectedKfs.filter(
+                    (selectedKf) => selectedKf.instance === kf.instance && selectedKf.property === property
+                  );
 
-                    newKeyframes.remove(selectedKeyframeIndex);
-                    selectedKeyframes(newKeyframes);
+                  if (selectedKfsOfProperty.size() > 0) {
+                    selectedKfsOfProperty.sort((a, b) => a.time < b.time);
+                    const rangeStartIndex = propertyKeyframes.findIndex(
+                      (pKf) => pKf.time === selectedKfsOfProperty[selectedKfsOfProperty.size() - 1].time
+                    );
+                    const rangeEndIndex = propertyKeyframes.findIndex((pKf) => pKf.time === kf.time);
+                    const keyframeRangeToAdd: KeyframeData[] = [];
+
+                    propertyKeyframes.forEach((pKf, i) => {
+                      if (i >= rangeStartIndex && i <= rangeEndIndex) {
+                        keyframeRangeToAdd.push({
+                          ...pKf,
+                        });
+                      }
+                    });
+
+                    selectedKeyframes([...selectedKfs, ...keyframeRangeToAdd]);
                   } else {
-                    selectedKeyframes([{ ...kf }]);
+                    selectedKeyframes([...selectedKfs, { ...kf }]);
                   }
                 } else {
-                  if (isHotkeyPressed(HotkeyIDs.KeyframesSelectMultiple)) {
-                    selectedKeyframes([...selectedKfs, { ...kf }]);
-                  } else if (selectRange) {
-                    const selectedKfsOfProperty = selectedKfs.filter(
-                      (selectedKf) => selectedKf.instance === kf.instance && selectedKf.property === property
-                    );
-
-                    if (selectedKfsOfProperty.size() > 0) {
-                      selectedKfsOfProperty.sort((a, b) => a.time < b.time);
-                      const rangeStartIndex = propertyKeyframes.findIndex(
-                        (pKf) => pKf.time === selectedKfsOfProperty[selectedKfsOfProperty.size() - 1].time
-                      );
-                      const rangeEndIndex = propertyKeyframes.findIndex((pKf) => pKf.time === kf.time);
-                      const keyframeRangeToAdd: KeyframeData[] = [];
-
-                      propertyKeyframes.forEach((pKf, i) => {
-                        if (i >= rangeStartIndex && i <= rangeEndIndex) {
-                          keyframeRangeToAdd.push({
-                            ...pKf,
-                          });
-                        }
-                      });
-
-                      selectedKeyframes([...selectedKfs, ...keyframeRangeToAdd]);
-                    } else {
-                      selectedKeyframes([...selectedKfs, { ...kf }]);
-                    }
-                  } else {
-                    selectedKeyframes([{ ...kf }]);
-                  }
+                  selectedKeyframes([{ ...kf }]);
                 }
-              },
+              }
             }}
-          >
-            <imagebutton
-              key={'InputSink'}
-              ZIndex={14}
-              Size={new UDim2(1, 0, 1, 0)}
-              Position={new UDim2(0, 0, 0, 0)}
-              BackgroundTransparency={1}
-              ImageTransparency={1}
-            />
-            <Tooltip
-              text={`${getKeyframeValuePrettified(kf.value)} @ ${string.format('%.2f', kf.time)} s\n${kf.easingStyle.Name} | ${
-                kf.easingDirection.Name
-              }`}
-            />
-          </frame>
+          />
         );
 
         // Push keyframe ref
@@ -309,7 +449,7 @@ export function TimelineContent() {
             Size={new UDim2(1, 0, 0, 1)}
             Position={new UDim2(0, 0, 0.5, 0)}
             BorderSizePixel={0}
-            BackgroundColor3={Palette.DefaultText}
+            BackgroundColor3={isMuted ? Palette.Error : peek(settingAutoKeyframe) ? Palette.DefaultText : Palette.Error}
           />
 
           {...keyframeElements!}
@@ -318,7 +458,7 @@ export function TimelineContent() {
     });
 
     return $tuple(propertyTextLabels, propertyContentBars, kfRefs);
-  }, [animRegistry, instTreeSelection, maxTimelineLength, selectedKfs]);
+  }, [animRegistry, instTreeSelection, maxTimelineLength, selectedKfs, mutedProps, autoKeyframe]);
 
   // Determine dragging & update current mouse position for drag selection
   useEffect(() => {
@@ -448,13 +588,16 @@ export function TimelineContent() {
         BorderSizePixel={0}
         BackgroundTransparency={1}
       >
-        <uilistlayout
-          FillDirection={Enum.FillDirection.Vertical}
-          HorizontalAlignment={Enum.HorizontalAlignment.Left}
-          VerticalAlignment={Enum.VerticalAlignment.Top}
-          SortOrder={Enum.SortOrder.Name}
-        />
-        {...propertyContent}
+        <frame key={'PropertyContentContainerWrapper'} Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1}>
+          <uilistlayout
+            FillDirection={Enum.FillDirection.Vertical}
+            HorizontalAlignment={Enum.HorizontalAlignment.Left}
+            VerticalAlignment={Enum.VerticalAlignment.Top}
+            SortOrder={Enum.SortOrder.Name}
+          />
+          {...propertyContent}
+        </frame>
+        <KeyframeVisualizer keyframeRefData={keyframeRefs} />
       </frame>
       <frame
         key={'DragSelectionInputHitbox'}

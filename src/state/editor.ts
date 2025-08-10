@@ -19,6 +19,12 @@ interface AnimationRegistryData {
   keyframes: Array<KeyframeData>;
 }
 
+export interface DraggingKeyframeData {
+  keyframe: KeyframeData;
+  oldTime: number;
+  newTime: number;
+}
+
 // Max timeline length (in seconds) setting
 export const settingMaxTimelineLength = atom(5);
 
@@ -57,6 +63,9 @@ export function finishInternalPropertyChange(instance: Instance, property: strin
   internalPropertyChange(internalMap);
 }
 
+// Mute property tracks from recording changes
+export const mutedPropertiesAtom = atom<Map<Instance, string[]>>(new Map());
+
 // Sync selections setting
 export const settingSyncSelections = atom(true);
 
@@ -68,6 +77,9 @@ export const activeContextMenu = atom('');
 
 // Currently selected keyframes
 export const selectedKeyframes = atom<KeyframeData[]>([]);
+
+// Dragging keyframes to preview
+export const previewKeyframesAtom = atom<DraggingKeyframeData[]>([]);
 
 // Animated instances & properties
 export const animationRegistry = atom<Map<Instance, AnimationRegistryData>>(new Map());

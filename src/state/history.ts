@@ -255,6 +255,45 @@ class AutoKeyframeWithUpdateAction extends ActionBatch implements MergeableActio
   }
 }
 
+interface KeyframeMoveData {
+  kf: KeyframeData;
+  newTime: number;
+}
+
+// Used for when a keyframe is dragged/moved
+export class ActionKeyframeMove implements HistoryAction {
+  public actionName = 'ActionKeyframeMove';
+  public moves: KeyframeMoveData[] = [];
+  public actions: ActionBatch[] = [];
+
+  addMove(kf: KeyframeData, newTime: number) {
+    const existingMoveIndex = this.moves.findIndex(
+      (data) => data.kf.instance === kf.instance && data.kf.property === kf.property && data.kf.time === kf.time
+    );
+
+    if (existingMoveIndex !== -1) {
+      this.moves[existingMoveIndex].newTime = newTime;
+      this.actions[existingMoveIndex] = new ActionBatch([new DeleteKeyframeAction({ ...kf }), new CreateKeyframeAction({ ...kf, time: newTime })]);
+    } else {
+      this.moves.push({
+        kf: { ...kf },
+        newTime: newTime,
+      });
+      this.actions.push(new ActionBatch([new DeleteKeyframeAction({ ...kf }), new CreateKeyframeAction({ ...kf, time: newTime })]));
+    }
+  }
+
+  do() {
+    this.actions.forEach((action) => action.do());
+  }
+
+  undo() {
+    for (let i = this.actions.size() - 1; i >= 0; i--) {
+      this.actions[i].undo();
+    }
+  }
+}
+
 type KeyframeSearchPayload = {
   instance: Instance;
   property: string;

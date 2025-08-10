@@ -9,6 +9,7 @@ import { TextboxElement } from './TextboxElement';
 import { createNextOrder } from 'utils/createNextOrder';
 import { DropdownOptionElement } from './DropdownOptionElement';
 import {
+  animationRegistry,
   KeyframeData,
   selectedKeyframes,
   settingAutoKeyframe,
@@ -23,8 +24,9 @@ import { getAnimatableProperties, SupportedClass } from 'utils/animatablePropert
 import { useUpdate } from '@rbxts/pretty-react-hooks';
 import { useResetState } from 'utils/hooks/useResetState';
 import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
-import { ActionBatch, ActionManager, makeUpdateKeyframeAction } from 'state/history';
+import { ActionBatch, ActionManager, CreateKeyframeAction, DeleteKeyframeAction, makeUpdateKeyframeAction } from 'state/history';
 import { ToastManager, ToastType } from 'state/toasts';
+import { matchKeyframes } from 'utils/keyframeUtils';
 
 /*
   components/sections/Topbar
@@ -297,6 +299,40 @@ export function Topbar() {
         </TopbarElement>
       ) : undefined}
 
+      {/* Keyframe Time Input */}
+      {selectedKfs.size() === 1 ? (
+        <TopbarElement key={'KeyframeTimeTextbox'} layoutPosition={nextOrder()} visibleBackground={true}>
+          <TextboxElement
+            labelText={'Keyframe Time'}
+            initialText={string.format('%.2f', selectedKfs[0].time)}
+            placeholderText={'0.00 s'}
+            suffix={'s'}
+            asNumberInput={true}
+            decimalPlaces={2}
+            valueClamper={scrubberPositionValueClamper}
+            onTextChanged={(num, finishedEditing) => {
+              const kf = selectedKfs[0];
+              const newKf = { ...kf, time: tonumber(string.format('%.2f', num))! };
+
+              if (finishedEditing) {
+                const actionBatch = new ActionBatch([new DeleteKeyframeAction({ ...kf }), new CreateKeyframeAction(newKf)]);
+
+                ActionManager.execute(actionBatch);
+                forceUpdatePreview();
+
+                selectedKeyframes([
+                  peek(animationRegistry)
+                    .get(kf.instance)!
+                    .keyframes.filter((k) => matchKeyframes(k, newKf))[0],
+                ]);
+              }
+            }}
+          >
+            <Tooltip text={'The position of the selected keyframe in seconds.'} />
+          </TextboxElement>
+        </TopbarElement>
+      ) : undefined}
+
       {/* EasingStyle & EasingDirection Dropdowns */}
       {easingDropdownsVisible ? (
         <>
@@ -368,6 +404,8 @@ export function Topbar() {
           </TopbarElement>
         </>
       ) : undefined}
+
+      {/* Warnings Label */}
       {warnings.size() > 0 ? (
         <TopbarElement key={'AutoKeyframeWarning'} layoutPosition={nextOrder()}>
           <uiflexitem FlexMode={Enum.UIFlexMode.Fill} />
