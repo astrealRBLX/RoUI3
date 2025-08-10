@@ -19,7 +19,7 @@ import { Palette } from 'utils/styling';
 import { TextElement } from '../Topbar/TextElement';
 import { ContextMenu } from 'components/ui/ContextMenu';
 import { matchKeyframes } from 'utils/keyframeUtils';
-import { HotkeyIDs, isHotkeyPressed, useHotkey } from 'utils/hotkeyUtils';
+import { HotkeyIDs, isHotkeyPressed, useHotkey, useHotkeyDown } from 'utils/hotkeyUtils';
 import { RunService } from '@rbxts/services';
 import { getRelativeMouse } from 'utils/getRelativeMouse';
 import { getAnimatableProperties, SupportedClass } from 'utils/animatableProperties';
@@ -169,6 +169,30 @@ function dragCallback(
   }
 }
 
+function keyframeNudgeCallback(selectedKfs: KeyframeData[], maxTimelineLength: number, direction: 'left' | 'right') {
+  if (selectedKfs.size() === 0) return;
+
+  const action = new ActionKeyframeMove(true);
+
+  const postMoveSelectedKeyframes: KeyframeData[] = [];
+
+  selectedKfs.forEach((selected) => {
+    let newTime = math.clamp(selected.time + (direction === 'left' ? -0.01 : 0.01), 0, maxTimelineLength);
+
+    newTime = tonumber(string.format('%.2f', newTime))!;
+
+    action.addMove({ ...selected }, newTime);
+    postMoveSelectedKeyframes.push({
+      ...selected,
+      time: newTime,
+    });
+  });
+
+  ActionManager.execute(action, true);
+  forceUpdatePreview();
+  selectedKeyframes(postMoveSelectedKeyframes);
+}
+
 export function TimelineContent() {
   const animRegistry = useAtom(animationRegistry);
   const instTreeSelection = useAtom(instanceTreeSelection);
@@ -185,6 +209,16 @@ export function TimelineContent() {
   const startDragMousePos = useRef<Vector2>(Vector2.zero);
   const [currentDragMousePos, setCurrentDragMousePos] = useBinding(Vector2.zero);
   const attempingDrag = useRef(false);
+
+  useHotkeyDown(HotkeyIDs.KeyframesNudgeRight, [], 0.05, () => keyframeNudgeCallback(selectedKfs, maxTimelineLength, 'right'), [
+    selectedKfs,
+    maxTimelineLength,
+  ]);
+
+  useHotkeyDown(HotkeyIDs.KeyframesNudgeLeft, [], 0.05, () => keyframeNudgeCallback(selectedKfs, maxTimelineLength, 'left'), [
+    selectedKfs,
+    maxTimelineLength,
+  ]);
 
   // Auto-keyframe property update effect
   useEffect(() => {

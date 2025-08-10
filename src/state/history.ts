@@ -332,11 +332,16 @@ interface KeyframeMoveData {
 }
 
 // Used for when a keyframe is dragged/moved
-export class ActionKeyframeMove implements HistoryAction {
+export class ActionKeyframeMove implements HistoryAction, MergeableAction {
   public actionName = 'ActionKeyframeMove';
   public actionToastMessage = 'Keyframe move';
+  public lastModified: number;
   public moves: KeyframeMoveData[] = [];
   public actions: ActionBatch[] = [];
+
+  constructor(public isMergeable: boolean = false) {
+    this.lastModified = tick();
+  }
 
   addMove(kf: KeyframeData, newTime: number) {
     const existingMoveIndex = this.moves.findIndex(
@@ -353,6 +358,10 @@ export class ActionKeyframeMove implements HistoryAction {
       });
       this.actions.push(new ActionBatch([new DeleteKeyframeAction({ ...kf }), new CreateKeyframeAction({ ...kf, time: newTime })]));
     }
+  }
+
+  merge(action: ActionKeyframeMove) {
+    // TODO: Merging
   }
 
   do() {
@@ -511,6 +520,17 @@ export namespace ActionManager {
             return;
           }
         }
+        // TODO: Merging keyframe moves
+        // } else if (lastAction instanceof ActionKeyframeMove && action instanceof ActionKeyframeMove) {
+        //   if (action.isMergeable && lastAction.isMergeable) {
+        //     lastAction.merge(action);
+        //     lastAction.lastModified = now;
+        //     lastAction.do();
+        //     redoStack.clear();
+
+        //     return;
+        //   }
+        // }
       }
     }
 
