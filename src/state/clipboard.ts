@@ -11,6 +11,15 @@ export namespace ClipboardManager {
   export function copy() {
     const selectedKfs = peek(selectedKeyframes);
 
+    if (selectedKfs.size() === 0) {
+      ToastManager.addToast({
+        type: ToastType.Info,
+        message: `<b>Clipboard</b> • No keyframes selected to copy`,
+      });
+
+      return;
+    }
+
     clipboardAtom([...selectedKfs]);
 
     ToastManager.addToast({
@@ -25,7 +34,7 @@ export namespace ClipboardManager {
     if (selectedKfs.size() === 0) {
       ToastManager.addToast({
         type: ToastType.Info,
-        message: `<b>Clipboard</b> • No keyframes selected to copy.`,
+        message: `<b>Clipboard</b> • No keyframes selected to copy`,
       });
 
       return;
@@ -46,12 +55,13 @@ export namespace ClipboardManager {
     });
 
     ActionManager.execute(actionBatch);
+    actionBatch.setActionToast(`${actionBatch.getActions().size()} keyframe(s) cut`);
     forceUpdatePreview();
     selectedKeyframes([]);
 
     ToastManager.addToast({
       type: ToastType.Success,
-      message: `<b>Clipboard</b> • Cut ${peek(clipboardAtom).size()} keyframe(s)!`,
+      message: `<b>Clipboard</b> • Cut ${peek(clipboardAtom).size()} keyframe(s)`,
     });
   }
 
@@ -61,7 +71,7 @@ export namespace ClipboardManager {
     if (clipboard.size() === 0) {
       ToastManager.addToast({
         type: ToastType.Info,
-        message: '<b>Clipboard</b> • Clipboard is empty!',
+        message: '<b>Clipboard</b> • Clipboard is empty',
       });
 
       return;
@@ -72,7 +82,7 @@ export namespace ClipboardManager {
     if (selectedInstanceOption.isNone()) {
       ToastManager.addToast({
         type: ToastType.Info,
-        message: '<b>Clipboard</b> • Cannot paste clipboard due to no instance being selected!',
+        message: '<b>Clipboard</b> • Cannot paste clipboard due to no instance being selected',
       });
 
       return;
@@ -104,11 +114,12 @@ export namespace ClipboardManager {
     });
 
     ActionManager.execute(actionBatch);
+    actionBatch.setActionToast(`${actionBatch.getActions().size()} keyframe(s) pasted`);
     forceUpdatePreview();
 
     ToastManager.addToast({
       type: ToastType.Success,
-      message: `<b>Clipboard</b> • Pasted ${clipboard.size()} keyframe(s)!`,
+      message: `<b>Clipboard</b> • Pasted ${clipboard.size()} keyframe(s)`,
     });
   }
 

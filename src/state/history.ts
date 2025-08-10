@@ -8,8 +8,12 @@ import { getKeyframeValuePrettified } from 'utils/keyframeUtils';
 
 export interface HistoryAction {
   actionName: string;
+  actionToastMessage: string;
   do(): void;
   undo(): void;
+  setActionToast(msg: string): void;
+  getActionToast(): string;
+  updateActionToast?(): void;
 }
 
 interface MergeableAction {
@@ -20,6 +24,7 @@ type ActionPayload<A extends Action> = Omit<A, 'type'>;
 
 export class ActionBatch implements HistoryAction {
   public actionName = 'ActionBatch';
+  public actionToastMessage = 'Changes applied';
 
   constructor(private allActions: HistoryAction[] = []) {}
 
@@ -40,10 +45,23 @@ export class ActionBatch implements HistoryAction {
       this.allActions[i].undo();
     }
   }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
+
+  updateActionToast() {
+    this.setActionToast(`${this.allActions.size()} change(s) applied`);
+  }
 }
 
 export class DeleteInstancePropertyAction extends ActionBatch {
   public actionName = 'DeleteInstancePropertyAction';
+  public actionToastMessage = 'Property track deleted';
   public instance: Instance;
   public property: string;
 
@@ -85,10 +103,19 @@ export class DeleteInstancePropertyAction extends ActionBatch {
     // Recreate all keyframes
     super.undo();
   }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
 }
 
 export class DeleteKeyframeAction implements HistoryAction {
   public actionName = 'DeleteKeyframeAction';
+  public actionToastMessage = 'Keyframe deleted';
 
   private keyframe?: KeyframeData;
 
@@ -117,10 +144,19 @@ export class DeleteKeyframeAction implements HistoryAction {
       });
     }
   }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
 }
 
 export class CreateKeyframeAction implements HistoryAction {
   public actionName = 'CreateKeyframeAction';
+  public actionToastMessage = 'Keyframe created';
 
   constructor(private payload: ActionPayload<ActionCreateKeyframe>) {}
 
@@ -149,10 +185,19 @@ export class CreateKeyframeAction implements HistoryAction {
       setPropertyKeyed(this.payload.instance, this.payload.property, propertyKeyframes.size() > 0);
     }
   }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
 }
 
 export class UpdateKeyframeAction implements HistoryAction, MergeableAction {
   public actionName = 'UpdateKeyframeAction';
+  public actionToastMessage = 'Keyframe updated';
   public lastModified: number;
 
   constructor(private fromKeyframeData: KeyframeData, private toKeyframeData: KeyframeData, public autoKeyed: boolean = false) {
@@ -192,11 +237,20 @@ export class UpdateKeyframeAction implements HistoryAction, MergeableAction {
   merge(withAction: UpdateKeyframeAction) {
     this.toKeyframeData = { ...withAction.toKeyframeData };
   }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
 }
 
 // Used for when a baseline keyframe is created alongside a new keyframe
 class BaselineKeyframeAction extends ActionBatch implements MergeableAction {
   public actionName = 'BaselineKeyframeAction';
+  public actionToastMessage = 'Baseline keyframe created';
   public lastModified: number;
 
   constructor(public baselineCreateAction: CreateKeyframeAction, public newKeyframeAction: AutoKeyframeWithUpdateAction) {
@@ -212,11 +266,20 @@ class BaselineKeyframeAction extends ActionBatch implements MergeableAction {
   batchAutokeyUpdate(withAction: UpdateKeyframeAction) {
     this.newKeyframeAction.batchAutokeyUpdate(withAction);
   }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
 }
 
 // Used for when a keyframe is auto-keyed to listen for continuous updates
 class AutoKeyframeWithUpdateAction extends ActionBatch implements MergeableAction {
   public actionName = 'AutoKeyframeWithUpdateAction';
+  public actionToastMessage = 'Keyframe auto-keyed';
   public lastModified: number;
 
   constructor(public createAction: CreateKeyframeAction, public updateAction: UpdateKeyframeAction) {
@@ -253,6 +316,14 @@ class AutoKeyframeWithUpdateAction extends ActionBatch implements MergeableActio
       super.addAction(withAction);
     }
   }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
 }
 
 interface KeyframeMoveData {
@@ -263,6 +334,7 @@ interface KeyframeMoveData {
 // Used for when a keyframe is dragged/moved
 export class ActionKeyframeMove implements HistoryAction {
   public actionName = 'ActionKeyframeMove';
+  public actionToastMessage = 'Keyframe move';
   public moves: KeyframeMoveData[] = [];
   public actions: ActionBatch[] = [];
 
@@ -291,6 +363,18 @@ export class ActionKeyframeMove implements HistoryAction {
     for (let i = this.actions.size() - 1; i >= 0; i--) {
       this.actions[i].undo();
     }
+  }
+
+  getActionToast() {
+    return this.actionToastMessage;
+  }
+
+  setActionToast(msg: string) {
+    this.actionToastMessage = msg;
+  }
+
+  updateActionToast() {
+    this.setActionToast(`${this.moves.size()} keyframe(s) moved`);
   }
 }
 
@@ -391,6 +475,8 @@ export namespace ActionManager {
   const redoStack: HistoryAction[] = [];
 
   export function execute(action: HistoryAction, tryMerge?: boolean) {
+    if (action.updateActionToast !== undefined) action.updateActionToast();
+
     if (tryMerge && undoStack.size() > 0) {
       const now = tick();
       const lastActionIndex = undoStack.size() - 1;
@@ -438,57 +524,8 @@ export namespace ActionManager {
   }
 
   function formatToastMessage(action: HistoryAction, actionType: 'undo' | 'redo') {
-    const prefix = actionType === 'undo' ? 'UNDO' : 'REDO';
-
-    let message: string = `<b>${prefix}</b> Action ${actionType === 'undo' ? 'undone' : 'redone'}!`;
-
-    switch (true) {
-      case action instanceof CreateKeyframeAction:
-        const createKeyframe = action.getKeyframe();
-        message = `<b>${prefix}</b> • Keyframe created ${createKeyframe.instance.Name} (${createKeyframe.property}) @ ${string.format(
-          '%.2f',
-          createKeyframe.time
-        )} s`;
-        break;
-      case action instanceof DeleteKeyframeAction:
-        const deleteKeyfame = action.getKeyframe();
-        if (deleteKeyfame !== undefined)
-          message = `<b>${prefix}</b> • Keyframe deleted ${deleteKeyfame.instance.Name} (${deleteKeyfame.property}) @ ${string.format(
-            '%.2f',
-            deleteKeyfame.time
-          )} s`;
-        break;
-      case action instanceof UpdateKeyframeAction:
-        const toKeyframe = action.getToKeyframe();
-        message = `<b>${prefix}</b> • Keyframe updated ${toKeyframe.instance.Name} (${toKeyframe.property}) @ ${string.format(
-          '%.2f',
-          toKeyframe.time
-        )} s`;
-        break;
-      case action instanceof AutoKeyframeWithUpdateAction:
-        const actions = action.getActions();
-        if (actions.size() > 1) {
-          const updateKeyframeAction = actions[1] as UpdateKeyframeAction;
-          const updateKeyframe = updateKeyframeAction.getToKeyframe();
-          message = `<b>${prefix}</b> • Keyframe created & updated ${updateKeyframe.instance.Name} (${updateKeyframe.property}) @ ${string.format(
-            '%.2f',
-            updateKeyframe.time
-          )} s`;
-        }
-        break;
-      case action instanceof BaselineKeyframeAction:
-        const bActions = action.getActions();
-        if (bActions.size() > 1) {
-          const autoKeyframeWithUpdateAction = bActions[1] as AutoKeyframeWithUpdateAction;
-          const updateKfAction = autoKeyframeWithUpdateAction.getActions()[1] as UpdateKeyframeAction;
-          const updateKeyframe = updateKfAction.getToKeyframe();
-          message = `<b>${prefix}</b> • Keyframes created & updated ${updateKeyframe.instance.Name} (${updateKeyframe.property}) @ ${string.format(
-            '%.2f',
-            updateKeyframe.time
-          )} s`;
-        }
-        break;
-    }
+    const prefix = actionType === 'undo' ? '<b>Undo</b> •' : '<b>Redo</b> •';
+    const message = `${prefix} ${action.actionToastMessage}`;
 
     return message;
   }

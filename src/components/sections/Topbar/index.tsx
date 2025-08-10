@@ -24,7 +24,7 @@ import { getAnimatableProperties, SupportedClass } from 'utils/animatablePropert
 import { useUpdate } from '@rbxts/pretty-react-hooks';
 import { useResetState } from 'utils/hooks/useResetState';
 import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
-import { ActionBatch, ActionManager, CreateKeyframeAction, DeleteKeyframeAction, makeUpdateKeyframeAction } from 'state/history';
+import { ActionBatch, ActionKeyframeMove, ActionManager, CreateKeyframeAction, DeleteKeyframeAction, makeUpdateKeyframeAction } from 'state/history';
 import { ToastManager, ToastType } from 'state/toasts';
 import { matchKeyframes } from 'utils/keyframeUtils';
 
@@ -315,9 +315,11 @@ export function Topbar() {
               const newKf = { ...kf, time: tonumber(string.format('%.2f', num))! };
 
               if (finishedEditing) {
-                const actionBatch = new ActionBatch([new DeleteKeyframeAction({ ...kf }), new CreateKeyframeAction(newKf)]);
+                const action = new ActionKeyframeMove();
 
-                ActionManager.execute(actionBatch);
+                action.addMove(kf, newKf.time);
+
+                ActionManager.execute(action);
                 forceUpdatePreview();
 
                 selectedKeyframes([
@@ -361,6 +363,7 @@ export function Topbar() {
                 });
 
                 ActionManager.execute(actionBatch);
+                actionBatch.setActionToast(`EasingStyle changed for ${actionBatch.getActions().size()} keyframe(s)`);
                 selectedKeyframes(newSelectedKfs);
                 update();
               }}
@@ -394,6 +397,7 @@ export function Topbar() {
                 });
 
                 ActionManager.execute(actionBatch);
+                actionBatch.setActionToast(`EasingDirection changed for ${actionBatch.getActions().size()} keyframe(s)`);
                 selectedKeyframes(newSelectedKfs);
                 update();
               }}

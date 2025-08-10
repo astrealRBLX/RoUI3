@@ -237,6 +237,7 @@ export function TimelineContent() {
       });
 
       ActionManager.execute(actionBatch);
+      actionBatch.setActionToast(`${actionBatch.getActions().size()} keyframe(s) deleted`);
       forceUpdatePreview();
       selectedKeyframes([]);
     },
@@ -654,6 +655,7 @@ export function TimelineContent() {
                 });
 
                 ActionManager.execute(actionBatch);
+                actionBatch.setActionToast(`${actionBatch.getActions().size()} keyframe(s) deleted`);
                 forceUpdatePreview();
                 selectedKeyframes([]);
 
