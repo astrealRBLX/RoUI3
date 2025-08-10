@@ -24,7 +24,7 @@ import { getAnimatableProperties, SupportedClass } from 'utils/animatablePropert
 import { useUpdate } from '@rbxts/pretty-react-hooks';
 import { useResetState } from 'utils/hooks/useResetState';
 import { HotkeyIDs, useHotkey } from 'utils/hotkeyUtils';
-import { ActionBatch, ActionKeyframeMove, ActionManager, CreateKeyframeAction, DeleteKeyframeAction, makeUpdateKeyframeAction } from 'state/history';
+import { ActionBatch, MoveKeyframeAction, ActionManager, CreateKeyframeAction, DeleteKeyframeAction, makeUpdateKeyframeAction } from 'state/history';
 import { ToastManager, ToastType } from 'state/toasts';
 import { matchKeyframes } from 'utils/keyframeUtils';
 import { hotkeysTreeAtom, hotkeysWidget } from 'state/globals';
@@ -347,7 +347,7 @@ export function Topbar() {
               const newKf = { ...kf, time: tonumber(string.format('%.2f', num))! };
 
               if (finishedEditing) {
-                const action = new ActionKeyframeMove();
+                const action = new MoveKeyframeAction();
 
                 action.addMove(kf, newKf.time);
 

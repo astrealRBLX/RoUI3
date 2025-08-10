@@ -332,7 +332,7 @@ interface KeyframeMoveData {
 }
 
 // Used for when a keyframe is dragged/moved
-export class ActionKeyframeMove implements HistoryAction, MergeableAction {
+export class MoveKeyframeAction implements HistoryAction, MergeableAction {
   public actionName = 'ActionKeyframeMove';
   public actionToastMessage = 'Keyframe move';
   public lastModified: number;
@@ -360,7 +360,7 @@ export class ActionKeyframeMove implements HistoryAction, MergeableAction {
     }
   }
 
-  merge(action: ActionKeyframeMove) {
+  merge(action: MoveKeyframeAction) {
     // TODO: Merging
   }
 

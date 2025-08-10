@@ -31,7 +31,7 @@ import {
   ActionManager,
   makeUpdateKeyframeAction,
   DeleteInstancePropertyAction,
-  ActionKeyframeMove,
+  MoveKeyframeAction,
 } from 'state/history';
 import { addProperties, getCachedValueOfProperty } from 'state/properties';
 import { ClipboardManager } from 'state/clipboard';
@@ -91,7 +91,7 @@ function dragCallback(
 
   const isActivelySelected = sKeyframes.findIndex((_kf) => matchKeyframes(_kf, kf)) !== -1;
 
-  const action = new ActionKeyframeMove();
+  const action = new MoveKeyframeAction();
   const previewList: DraggingKeyframeData[] = [];
 
   const deltaTime = getDeltaTime(startMousePos, currentMousePos, timelineContentRef, maxTLength);
@@ -172,7 +172,7 @@ function dragCallback(
 function keyframeNudgeCallback(selectedKfs: KeyframeData[], maxTimelineLength: number, direction: 'left' | 'right') {
   if (selectedKfs.size() === 0) return;
 
-  const action = new ActionKeyframeMove(true);
+  const action = new MoveKeyframeAction(true);
 
   const postMoveSelectedKeyframes: KeyframeData[] = [];
 

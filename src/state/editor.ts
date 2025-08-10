@@ -138,6 +138,12 @@ export function dispatchEditorStateUpdate(action: EditorStateActions) {
           const instanceData = draft.get(action.instance);
 
           if (instanceData !== undefined) {
+            const existingKeyframeIndex = instanceData.keyframes.findIndex((kf) => kf.property === action.property && kf.time === action.time);
+
+            if (existingKeyframeIndex !== -1) {
+              Immut.table.remove(instanceData.keyframes, existingKeyframeIndex + 1);
+            }
+
             Immut.table.insert(instanceData.keyframes, {
               instance: action.instance,
               property: action.property,
