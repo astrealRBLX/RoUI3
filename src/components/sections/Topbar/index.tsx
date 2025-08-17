@@ -14,6 +14,7 @@ import {
   selectedKeyframes,
   settingAutoKeyframe,
   settingMaxTimelineLength,
+  settingReusable,
   settingScrubberPosition,
   settingSyncSelections,
 } from 'state/editor';
@@ -31,6 +32,7 @@ import { hotkeysTreeAtom, hotkeysWidget } from 'state/globals';
 import { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
 import { HotkeyView } from 'components/views/HotkeyView';
+import { ImportExportManager } from 'state/serializer';
 
 /*
   components/sections/Topbar
@@ -209,14 +211,41 @@ export function Topbar() {
           <Tooltip title={'View Hotkeys'} text={'Opens the hotkeys table.'} />
         </ImageButtonElement>
       </TopbarElement>
-      <TopbarElement key={'ExportAllButton'} layoutPosition={nextOrder()}>
-        <ImageButtonElement image='http://www.roblox.com/asset/?id=11780633056'>
-          <Tooltip title={'Export All'} text={'Exports the entire animation.'} />
+      <TopbarElement key={'ToggleTemplateButton'} layoutPosition={nextOrder()}>
+        <ImageButtonElement
+          image='rbxassetid://118906663956027'
+          initialValue={false}
+          asToggle={true}
+          onPressed={(newState) => {
+            if (newState !== undefined) {
+              settingReusable(newState);
+            }
+          }}
+        >
+          <Tooltip title={'Template Animation'} text={'Toggles whether this animation is reusable and will act as a template.'} />
         </ImageButtonElement>
       </TopbarElement>
-      <TopbarElement key={'ExportCurrentButton'} layoutPosition={nextOrder()}>
-        <ImageButtonElement image='http://www.roblox.com/asset/?id=11780632458'>
-          <Tooltip title={'Export Selection'} text={'Exports the current selection.'} />
+      <TopbarElement key={'ExportAllButton'} layoutPosition={nextOrder()}>
+        <ImageButtonElement
+          image='http://www.roblox.com/asset/?id=11780633056'
+          onPressed={() => {
+            ImportExportManager.exportAll();
+          }}
+        >
+          <Tooltip title={'Export All'} text={'Exports all instances and their tracks.'} />
+        </ImageButtonElement>
+      </TopbarElement>
+      <TopbarElement key={'ImportButton'} layoutPosition={nextOrder()}>
+        <ImageButtonElement
+          image='http://www.roblox.com/asset/?id=11780633457'
+          onPressed={() => {
+            ImportExportManager.importAnimation();
+          }}
+        >
+          <Tooltip
+            title={'Import Selection'}
+            text={`Imports any animations you have selected in the Roblox Explorer.<br/><br/>When importing a template animation keyframes will be imported to the currently selected instance in RoUI3.<br /><br /><font color="${Palette.ErrorHex}" weight="Medium">Importing data may override the current animation if any data overlaps.</font>`}
+          />
         </ImageButtonElement>
       </TopbarElement>
       <TopbarElement key={'AutoKeyframeButton'} layoutPosition={nextOrder()}>

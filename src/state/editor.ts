@@ -69,6 +69,9 @@ export const mutedPropertiesAtom = atom<Map<Instance, string[]>>(new Map());
 // Sync selections setting
 export const settingSyncSelections = atom(true);
 
+// Reusable animation setting
+export const settingReusable = atom(false);
+
 // Currently pressed keyboard keys
 export const pressedKeys = atom<Set<Enum.KeyCode>>(new Set());
 
