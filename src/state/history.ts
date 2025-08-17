@@ -75,7 +75,9 @@ export class DeleteInstancePropertyAction extends ActionBatch {
 
     if (instanceData !== undefined) {
       instanceData.keyframes.forEach((kf) => {
-        this.addAction(new DeleteKeyframeAction({ ...kf }));
+        if (kf.property === payload.property) {
+          this.addAction(new DeleteKeyframeAction({ ...kf }));
+        }
       });
     }
   }
