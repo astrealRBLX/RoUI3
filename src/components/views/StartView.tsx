@@ -12,6 +12,7 @@ import { originalScreenGuiSelection, screenGuiSelection } from 'state/timeline';
 import { springs } from 'utils/springs';
 import { Fonts, Palette } from 'utils/styling';
 import { HotkeyView } from './HotkeyView';
+import { ImportExportManager } from 'state/serializer';
 
 const SelectionService = game.GetService('Selection');
 
@@ -206,7 +207,12 @@ export function StartView() {
 
                   // Set the ScreenGui to animate & change to the EditorView
                   const screenGui = selection[0] as ScreenGui;
+
+                  ImportExportManager.assignDescendantIds(screenGui);
+
                   const screenGuiClone = selection[0].Clone() as ScreenGui;
+
+                  ImportExportManager.assignMockScreenGui(screenGuiClone);
 
                   screenGui.Parent = animatingFolder().unwrap();
                   screenGui.Enabled = false;
