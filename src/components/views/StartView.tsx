@@ -3,7 +3,7 @@ import { useMotion } from '@rbxts/pretty-react-hooks';
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from '@rbxts/react';
 import { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
-import { CoreGui, Selection, StarterGui } from '@rbxts/services';
+import { CoreGui, ReplicatedStorage, Selection, StarterGui } from '@rbxts/services';
 import { Pane } from 'components/ui/Pane';
 import { animatingFolder, appPlugin, hotkeysTreeAtom, hotkeysWidget } from 'state/globals';
 import { cacheInstanceProperties } from 'state/properties';
@@ -258,7 +258,18 @@ export function StartView() {
             MouseButton1Down: () => {
               buttonSizeMotionDownload.spring(-5, springs.bubbly);
             },
-            Activated: () => {},
+            Activated: () => {
+              const roui3module = script.Parent!.Parent!.Parent!.FindFirstChild('RoUI3');
+
+              if (roui3module !== undefined) {
+                const clonedModule = roui3module.Clone();
+                clonedModule.Parent = ReplicatedStorage;
+
+                Log.Info('{PREFIX} Downloaded the RoUI3 module into ReplicatedStorage!');
+
+                Selection.Set([clonedModule]);
+              }
+            },
             MouseEnter: () => {
               buttonSizeMotionDownload.spring(5, springs.responsive);
             },
