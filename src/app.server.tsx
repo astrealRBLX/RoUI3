@@ -6,8 +6,6 @@
 
   ~ Astreal
 */
-plugin.Activate(true);
-
 import Log, { Logger } from '@rbxts/log';
 import React from '@rbxts/react';
 import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
@@ -48,18 +46,20 @@ appPlugin(Option.some(plugin));
 
 Log.SetLogger(Logger.configure().EnrichWithProperty('PREFIX', '[RoUI3] [2.0.0]').WriteTo(Log.RobloxOutput()).Create());
 
-if (animatingFolder().isNone() && CoreGui.FindFirstChild('RoUI3_Animating') === undefined) {
-  const animatingFolderInst = new Instance('Folder');
-
-  animatingFolderInst.Name = 'RoUI3_Animating';
-  animatingFolderInst.Parent = CoreGui;
-
-  animatingFolder(Option.some(animatingFolderInst));
-} else if (animatingFolder().isNone() && CoreGui.FindFirstChild('RoUI3_Animating')) {
-  animatingFolder(Option.some(CoreGui.FindFirstChild('RoUI3_Animating') as Folder));
-}
-
 if (!RunService.IsRunning()) {
+  plugin.Activate(true);
+
+  if (animatingFolder().isNone() && CoreGui.FindFirstChild('RoUI3_Animating') === undefined) {
+    const animatingFolderInst = new Instance('Folder');
+
+    animatingFolderInst.Name = 'RoUI3_Animating';
+    animatingFolderInst.Parent = CoreGui;
+
+    animatingFolder(Option.some(animatingFolderInst));
+  } else if (animatingFolder().isNone() && CoreGui.FindFirstChild('RoUI3_Animating')) {
+    animatingFolder(Option.some(CoreGui.FindFirstChild('RoUI3_Animating') as Folder));
+  }
+
   const toolbar = plugin.CreateToolbar('RoUI3');
   const animateButton = toolbar.CreateButton('roui3_edit', 'Start animating with RoUI3', 'http://www.roblox.com/asset/?id=11793434500', 'Editor');
 
@@ -162,7 +162,13 @@ if (!RunService.IsRunning()) {
   (hotkeyWidget['BindToClose' as never] as Callback)(hotkeysWidget().unwrap(), cleanupHotkeys) as never;
 
   animateButton.Click.Connect(() => {
+    if (RunService.IsRunning()) {
+      return;
+    }
+
     if (appTreeAtom().isNone()) {
+      plugin.Activate(true);
+
       appTreeAtom(Option.some(createRoot(appWidget().unwrap())));
 
       appTreeAtom()
@@ -174,9 +180,4 @@ if (!RunService.IsRunning()) {
       cleanup();
     }
   });
-}
-
-// Download RoUI3 module
-if (RunService.IsEdit()) {
-  // TODO: Impl module downloading
 }
