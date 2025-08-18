@@ -4,16 +4,21 @@
 		"allowSyntheticDefaultImports": true,
 		"downlevelIteration": true,
 		"jsx": "react",
-		"jsxFactory": "Roact.createElement",
-		"jsxFragmentFactory": "Roact.Fragment",
+		"jsxFactory": "React.createElement",
+		"jsxFragmentFactory": "React.Fragment",
 		"module": "commonjs",
 		"moduleResolution": "Node",
 		"noLib": true,
 		"resolveJsonModule": true,
+		"moduleDetection": "force",
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
 		"target": "ESNext",
 		"typeRoots": ["node_modules/@rbxts"],
+		"types": ["types/plugin", "services/plugin"],
+
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
 
 		// configurable
 		"rootDir": "src",

@@ -1,5 +1,3 @@
-/// <reference types="@rbxts/types/plugin" />
-
 /*
   Thanks for reading through
   the source! If you're interested in
@@ -8,133 +6,178 @@
 
   ~ Astreal
 */
-import { createTreeManager, TreeManager } from 'utils/trees';
-import { createWidgetManager } from 'utils/widgets';
-import { setPlugin } from 'utils/plugin';
-
-plugin.Activate(true);
-
-const widgetManager = createWidgetManager(plugin);
-const treeManager = createTreeManager();
-
-setPlugin(plugin);
-
-import Roact from '@rbxts/roact';
-import RoactRodux from '@rbxts/roact-rodux';
+import Log, { Logger } from '@rbxts/log';
+import React from '@rbxts/react';
+import ReactRoblox, { createPortal, createRoot } from '@rbxts/react-roblox';
 import { Option } from '@rbxts/rust-classes';
-import { Start } from 'components/roots/start';
-import { AppStore } from 'rodux/store';
-import { RunService, Workspace } from '@rbxts/services';
-import restoreRoot from 'rodux/thunks/restoreRoot';
+import { CoreGui, RunService, StarterGui } from '@rbxts/services';
+import { App } from 'components/App';
+import { ClipboardManager } from 'state/clipboard';
+import {
+  activeContextMenu,
+  animationRegistry,
+  internalPropertyChange,
+  mutedPropertiesAtom,
+  pressedKeys,
+  previewKeyframesAtom,
+  selectedKeyframes,
+  settingAutoKeyframe,
+  settingMaxTimelineLength,
+  settingScrubberPosition,
+  settingSyncSelections,
+  startInternalPropertyChange,
+} from 'state/editor';
+import { animatingFolder, appPlugin, appTreeAtom, appWidget, hotkeysTreeAtom, hotkeysWidget } from 'state/globals';
+import { ActionManager } from 'state/history';
+import { clearCache } from 'state/properties';
+import { currentRoute, Route } from 'state/routes';
+import {
+  currentTimestamps,
+  editorWarnings,
+  instanceTreeSelection,
+  originalScreenGuiSelection,
+  previewData,
+  screenGuiSelection,
+  scrubbingData,
+} from 'state/timeline';
+import { ToastManager } from 'state/toasts';
 
-let RoUI3Module: ModuleScript;
+appPlugin(Option.some(plugin));
+
+Log.SetLogger(Logger.configure().EnrichWithProperty('PREFIX', '[RoUI3] [2.0.0]').WriteTo(Log.RobloxOutput()).Create());
 
 if (!RunService.IsRunning()) {
+  plugin.Activate(true);
+
+  if (animatingFolder().isNone() && CoreGui.FindFirstChild('RoUI3_Animating') === undefined) {
+    const animatingFolderInst = new Instance('Folder');
+
+    animatingFolderInst.Name = 'RoUI3_Animating';
+    animatingFolderInst.Parent = CoreGui;
+
+    animatingFolder(Option.some(animatingFolderInst));
+  } else if (animatingFolder().isNone() && CoreGui.FindFirstChild('RoUI3_Animating')) {
+    animatingFolder(Option.some(CoreGui.FindFirstChild('RoUI3_Animating') as Folder));
+  }
+
   const toolbar = plugin.CreateToolbar('RoUI3');
-  const animateButton = toolbar.CreateButton(
-    'roui3_animate',
-    'Start animating with RoUI3',
-    'http://www.roblox.com/asset/?id=11793434500',
-    'Animate'
+  const animateButton = toolbar.CreateButton('roui3_edit', 'Start animating with RoUI3', 'http://www.roblox.com/asset/?id=11793434500', 'Editor');
+
+  const widget = plugin.CreateDockWidgetPluginGui(
+    'roui3-main-widget',
+    new DockWidgetPluginGuiInfo(Enum.InitialDockState.Bottom, false, true, 500, 250, 500, 250)
   );
-  const downloadButton = toolbar.CreateButton(
-    'roui3_download',
-    'Download the RoUI3 animation module',
-    'http://www.roblox.com/asset/?id=11793434500',
-    'Download RoUI3 Module'
+  const hotkeyWidget = plugin.CreateDockWidgetPluginGui(
+    'roui3-hotkey-widget',
+    new DockWidgetPluginGuiInfo(Enum.InitialDockState.Float, false, false, 250, 250, 250, 250)
   );
 
-  // Utility function for unmounting a tree wrapped in an option
-  const cleanupTree = (tree: Option<Roact.Tree>, cb?: () => void) => {
-    if (tree.isSome()) {
-      Roact.unmount(tree.unwrap());
-      if (cb) cb();
+  appWidget(Option.some(widget));
+  hotkeysWidget(Option.some(hotkeyWidget));
+
+  // `Title` isn't found as a property of `DockWidgetPluginGui` ???
+  widget['Title' as never] = 'RoUI3' as never;
+  widget.Name = 'RoUI3';
+
+  hotkeyWidget['Title' as never] = 'RoUI3 - Hotkeys' as never;
+  hotkeyWidget.Name = 'RoUI3_Hotkeys';
+
+  let cleanup = () => {
+    appTreeAtom((rootOption) => {
+      return rootOption.andWith((root) => {
+        root.unmount();
+
+        return Option.none();
+      });
+    });
+    hotkeysTreeAtom((rootOption) => {
+      return rootOption.andWith((root) => {
+        root.unmount();
+
+        return Option.none();
+      });
+    });
+
+    appWidget().unwrap().Enabled = false;
+    hotkeysWidget().unwrap().Enabled = false;
+
+    // Clean up the cloned ScreenGui
+    if (screenGuiSelection().isSome()) {
+      const screenGuiClone = screenGuiSelection().unwrap();
+
+      screenGuiSelection(Option.none());
+      screenGuiClone.Destroy();
     }
+
+    // Clean up the original ScreenGui
+    if (originalScreenGuiSelection().isSome()) {
+      const screenGui = originalScreenGuiSelection().unwrap();
+
+      screenGui.Parent = StarterGui;
+      screenGui.Enabled = true;
+      originalScreenGuiSelection(Option.none());
+    }
+
+    // Clean up state
+    currentRoute(Route.StartView);
+
+    clearCache();
+
+    settingMaxTimelineLength(5);
+    settingScrubberPosition(1);
+    settingAutoKeyframe(true);
+    internalPropertyChange(new Map());
+    mutedPropertiesAtom(new Map());
+    settingSyncSelections(true);
+    pressedKeys(new Set());
+    activeContextMenu('');
+    selectedKeyframes([]);
+    previewKeyframesAtom([]);
+    animationRegistry(new Map());
+
+    instanceTreeSelection(Option.none());
+    currentTimestamps([]);
+    scrubbingData({ isScrubbing: false, mouseOffset: 0 });
+    previewData({ isPreviewing: false, previewTime: 0 });
+    editorWarnings(new Set());
+
+    ActionManager.clearHistory();
+    ToastManager.clearToasts();
+    ClipboardManager.clearClipboard();
   };
 
-  // Unmount trees when a widget closes
-  widgetManager.widgets.start.BindToClose(() => {
-    cleanupTree(treeManager.trees.start, () => {
-      treeManager.trees.start = Option.none();
-      widgetManager.widgets.start.Enabled = false;
-      AppStore.dispatch(restoreRoot() as never);
+  let cleanupHotkeys = () => {
+    hotkeysTreeAtom((rootOption) => {
+      return rootOption.andWith((root) => {
+        root.unmount();
+
+        return Option.none();
+      });
     });
-  });
-  widgetManager.widgets.timeline.BindToClose(() => {
-    cleanupTree(treeManager.trees.timeline, () => {
-      treeManager.trees.timeline = Option.none();
-      widgetManager.widgets.timeline.Enabled = false;
-      AppStore.dispatch(restoreRoot() as never);
-    });
-  });
+
+    hotkeysWidget().unwrap().Enabled = false;
+  };
+
+  (widget['BindToClose' as never] as Callback)(appWidget().unwrap(), cleanup) as never;
+  (hotkeyWidget['BindToClose' as never] as Callback)(hotkeysWidget().unwrap(), cleanupHotkeys) as never;
 
   animateButton.Click.Connect(() => {
-    if (treeManager.trees.start.isNone()) {
-      if (treeManager.trees.timeline.isSome()) {
-        cleanupTree(treeManager.trees.timeline, () => {
-          treeManager.trees.timeline = Option.none();
-          widgetManager.widgets.timeline.Enabled = false;
-          AppStore.dispatch(restoreRoot() as never);
-        });
-      }
+    if (RunService.IsRunning()) {
+      return;
+    }
 
-      treeManager.trees.start = Option.some(
-        Roact.mount(
-          <RoactRodux.StoreProvider store={AppStore}>
-            <Start />
-          </RoactRodux.StoreProvider>,
-          widgetManager.widgets.start
-        )
-      );
-      widgetManager.widgets.start.Enabled = true;
+    if (appTreeAtom().isNone()) {
+      plugin.Activate(true);
+
+      appTreeAtom(Option.some(createRoot(appWidget().unwrap())));
+
+      appTreeAtom()
+        .unwrap()
+        .render(createPortal(<App />, appWidget().unwrap()));
+
+      appWidget().unwrap().Enabled = true;
     } else {
-      cleanupTree(treeManager.trees.start, () => {
-        treeManager.trees.start = Option.none();
-        widgetManager.widgets.start.Enabled = false;
-        AppStore.dispatch(restoreRoot() as never);
-      });
+      cleanup();
     }
   });
-
-  downloadButton.Click.Connect(() => {
-    const selection = game.GetService('Selection').Get()[0];
-    const clone = RoUI3Module.Clone();
-    clone.Parent =
-      selection === undefined
-        ? game.GetService('ReplicatedStorage')
-        : selection;
-  });
-
-  // Cleanup on unload
-  plugin.Unloading.Connect(() => {
-    cleanupTree(
-      treeManager.trees.start,
-      () => (treeManager.trees.start = Option.none())
-    );
-    cleanupTree(
-      treeManager.trees.timeline,
-      () => (treeManager.trees.timeline = Option.none())
-    );
-    AppStore.dispatch(restoreRoot() as never);
-  });
-
-  // Update store when studio theme changes
-  settings().Studio.ThemeChanged.Connect(() => {
-    AppStore.dispatch({
-      type: 'SetTheme',
-      theme: settings().Studio.Theme,
-    });
-  });
-}
-
-// Download RoUI3 module
-if (RunService.IsEdit()) {
-  const code = game
-    .GetService('HttpService')
-    .GetAsync(
-      'https://raw.githubusercontent.com/astrealRBLX/RoUI3/master/RoUI3.lua'
-    );
-  RoUI3Module = new Instance('ModuleScript');
-  RoUI3Module.Name = 'RoUI3';
-  RoUI3Module.Source = code;
 }

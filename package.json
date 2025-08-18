@@ -12,19 +12,21 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@rbxts/compiler-types": "^1.2.7-types.1",
-    "@rbxts/types": "^1.0.552",
+    "@rbxts/compiler-types": "^3.0.0-types.0",
+    "@rbxts/types": "^1.0.862",
     "concurrently": "^6.4.0"
   },
   "dependencies": {
-    "@rbxts/flipper": "^2.0.1",
-    "@rbxts/hook-bag": "0.0.9",
-    "@rbxts/llama": "^1.1.0-ts2",
-    "@rbxts/roact": "^1.4.0-ts.2",
-    "@rbxts/roact-hooks": "^0.3.0-ts.2",
-    "@rbxts/roact-rodux": "^0.2.2-ts.5",
-    "@rbxts/rodux": "^3.0.0-ts.3",
-    "@rbxts/rust-classes": "^0.11.0-beta.1",
-    "@rbxts/services": "^1.2.0"
+    "@rbxts/charm": "^0.10.0",
+    "@rbxts/immut": "^0.4.4-ts.0",
+    "@rbxts/log": "^0.6.3",
+    "@rbxts/pretty-react-hooks": "^0.6.4",
+    "@rbxts/react": "^17.2.3",
+    "@rbxts/react-charm": "^0.3.0",
+    "@rbxts/react-roblox": "^17.2.3",
+    "@rbxts/ripple": "^0.9.3",
+    "@rbxts/rust-classes": "^0.13.0",
+    "@rbxts/services": "^1.2.0",
+    "roblox-ts": "^3.0.0"
   }
 }

@@ -8,10 +8,7 @@ export interface IDistanceResult {
 // function will calculate the distances to each value from
 // the static position and return them sorted by distance
 // from closest to furthest
-export const getSortedDistances = (
-  staticPosition: number,
-  otherValues: number[]
-) => {
+export const getSortedDistances = (staticPosition: number, otherValues: number[]) => {
   const distances: Array<IDistanceResult> = [];
 
   otherValues.forEach((position) => {

@@ -1,89 +1,23 @@
-<img width="30%" image-rendering="crisp-edges" src="./assets/logo-0.5x.png" align="right">
+<img width="30%" image-rendering="crisp-edges" src="./.moonwave/static/logo-0.5x.png" align="right" />
 
 # RoUI3
 
-[![Install](https://img.shields.io/badge/install-RoUI3-inactive?style=flat-square)](#)
-[![Version](https://img.shields.io/github/package-json/v/astrealRBLX/RoUI3?color=blueviolet&style=flat-square)](#)
-[![LastCommit](https://img.shields.io/github/last-commit/astrealRBLX/RoUI3?color=green&style=flat-square)](#)
-[![GitHub](https://img.shields.io/github/license/astrealRBLX/RoUI3?style=flat-square)](#)
+[![Install](https://img.shields.io/badge/install-roui3-brightgreen?style=for-the-badge&link=https%3A%2F%2Fcreate.roblox.com%2Fstore%2Fasset%2F11798243393%2FRoUI3)](https://create.roblox.com/store/asset/11798243393/RoUI3)
+![Version](https://img.shields.io/badge/version-2.0.0-blueviolet?style=for-the-badge&link=https%3A%2F%2Fcreate.roblox.com%2Fstore%2Fasset%2F11798243393%2FRoUI3)
+![GitHub last commit](https://img.shields.io/github/last-commit/astrealrblx/roui3?style=for-the-badge)
 
-[![Discord](https://img.shields.io/discord/826998257548132373?label=discord&style=flat-square)](https://discord.gg/ZhuKckF44h)
-[![Twitter](https://img.shields.io/twitter/follow/astrealdev?color=blue&style=flat-square)](https://twitter.com/intent/follow?original_referer=https%3A%2F%2Fpublish.twitter.com%2F&ref_src=twsrc%5Etfw%7Ctwcamp%5Ebuttonembed%7Ctwterm%5Efollow%7Ctwgr%5Eastrealdev&region=follow_link&screen_name=astrealdev) 
 
 Create beautiful animations for your Roblox GUIs with RoUI3, a user-friendly and feature-rich Roblox Studio plugin.
 
-The successor to RoUI2, this plugin is foundationally the same yet contains a surplus of new features, a reworked codebase, and a completely overhauled look.
-
 ## Timeline Overview
+RoUI3's primary plugin widget is known as the Timeline. The Timeline allows you to animate your GUIs with precision and speed while still maintaining quality.
 
-RoUI3's primary plugin widget is known as the Timeline. The Timeline allows you to animate your GUIs quickly and exactly the way you want.
-
-![Timeline Overview](assets/TimelineOverview.png)
+![Timeline Overview](./.moonwave/static/TimelineOverview.png)
 
 ## Installation
 
-<!-- A stable release of RoUI3 is not currently available as it is still in development. However, you may compile RoUI3 yourself using [roblox-ts](https://roblox-ts.com/) for an experimental build. -->
-
-You can purchase the latest stable release of RoUI3 directly from the Roblox marketplace [here](https://www.roblox.com/library/11798243393/RoUI3). Alternatively, you can compile the source yourself using [roblox-ts](https://roblox-ts.com/). The choice is up to you, however, purchasing it from the marketplace is recommended as it's cheap, will automatically update, and helps support me.
+You can purchase the latest stable release of RoUI3 directly from the Roblox marketplace [here](https://www.roblox.com/library/11798243393/RoUI3). Purchasing it from the marketplace is recommended as it's cheap, will automatically update, and helps support me.
 
 ## Using the RoUI3 Animation Module
 
-To learn more about how to use the module to play your animations check out [the RoUI3 wiki](https://github.com/astrealRBLX/RoUI3/wiki/Using-the-RoUI3-Module).
-
-## Roadmap
-
-This is RoUI3's roadmap for every major and minor release and beyond!
-
-| Icon | Meaning           |
-|------|-------------------|
-| ✔️  | Completed         |
-| 🔜  | In Progress       |
-| ❔   | Being Reviewed    |
-| ❌  | Incomplete        |
-
-
-### Release v1.0.0
-
-The initial release of RoUI3! 🥳
-
-- ✔️ Start widget
-- ✔️ Timeline widget
-  - ✔️ Topbar
-    - ✔️ Scrubber time textbox
-    - ✔️ Max time textbox
-    - ✔️ Add property dropdown menu
-    - ✔️ Save/export animation button
-    - ✔️ Selected keyframe options
-      - ✔️ Current time position textbox
-      - ✔️ Easing style / direction dropdown menus for tweens
-    - ✔️ Preview button
-  - ✔️ Timeline content
-    - ✔️ Property list
-      - ✔️ Dynamic rendering based on app state
-      - ✔️ Delete property with right-click context menu
-    - ✔️ Timestamp header
-      - ✔️ Dynamic timestamps based on max animation time
-      - ✔️ Click to jump scrubber to position
-    - ✔️ Scrubber
-      - ✔️ Drag to update time
-      - ✔️ Hold `SHIFT` for snap mode while dragging
-        - ✔️ Hold `CTRL+SHIFT` to snap to keyframes
-        - ✔️ Snap to timestamps
-      - ✔️ Preview keyframes based on scrubber time
-    - ✔️ Timeline pane
-      - ✔️ Dynamic keyframe rendering based on app state
-      - ✔️ Keyframes
-        - ✔️ Selection support
-        - ✔️ Right-click context menu
-          - ✔️ Delete keyframe
-        - ✔️ `CTRL` click support for selecting multiple keyframes
-- ✔️ Exporting
-  - ✔️ Data serialization
-- ✔️ Animation controller module
-  - ✔️ Play an animation
-  - ✔️ Support animation options
-    - ✔️ Speed scale
-  - ✔️ Pause an animation
-  - ✔️ Skip to end of an animation
-  - ✔️ Cancel an animation
-  - ✔️ Yield for an animation to conclude
+To learn more about how to use the module to play your animations check out documentation.

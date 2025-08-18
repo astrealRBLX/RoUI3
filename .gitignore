@@ -3,3 +3,5 @@
 /include
 .vscode
 *.tsbuildinfo
+sourcemap.json
+build
